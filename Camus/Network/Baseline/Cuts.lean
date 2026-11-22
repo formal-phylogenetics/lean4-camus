@@ -109,7 +109,7 @@ theorem baselineCut_inside {t : PhyloTree} {p x : Address}
     (baselineCutGraph t p).Reachable (Address.code x) (Address.code p) := by
   generalize hn : x.length = n
   induction n using Nat.strong_induction_on generalizing x with
-  | h n ih =>
+  | ind n ih =>
     by_cases heq : x = p
     · subst x
       exact .refl _
@@ -133,7 +133,7 @@ theorem baselineCut_outside {t : PhyloTree} {p x : Address}
     (baselineCutGraph t p).Reachable (Address.code x) (Address.code []) := by
   generalize hn : x.length = n
   induction n using Nat.strong_induction_on generalizing x with
-  | h n ih =>
+  | ind n ih =>
     by_cases hnil : x = []
     · subst x
       exact .refl _

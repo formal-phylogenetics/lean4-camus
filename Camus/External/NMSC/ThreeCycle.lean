@@ -110,7 +110,7 @@ probability `e^{-t}`. -/
 private theorem tc_kT_two {i j : Fin 4} (hij : i ≠ j) (t : ℝ) :
     Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 ᵥ* kingmanTransition t =
       Real.exp (-t) • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-t)) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1 := by
+        (1 - Real.exp (-t)) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1 := by
   have hroots : roots ({{i}, {j}} : Finset (Finset (Fin 4))) = {{i}, {j}} := by
     revert i j
     decide
@@ -184,7 +184,7 @@ private theorem tc_below {s : Fin 4 → X} (hs : Function.Injective s) {i j : Fi
     (ℓ : ℝ) :
     (Net.tree 1 (.leaf (s i)) 1 (.leaf (s j))).forestDist s ᵥ* kingmanTransition ℓ =
       Real.exp (-ℓ) • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-ℓ)) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1 := by
+        (1 - Real.exp (-ℓ)) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1 := by
   show forestUnion ((Net.leaf (s i)).forestDist s ᵥ* kingmanTransition 1)
     ((Net.leaf (s j)).forestDist s ᵥ* kingmanTransition 1) ᵥ* kingmanTransition ℓ = _
   rw [tc_leaf_kT hs i, tc_leaf_kT hs j, forestUnion_single_single,

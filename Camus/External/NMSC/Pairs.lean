@@ -518,7 +518,7 @@ theorem steps_bound : ∀ (L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)) 
             refine disjoint_union_left.2 ⟨(pr_disj01 hT).mono_right (hS.trans sdiff_subset),
               disjoint_of_subset_right hS disjoint_sdiff⟩
           · rw [hFl]
-            exact pr_card3 (nonempty_iff_ne_empty.2 hU0) hdU
+            exact pr_card3 (ne_empty_iff_nonempty.symm.2 hU0) hdU
 
 /-- **The node where the pair enters.** At a node of a side, the forest `β` arriving from below
 (on lineages among `2, 3`) and the forest `P` of the pair `0, 1` join; then the lineages travel
@@ -552,7 +552,7 @@ theorem arm_bound {β P ν : Finset (Finset (Fin 4)) → ℝ} {Tβ T : Finset (F
       · rw [hFl]
         exact disjoint_union_left.2 ⟨(hTd.symm.mono_right hS), (pr_disj01 hT).mono_right hS⟩
       · rw [hFl, union_comm]
-        exact pr_card3 (nonempty_iff_ne_empty.2 hTβ0) hd
+        exact pr_card3 (ne_empty_iff_nonempty.symm.2 hTβ0) hd
 
 /-! ### Along a side and at a cycle -/
 

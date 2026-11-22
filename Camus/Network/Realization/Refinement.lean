@@ -354,7 +354,7 @@ theorem singleton_support_split {t : PhyloTree} {e : Pair}
     · exact hdpw h.1.symm
   simp only [graph,RootedNetwork.splitAt,RootedNetwork.mk.injEq]
   refine ⟨?_,?_,trivial,trivial,trivial⟩
-  · simp [Finset.insert_comm,Finset.union_comm]
+  · simp [Finset.insert_comm]
   · change supportEdges t {e} =
       (((graph t ∅).splitAt (originalEdge e.1) (donor t e)).splitAt
         (originalEdge e.2) (recipient t e)).edges

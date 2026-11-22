@@ -289,7 +289,7 @@ theorem exists_trace (t : PhyloTree) (w : Pair → ℕ) (M : Address → ℕ →
   -- Strong induction on `remainingDepth t v`, which decreases from `v` to its proper descendants.
   generalize hn : remainingDepth t v = n
   induction n using Nat.strong_induction_on generalizing v k with
-  | h n ih =>
+  | ind n ih =>
     obtain ⟨z, hz⟩ := hk
     have hzc := (mem_best.mp ((hM v hv k) ▸ hz)).1
     obtain ⟨sub, hnode⟩ := (PhyloTree.mem_nodes_iff _ _).mp hv

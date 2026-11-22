@@ -91,9 +91,9 @@ theorem clade_subset_taxa (t : PhyloTree) : ∀ C ∈ t.clades, C ⊆ t.taxa := 
   | fork l r ihl ihr =>
     intro C hC
     have hlt : l.taxa ⊆ (fork l r).taxa := by
-      simp [taxa, labels, List.toFinset_append, Finset.subset_union_left]
+      simp [taxa, labels, List.toFinset_append]
     have hrt : r.taxa ⊆ (fork l r).taxa := by
-      simp [taxa, labels, List.toFinset_append, Finset.subset_union_right]
+      simp [taxa, labels, List.toFinset_append]
     simp only [clades, List.mem_cons, List.mem_append] at hC
     rcases hC with rfl | hC | hC
     · simp [taxa, labels, List.toFinset_append]
@@ -509,7 +509,7 @@ theorem mostFrequent_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryL
     rw [Filter.eventually_all_finset]
     exact hω q hq
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.tendsto_measure_of_ae_eventually hall) tendsto_const_nhds
+    (External.tendsto_measure_of_ae_eventually (A := fun m => {ω | _}) hall) tendsto_const_nhds
     (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   intro q hq s hs
   exact hω q (hK q hq) s (Finset.mem_filter.mpr ⟨Finset.mem_univ s, hs⟩)

@@ -137,7 +137,7 @@ probability `e^{-t}`. -/
 private theorem ts_kT_two {i j : Fin 4} (hij : i ≠ j) (t : ℝ) :
     Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 ᵥ* kingmanTransition t =
       Real.exp (-t) • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-t)) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1 := by
+        (1 - Real.exp (-t)) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1 := by
   have hroots : roots ({{i}, {j}} : Finset (Finset (Fin 4))) = {{i}, {j}} := by
     revert i j
     decide
@@ -201,7 +201,7 @@ private theorem ts_below {s : Fin 4 → X} (hs : Function.Injective s) {i j : Fi
     (ℓ : ℝ) :
     (Net.tree 1 (.leaf (s i)) 1 (.leaf (s j))).forestDist s ᵥ* kingmanTransition ℓ =
       Real.exp (-ℓ) • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-ℓ)) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1 := by
+        (1 - Real.exp (-ℓ)) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1 := by
   show forestUnion ((Net.leaf (s i)).forestDist s ᵥ* kingmanTransition 1)
     ((Net.leaf (s j)).forestDist s ᵥ* kingmanTransition 1) ᵥ* kingmanTransition ℓ = _
   rw [ts_leaf_kT hs i, ts_leaf_kT hs j, forestUnion_single_single,
@@ -779,7 +779,7 @@ along the edge of length `a` with probability `1 - e^{-a}`. -/
 private theorem ts_side_two_empty :
     (Side.node a 1 (.leaf (s k)) (.node b 1 (.leaf (s m)) (.hyb h₁))).forestDist s ∅ =
       Real.exp (-a) • Pi.single ({{m}, {k}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-a)) • Pi.single (insert ({m} ∪ {k}) {{m}, {k}}) 1 := by
+        (1 - Real.exp (-a)) • Pi.single (insert (({m} : Finset (Fin 4)) ∪ {k}) {{m}, {k}}) 1 := by
   rw [ts_side_two hs k m h₁ a b, ts_kT_empty, forestUnion_single_single, empty_union,
     ts_kT_single, forestUnion_single_single,
     show ({{m}} ∪ {{k}} : Finset (Finset (Fin 4))) = {{m}, {k}} from rfl, ts_kT_two hkm.symm]
@@ -1180,7 +1180,7 @@ private theorem ts3_cycle_ES_gen {s : Fin 4 → X} (hs : Function.Injective s) {
     (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k) (γ ℓ h₁ h₂ L p : ℝ) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1) :
+        (1 - p) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1) :
     ts_ES ((Net.cycle γ (.node L 1 (.leaf (s k)) (.hyb h₁)) (.hyb h₂) ℓ H).forestDist s) =
       p * ((1 - γ) ^ 2 * (Real.exp (-h₂) / 3 + (1 - Real.exp (-h₂)) * ts_ps ({i} ∪ {j})) +
         γ * (1 - γ) * (Real.exp (-L) / 3 + (1 - Real.exp (-L)) * ts_ps ({i} ∪ {k})) +
@@ -1211,7 +1211,7 @@ private theorem ts_cycle_ES_gen {s : Fin 4 → X} (hs : Function.Injective s) {i
     (γ ℓ h₁ h₂ a b p : ℝ) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1) :
+        (1 - p) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1) :
     ts_ES ((Net.cycle γ (.node a 1 (.leaf (s k)) (.hyb h₁)) (.node b 1 (.leaf (s m)) (.hyb h₂)) ℓ
       H).forestDist s) =
       p * ((1 - γ) ^ 2 *
@@ -1250,7 +1250,7 @@ private theorem ts1_cycle_ES_gen {s : Fin 4 → X} (hs : Function.Injective s) {
     (γ ℓ h₁ h₂ a b p : ℝ) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1) :
+        (1 - p) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1) :
     ts_ES ((Net.cycle γ (.node a 1 (.leaf (s k)) (.node b 1 (.leaf (s m)) (.hyb h₁))) (.hyb h₂) ℓ
       H).forestDist s) =
       p * ((1 - γ) ^ 2 * (Real.exp (-a) * Real.exp (-h₂) / 3 +
@@ -1292,7 +1292,7 @@ theorem expectedScore_top_outside {s : Fin 4 → X} (hs : Function.Injective s) 
     (hk0 : k ≠ 0) (hk1 : k ≠ 1) (γ ℓ h₁ h₂ L p : ℝ) (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁ : ∀ E, S₁.forestDist s E = forestUnion (Pi.single E 1 ᵥ* kingmanTransition h₁)
       (Pi.single {{k}} 1) ᵥ* kingmanTransition L)
     (hS₂ : ∀ E, S₂.forestDist s E = Pi.single E 1 ᵥ* kingmanTransition h₂) :
@@ -1328,7 +1328,7 @@ theorem expectedScore_top_sides {s : Fin 4 → X} (hs : Function.Injective s) {k
     (γ ℓ h₁ h₂ a b p : ℝ) (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁ : ∀ E, S₁.forestDist s E = forestUnion (Pi.single E 1 ᵥ* kingmanTransition h₁)
       (Pi.single {{k}} 1) ᵥ* kingmanTransition a)
     (hS₂ : ∀ E, S₂.forestDist s E = forestUnion (Pi.single E 1 ᵥ* kingmanTransition h₂)
@@ -1370,7 +1370,7 @@ theorem expectedScore_top_oneSide {s : Fin 4 → X} (hs : Function.Injective s) 
     (γ ℓ h₁ h₂ a b p : ℝ) (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁ : ∀ E, S₁.forestDist s E = forestUnion (forestUnion
       (Pi.single E 1 ᵥ* kingmanTransition h₁) (Pi.single {{m}} 1) ᵥ* kingmanTransition b)
         (Pi.single {{k}} 1) ᵥ* kingmanTransition a)

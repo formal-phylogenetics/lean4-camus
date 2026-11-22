@@ -253,8 +253,8 @@ theorem displays_iff_treeEdge_cladeBelow {N : RootedNetwork} (hN : N.RootedBinar
           simp only [Quartet.cutBy, Finset.subset_empty, Finset.disjoint_empty_right,
             and_true, decide_eq_true_eq] at hcut
           rcases hcut with h | h
-          · exact (Finset.nonempty_iff_ne_empty.mp q.sides_nonempty.1) h
-          · exact (Finset.nonempty_iff_ne_empty.mp q.sides_nonempty.2) h
+          · exact (Finset.ne_empty_iff_nonempty.symm.mp q.sides_nonempty.1) h
+          · exact (Finset.ne_empty_iff_nonempty.symm.mp q.sides_nonempty.2) h
         obtain ⟨haN, hya⟩ := mem_cladeBelow.mp ha
         rcases hya.cases_head with h | ⟨z, hyz, _⟩
         · exact absurd h.symm (hleaf_ne a haN)

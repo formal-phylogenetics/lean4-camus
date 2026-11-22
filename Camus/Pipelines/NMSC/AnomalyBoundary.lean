@@ -460,7 +460,7 @@ theorem prob_labels_eq {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
     have hae : (G 0 ⁻¹' {T | blockLabel k T = u} : Set Ω) =ᵐ[P]
         {ω | Induces (G 0 ω) (k.quartet u)} := by
       filter_upwards [ae_geneTreeDist_ne_zero G hid hlaw] with ω hω
-      simp only [Set.mem_preimage, Set.mem_ofPred_eq, eq_iff_iff]
+      simp only [Set.mem_preimage, Set.mem_ofPred_eq]
       exact (induces_iff_blockLabel hN hk hthird (hω 0) u).symm
     rw [measure_congr hae]
     have hreal := measureReal_induces N (G 0) (hid 0).aemeasurable_fst hlaw (k.quartet u)

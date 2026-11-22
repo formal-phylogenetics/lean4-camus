@@ -150,7 +150,7 @@ theorem Net.geneTreeDist_support {N : Net X} (hN : N.leaves.Nodup) {s : Fin 4 �
     exact filter_true_of_mem fun l _ => hsN l
   obtain ⟨hGg, -, hGl, hroot⟩ := kingmanAbsorption_support hFg (right_ne_zero_of_mul hF)
   have hne : F.Nonempty := by
-    rw [nonempty_iff_ne_empty]
+    rw [ne_empty_iff_nonempty.symm]
     rintro rfl
     rw [ADR11.lineages_empty] at hlin
     exact univ_nonempty.ne_empty hlin.symm

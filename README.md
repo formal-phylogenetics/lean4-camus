@@ -205,7 +205,7 @@ python3 scripts/sync_challenge_defs.py --check         # the Challenge's copy of
 python3 scripts/linkify_docs.py                        # update the documents' links to the code
 ```
 
-The toolchain is Lean `v4.35.0-rc4`, with Mathlib's tag `v4.35.0-rc4`; the library also depends
+The toolchain is Lean `v4.37.0-rc1`, with Mathlib's tag `v4.37.0-rc1`; the library also depends
 on <https://github.com/vltanh/lean4-adr11>, for the multispecies coalescent.
 [`scripts/route_check.py`](scripts/route_check.py) reads `.lake/route_deps.tsv`, which the audit
 writes.

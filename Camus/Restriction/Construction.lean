@@ -79,7 +79,7 @@ noncomputable def bottomUp (t : PhyloTree) (w : Pair → ℕ) : ℕ → Address 
     (hb : remainingDepth t v < b) : ∀ k, bottomUp t w a v k = bottomUp t w b v k := by
   generalize hn : remainingDepth t v = n at ha hb
   induction n using Nat.strong_induction_on generalizing v a b with
-  | h n ih =>
+  | ind n ih =>
     cases a with
     | zero => omega
     | succ a =>

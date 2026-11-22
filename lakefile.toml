@@ -10,12 +10,12 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "ADR11"
 git = "https://github.com/vltanh/lean4-adr11"
-rev = "2db7f81359758bc49f52bc13c51f2640f8f2a7fd"
+rev = "ed42599e5ad66a98a5761a7481d5112d1e0cdfec"
 
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.35.0-rc4"
+rev = "v4.37.0-rc1"
 
 [[lean_lib]]
 name = "Camus"

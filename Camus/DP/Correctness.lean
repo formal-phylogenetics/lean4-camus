@@ -167,7 +167,7 @@ theorem array_upper (t : PhyloTree) (weight : Pair → ℕ) (M : Address → ℕ
   -- Strong induction on `remainingDepth t v`, which decreases from `v` to its proper descendants.
   generalize hn : remainingDepth t v = n
   induction n using Nat.strong_induction_on generalizing v F with
-  | h n ih =>
+  | ind n ih =>
     obtain ⟨subtree, hnode⟩ := (PhyloTree.mem_nodes_iff _ _).mp hv
     have hrec := hM v hv
     rw [hnode] at hrec
@@ -265,7 +265,7 @@ theorem bottomUp_stable (t : PhyloTree) (weight : Pair → ℕ) {v : Address}
     (hb : remainingDepth t v < b) : bottomUp t weight a v = bottomUp t weight b v := by
   generalize hn : remainingDepth t v = n at ha hb
   induction n using Nat.strong_induction_on generalizing v a b with
-  | h n ih =>
+  | ind n ih =>
     cases a with
     | zero => omega
     | succ a =>
@@ -355,7 +355,7 @@ theorem exists_trace (t : PhyloTree) (weight : Pair → ℕ) (M : Address → �
   classical
   generalize hn : remainingDepth t v = n
   induction n using Nat.strong_induction_on generalizing v with
-  | h n ih =>
+  | ind n ih =>
     obtain ⟨sub, hnode⟩ := (PhyloTree.mem_nodes_iff _ _).mp hv
     cases sub with
     | leaf a => exact ⟨∅, Trace.leaf v a hnode⟩

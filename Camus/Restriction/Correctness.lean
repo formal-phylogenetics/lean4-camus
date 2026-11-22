@@ -154,7 +154,7 @@ of `T`. Strong induction from the leaves up, with the two cases of the proof of 
     (hM : Array t w M) {v : Address} (hv : v ∈ t.nodes) : Correct t w M v := by
   generalize hn : remainingDepth t v = n
   induction n using Nat.strong_induction_on generalizing v with
-  | h n ih =>
+  | ind n ih =>
     have hsub r (hr : r ∈ t.nodes) (hvr : v <+: r) (hne : v ≠ r) : Correct t w M r :=
       ih (remainingDepth t r) (hn ▸ remainingDepth_lt hr hvr hne) hr rfl
     constructor

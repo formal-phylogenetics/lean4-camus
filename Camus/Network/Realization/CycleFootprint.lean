@@ -66,7 +66,7 @@ theorem original_cycle_connected {t : PhyloTree} {E : Finset Pair}
       (cycleSupportGraph t E e).Reachable (Address.code (EdgeAbove.target e)) (Address.code p) := by
     intro n
     induction n using Nat.strong_induction_on with
-    | h n ih =>
+    | ind n ih =>
       intro p hlen hp
       by_cases hp0 : p = EdgeAbove.target e
       · rw [hp0]

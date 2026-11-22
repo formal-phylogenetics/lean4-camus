@@ -110,7 +110,7 @@ theorem support_reaches_original (t : PhyloTree) (E : Finset Pair) {p : Address}
         (Address.code []) (Address.code p) := by
     intro n
     induction n using Nat.strong_induction_on with
-    | h n ih =>
+    | ind n ih =>
       intro p hlen hp
       by_cases hp0 : p = []
       · subst p

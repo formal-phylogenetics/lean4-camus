@@ -459,7 +459,7 @@ theorem Net.Cycle.below_forestDist {N : Net X} (hN : N.WellFormed) (Ω : N.Cycle
     {s : Fin 4 → X} (hbelow : Ω.below.lin s = {0, 1}) :
     Ω.below.forestDist s ᵥ* kingmanTransition Ω.ℓ =
       Ω.apartProb s • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Ω.apartProb s) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1 := by
+        (1 - Ω.apartProb s) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1 := by
   have h := Ω.below_isForestDist hN s
   rw [hbelow] at h
   have hsupp : ∀ F, (Ω.below.forestDist s ᵥ* kingmanTransition Ω.ℓ) F ≠ 0 →
@@ -492,7 +492,7 @@ theorem Net.Cycle.below_forestDist {N : Net X} (hN : N.WellFormed) (Ω : N.Cycle
 private theorem ag_kT_two {i j : Fin 4} (hij : i ≠ j) (t : ℝ) :
     Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 ᵥ* kingmanTransition t =
       Real.exp (-t) • Pi.single ({{i}, {j}} : Finset (Finset (Fin 4))) 1 +
-        (1 - Real.exp (-t)) • Pi.single (insert ({i} ∪ {j}) {{i}, {j}}) 1 := by
+        (1 - Real.exp (-t)) • Pi.single (insert (({i} : Finset (Fin 4)) ∪ {j}) {{i}, {j}}) 1 := by
   have hroots : roots ({{i}, {j}} : Finset (Finset (Fin 4))) = {{i}, {j}} := by
     revert i j
     decide
@@ -535,7 +535,7 @@ theorem expectedScore_cycle_outside {s : Fin 4 → X} (hs : Function.Injective s
     (hk0 : k ≠ 0) (hk1 : k ≠ 1) (γ ℓ p : ℝ) (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁n : S₁.leaves.Nodup) (h1 : S₁.lin s = {k}) (h2 : S₂.lin s = ∅) :
     ∑ F, (Net.cycle γ S₁ S₂ ℓ H).forestDist s F * quartetScore F =
       1 - p + p * (γ ^ 2 * (1 - 2 / 3 * Real.exp (-S₁.lenBelow (s k))) +
@@ -554,7 +554,7 @@ theorem expectedScore_cycle_sides {s : Fin 4 → X} (hs : Function.Injective s) 
     (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁n : S₁.leaves.Nodup) (hS₂n : S₂.leaves.Nodup) (h1 : S₁.lin s = {k})
     (h2 : S₂.lin s = {m}) :
     ∑ F, (Net.cycle γ S₁ S₂ ℓ H).forestDist s F * quartetScore F =
@@ -573,7 +573,7 @@ theorem expectedScore_cycle_oneSide {s : Fin 4 → X} (hs : Function.Injective s
     (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁m : S₁.IsMetric) (hS₁n : S₁.leaves.Nodup) (h1 : S₁.lin s = {2, 3})
     (hp : ∀ n ∈ S₁.nodes, #(n.2.2.lin s) ≤ 1) (h2 : S₂.lin s = ∅) :
     ∃ u v : Fin 4, ((u = 2 ∧ v = 3) ∨ (u = 3 ∧ v = 2)) ∧
@@ -643,7 +643,7 @@ private theorem ag_core {s : Fin 4 → X} (hs : Function.Injective s) (γ ℓ p 
     (S₁ S₂ : Side X) (H : Net X)
     (hH : H.forestDist s ᵥ* kingmanTransition ℓ =
       p • Pi.single ({{0}, {1}} : Finset (Finset (Fin 4))) 1 +
-        (1 - p) • Pi.single (insert ({0} ∪ {1}) {{0}, {1}}) 1)
+        (1 - p) • Pi.single (insert (({0} : Finset (Fin 4)) ∪ {1}) {{0}, {1}}) 1)
     (hS₁m : S₁.IsMetric) (hS₂m : S₂.IsMetric) (hS₁n : S₁.leaves.Nodup) (hS₂n : S₂.leaves.Nodup)
     (hp : ∀ n ∈ S₁.nodes ++ S₂.nodes, #(n.2.2.lin s) ≤ 1)
     (hsub : S₁.lin s ∪ S₂.lin s ⊆ {2, 3}) (hdisj : Disjoint (S₁.lin s) (S₂.lin s))

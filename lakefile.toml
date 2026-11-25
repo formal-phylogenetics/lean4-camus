@@ -7,10 +7,23 @@ defaultTargets = ["Camus", "Challenge", "Solution"]
 autoImplicit = false
 maxSynthPendingDepth = 3
 
+# The root of the collection: the shared library of phylogenetics.
 [[require]]
-name = "ADR11"
-git = "https://github.com/vltanh/lean4-adr11"
-rev = "ed42599e5ad66a98a5761a7481d5112d1e0cdfec"
+name = "Phylogenetics"
+git = "https://github.com/vltanh/lean4-phylogenetics"
+rev = "b56ce531644230622f069aaa8aa51a5143c1411e"
+
+# The hub of this paper: Phylogenetic network estimation.
+[[require]]
+name = "PhyloNetwork"
+git = "https://github.com/vltanh/lean4-phylo-network"
+rev = "d069aaa85c4d9ee9d2a8746b71170f27c92a8633"
+
+# Allman, Degnan, Rhodes 2011, whose four-taxon distributions the motivation of Algorithm 1 uses.
+[[require]]
+name = "Allman2011"
+git = "https://github.com/vltanh/lean4-allman2011"
+rev = "cd1c7b04f572d6cbc2b3c6f665b5932917fcad20"
 
 [[require]]
 name = "mathlib"

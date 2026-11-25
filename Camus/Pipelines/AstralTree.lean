@@ -2,7 +2,7 @@ module
 
 public import Camus.Pipelines.Coalescent.Sampling
 public import Camus.Network.RootedIso
-public import ADR11.External.Quartets.Steel
+public import Phylogenetics.Hierarchy.Quartets
 
 /-!
 # Section 3.2: the quartets of a binary tree determine it
@@ -13,7 +13,7 @@ comparison shows that every tree of maximum score induces the quartets of `t`
 (`astral_maximizer_tendsto`); the conclusion uses the classical fact that the quartets of a binary
 tree determine its unrooted topology (Steel 1992), and that rooting it at the outgroup gives back
 the rooted tree. This file proves both, from Steel's reconstruction of the splits of a tree from
-its quartets as formalized in lean4-adr11 (`ADR11.mem_unroot_iff_quartets`). Two well-labelled
+its quartets as formalized in lean4-phylogenetics (`Phylogenetics.mem_unroot_iff_quartets`). Two well-labelled
 trees on the same taxa that induce the same quartets have the same splits
 (`PhyloTree.splits_eq_of_induced_eq`); if moreover the leaf of the same outgroup is a child of the
 root of both, they have the same clades (`PhyloTree.clusterEq_of_induced_eq`), and so they are
@@ -41,11 +41,11 @@ without changing its quartets (`PhyloTree.reroot`, `PhyloTree.induced_reroot`,
 ## Proof
 
 The paper uses these facts without proof; the proof here is Steel's reconstruction, from
-lean4-adr11. The bridge `Coalescent.HasTopology` reads a tree `t` as a species tree `σ` of
-lean4-adr11, whose unrooted topology `unroot σ.clusters` is the set of the splits of `t`
+lean4-phylogenetics. The bridge `Coalescent.HasTopology` reads a tree `t` as a species tree `σ` of
+lean4-phylogenetics, whose unrooted topology `unroot σ.clusters` is the set of the splits of `t`
 (`PhyloTree.mem_splits_iff`). A bipartition `A | Aᶜ` with at least two taxa on each side is a
 split of `σ` if and only if every quartet tree `aa'|bb'` with `a, a' ∈ A` and `b, b' ∉ A` is
-induced by `σ` (`ADR11.mem_unroot_iff_quartets`), and `σ` induces `aa'|bb'` if and only if `t`
+induced by `σ` (`Phylogenetics.mem_unroot_iff_quartets`), and `σ` induces `aa'|bb'` if and only if `t`
 does (`Coalescent.separates_iff_induced`, through `Coalescent.induces_iff_induced`). So trees with
 the same quartets have the same splits (`Coalescent.unroot_subset_of_induced`). If the outgroup
 `o` is a child of the root, the clades of the tree are the set of all taxa, `{o}`, and the sides
@@ -339,7 +339,7 @@ end Quartet
 
 namespace Coalescent
 
-open Finset ADR11
+open Finset Phylogenetics
 
 variable {L : Finset ℕ}
 
@@ -396,7 +396,7 @@ theorem separates_iff_induced {σ : SpeciesTree L} {t : PhyloTree} (h : HasTopol
 `σ'`, every split of the unrooted topology of `σ` is a split of that of `σ'`: a split with one
 taxon on a side is a split of every tree, and a split with at least two taxa on each side is
 determined by the quartet trees `aa'|bb'` across it (Steel's reconstruction,
-`ADR11.mem_unroot_iff_quartets`). -/
+`Phylogenetics.mem_unroot_iff_quartets`). -/
 theorem unroot_subset_of_induced {σ σ' : SpeciesTree L} {t t' : PhyloTree}
     (h : HasTopology σ t) (h' : HasTopology σ' t')
     (hq : ∀ q : Quartet, q.induced t = true → q.induced t' = true) :
@@ -431,7 +431,7 @@ theorem unroot_subset_of_induced {σ σ' : SpeciesTree L} {t t' : PhyloTree}
   exact (separates_iff_induced h' hqs).2
     (hq q ((separates_iff_induced h hqs).1 ⟨A, hA, ha, ha', hb, hb'⟩))
 
-/-- Section 3.2, through lean4-adr11: species trees whose topologies induce the same quartet trees
+/-- Section 3.2, through lean4-phylogenetics: species trees whose topologies induce the same quartet trees
 have the same unrooted topology. -/
 theorem unroot_eq_of_induced_eq {σ σ' : SpeciesTree L} {t t' : PhyloTree}
     (h : HasTopology σ t) (h' : HasTopology σ' t')
@@ -451,7 +451,7 @@ end Coalescent
 
 namespace PhyloTree
 
-open Finset ADR11 Coalescent
+open Finset Phylogenetics Coalescent
 
 /-- The splits of the topology `t` of a species tree `σ` are the labels of the splits of the
 unrooted topology of `σ`. -/
@@ -484,8 +484,8 @@ theorem mem_splits_iff {L : Finset ℕ} {σ : SpeciesTree L} {t : PhyloTree} (h 
       exact x.2
 
 /-- Section 3.2: two well-labelled trees on the same taxa that induce the same quartets have the
-same splits, that is, the same unrooted topology (Steel 1992, through lean4-adr11's
-`ADR11.mem_unroot_iff_quartets`). -/
+same splits, that is, the same unrooted topology (Steel 1992, through lean4-phylogenetics's
+`Phylogenetics.mem_unroot_iff_quartets`). -/
 theorem splits_eq_of_induced_eq {t t' : PhyloTree} (ht : t.WellLabelled) (ht' : t'.WellLabelled)
     (htaxa : t.taxa = t'.taxa) (hq : ∀ q : Quartet, q.induced t = q.induced t') :
     t.splits = t'.splits := by

@@ -41,13 +41,13 @@ abbrev taxa5 : Finset ℕ := {0, 1, 2, 3, 4}
 
 /-- The tree `T = (O,((B,A),(D,C)))` of E7 as a network of the NMSC, without cycles, with all edges
 of length `1`. -/
-def treeNet : Brooqs.Net taxa5 :=
+def treeNet : Phylogenetics.Net taxa5 :=
   .tree 1 (.leaf ⟨4, by decide⟩) 1
     (.tree 1 (.tree 1 (.leaf ⟨1, by decide⟩) 1 (.leaf ⟨0, by decide⟩)) 1
       (.tree 1 (.leaf ⟨3, by decide⟩) 1 (.leaf ⟨2, by decide⟩)))
 
 theorem treeNet_wellFormed : treeNet.WellFormed :=
-  ⟨by norm_num [treeNet, Brooqs.Net.IsMetric], by decide⟩
+  ⟨by norm_num [treeNet, Phylogenetics.Net.IsMetric], by decide⟩
 
 theorem treeNet_taxa : ∀ x : taxa5, x ∈ treeNet.taxa := by
   decide
@@ -62,7 +62,7 @@ theorem pairs_treeNet : pairs treeNet = ∅ := by
 
 /-- The network has no cycle, so no anomalous set of four taxa. -/
 theorem treeNet_noAnomaly : NoAnomaly treeNet :=
-  noAnomaly_of_below fun Ω => absurd Ω.mem (by simp [treeNet, Brooqs.Net.subnets])
+  noAnomaly_of_below fun Ω => absurd Ω.mem (by simp [treeNet, Phylogenetics.Net.subnets])
 
 /-- The threshold `t₀` of the network is positive, so thresholds `0 < t < t₀` exist. -/
 theorem threshold_treeNet_pos : 0 < threshold treeNet :=

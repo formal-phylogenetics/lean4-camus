@@ -11,7 +11,7 @@ Section 3.3 motivates Quartet Filtering (Algorithm 1): "The motivation for this 
 do not want to include quartet trees that are not in Q(Nr). On the other hand, we do not want to
 eliminate these quartet trees." `Camus/Pipelines/NMSC/Anomaly.lean` shows one network on which
 Algorithm 1 does both, for every threshold. This file finds all the parameters of that network for
-which it does. The network is `N₃₂` (`Brooqs.net32`) on the taxa `0, 1, 2, 3`, with any
+which it does. The network is `N₃₂` (`External.NMSC.net32`) on the taxa `0, 1, 2, 3`, with any
 parameters (`NMSC.net32On`): `0` and `1` below the hybrid node of a 3-cycle, with an edge of length
 `ℓ` above them, `2` on the side `S₁` of the cycle (an edge of length `L` from the top node, then the
 hybrid edge of length `h₁` and inheritance probability `γ`), the side `S₂` a hybrid edge of length
@@ -19,7 +19,7 @@ hybrid edge of length `h₁` and inheritance probability `γ`), the side `S₂` 
 configuration (`NMSC.net32On_anomalous`), so `NMSC.NoAnomaly` fails, and `N₃₂` displays only
 `01|23` of the three quartet trees on them (`NMSC.net32On_displaysQuartet`). Let
 `A = γ(1 - γ)(1 - e^{-L})` and `R = γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1)`
-(`Brooqs.net32_anomalous_iff`).
+(`External.NMSC.net32_anomalous_iff`).
 
 * If `R < A`, for every threshold, almost surely, for all large numbers of genes, Algorithm 1
   returns no copy of `01|23` and returns a quartet tree that is not in Q(N_r)
@@ -33,10 +33,10 @@ configuration (`NMSC.net32On_anomalous`), so `NMSC.NoAnomaly` fails, and `N₃�
   (`NMSC.net32On_filterQuartets_support`).
 
 So on `N₃₂` Quartet Filtering is defeated exactly in the anomaly zone of
-`Brooqs.net32_anomalous_iff`, up to the boundary `A = R`, where the three quartet trees are equally
-probable (`Brooqs.net32_boundary_iff_third`), and the strong law of large numbers does not decide
+`External.NMSC.net32_anomalous_iff`, up to the boundary `A = R`, where the three quartet trees are equally
+probable (`External.NMSC.net32_boundary_iff_third`), and the strong law of large numbers does not decide
 which of them Algorithm 1 keeps. Both zones contain metric parameters
-(`Brooqs.net32_anomalous_of_short`, `Brooqs.net32_regular_of_log`).
+(`External.NMSC.net32_anomalous_of_short`, `External.NMSC.net32_regular_of_log`).
 
 ## Main results
 
@@ -69,14 +69,14 @@ open Finset Filter Topology MeasureTheory ProbabilityTheory Coalescent Algorithm
 
 /-! ### The network -/
 
-/-- The network `N₃₂` of `Brooqs.net32` on the taxa `0, 1, 2, 3`, with any parameters: the taxa
+/-- The network `N₃₂` of `External.NMSC.net32` on the taxa `0, 1, 2, 3`, with any parameters: the taxa
 `x = 0` and `y = 1` below the hybrid node of a 3-cycle, with an edge of length `ℓ` above their
 cherry; `z = 2` on the side `S₁` of the cycle, an edge of length `L` from the top node followed by
 the hybrid edge of length `h₁` and inheritance probability `γ`; the side `S₂` a hybrid edge of
 length `h₂`; `w = 3` outside the cycle. `NMSC.anomalyNet` is
 `net32On (1/2) (1/20) (1/20) (1/20) 3` (`NMSC.anomalyNet_eq_net32On`). -/
-def net32On (γ ℓ h₁ h₂ L : ℝ) : Brooqs.Net taxa4 :=
-  Brooqs.net32 γ ℓ h₁ h₂ L ⟨0, by decide⟩ ⟨1, by decide⟩ ⟨2, by decide⟩ ⟨3, by decide⟩
+def net32On (γ ℓ h₁ h₂ L : ℝ) : Phylogenetics.Net taxa4 :=
+  External.NMSC.net32 γ ℓ h₁ h₂ L ⟨0, by decide⟩ ⟨1, by decide⟩ ⟨2, by decide⟩ ⟨3, by decide⟩
 
 theorem anomalyNet_eq_net32On : anomalyNet = net32On (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3 := rfl
 
@@ -84,24 +84,24 @@ theorem anomalyNet_eq_net32On : anomalyNet = net32On (1 / 2) (1 / 20) (1 / 20) (
 are positive. -/
 theorem net32On_wellFormed {γ ℓ h₁ h₂ L : ℝ} (hγ0 : 0 < γ) (hγ1 : γ < 1) (hℓ : 0 < ℓ)
     (hh₁ : 0 < h₁) (hh₂ : 0 < h₂) (hL : 0 < L) : (net32On γ ℓ h₁ h₂ L).WellFormed :=
-  Brooqs.net32_wellFormed (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+  External.NMSC.net32_wellFormed (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
     hγ0 hγ1 hℓ hh₁ hh₂ hL
 
 /-- The leaves of `net32On` have distinct labels, whatever the parameters. -/
 theorem net32On_nodup (γ ℓ h₁ h₂ L : ℝ) : (net32On γ ℓ h₁ h₂ L).leaves.Nodup := by
-  rw [net32On, Brooqs.net32_leaves]
+  rw [net32On, External.NMSC.net32_leaves]
   decide
 
 /-- The taxa of `net32On` are `0, 1, 2, 3`. -/
 theorem net32On_taxa (γ ℓ h₁ h₂ L : ℝ) : ∀ x : taxa4, x ∈ (net32On γ ℓ h₁ h₂ L).taxa := by
-  rw [net32On, Brooqs.Net.taxa, Brooqs.net32_leaves]
+  rw [net32On, Phylogenetics.Net.taxa, External.NMSC.net32_leaves]
   decide
 
 /-- Of the three quartet trees on `0, 1, 2, 3`, `net32On` displays only `01|23`, whatever the
 parameters. -/
 theorem net32On_displaysQuartet (γ ℓ h₁ h₂ L : ℝ) (s : Fin 3) :
     DisplaysQuartet (net32On γ ℓ h₁ h₂ L) (key4.quartet s) ↔ s = 0 := by
-  obtain ⟨h0, h1, h2⟩ := Brooqs.net32_displays (X := taxa4) (x := ⟨0, by decide⟩)
+  obtain ⟨h0, h1, h2⟩ := External.NMSC.net32_displays (X := taxa4) (x := ⟨0, by decide⟩)
     (y := ⟨1, by decide⟩) (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide)
     (by decide) (by decide) (by decide) (by decide) γ ℓ h₁ h₂ L
   obtain ⟨e0, e1, e2⟩ := displaysQuartet_iff (net32On γ ℓ h₁ h₂ L) key4 keyTaxa_key4
@@ -111,24 +111,24 @@ theorem net32On_displaysQuartet (γ ℓ h₁ h₂ L : ℝ) (s : Fin 3) :
   · exact ⟨fun h => absurd (e2.1 h) h2, fun h => absurd h (by decide)⟩
 
 /-- The four taxa `0, 1, 2, 3` of `net32On` are in the anomalous configuration
-(`Brooqs.Net.Anomalous`), whatever the parameters: `0` and `1` below the hybrid node of the
+(`External.NMSC.Net.Anomalous`), whatever the parameters: `0` and `1` below the hybrid node of the
 3-cycle, `2` on a side of it and `3` outside it. -/
 theorem net32On_anomalous (γ ℓ h₁ h₂ L : ℝ) :
-    (net32On γ ℓ h₁ h₂ L).Anomalous (keyTaxon key4 keyTaxa_key4) := by
-  refine ⟨Brooqs.net32Cycle (X := taxa4) γ ℓ h₁ h₂ L ⟨0, by decide⟩ ⟨1, by decide⟩
+    (External.NMSC.Net.Anomalous (net32On γ ℓ h₁ h₂ L)) (keyTaxon key4 keyTaxa_key4) := by
+  refine ⟨External.NMSC.net32Cycle (X := taxa4) γ ℓ h₁ h₂ L ⟨0, by decide⟩ ⟨1, by decide⟩
     ⟨2, by decide⟩ ⟨3, by decide⟩, ?_, ?_, ?_⟩
-  · show #(Brooqs.Net.lin (keyTaxon key4 keyTaxa_key4)
-      (.tree 1 (.leaf ⟨0, by decide⟩) 1 (.leaf ⟨1, by decide⟩) : Brooqs.Net taxa4)) = 2
+  · show #(External.NMSC.Net.lin (keyTaxon key4 keyTaxa_key4)
+      (.tree 1 (.leaf ⟨0, by decide⟩) 1 (.leaf ⟨1, by decide⟩) : Phylogenetics.Net taxa4)) = 2
     decide
-  · simp only [Brooqs.Net.Cycle.top, Brooqs.net32Cycle, Brooqs.Net.lin, Brooqs.Net.taxa,
-      Brooqs.Net.leaves, Brooqs.Side.leaves]
+  · simp only [Phylogenetics.Net.Cycle.top, External.NMSC.net32Cycle, External.NMSC.Net.lin, Phylogenetics.Net.taxa,
+      Phylogenetics.Net.leaves, Phylogenetics.Side.leaves]
     decide
   · intro n hn
-    simp only [Brooqs.net32Cycle, Brooqs.Side.nodes, List.cons_append, List.nil_append,
+    simp only [External.NMSC.net32Cycle, Phylogenetics.Side.nodes, List.cons_append, List.nil_append,
       List.mem_cons, List.not_mem_nil, or_false] at hn
     subst hn
-    show #(Brooqs.Net.lin (keyTaxon key4 keyTaxa_key4)
-      (.leaf ⟨2, by decide⟩ : Brooqs.Net taxa4)) ≤ 1
+    show #(External.NMSC.Net.lin (keyTaxon key4 keyTaxa_key4)
+      (.leaf ⟨2, by decide⟩ : Phylogenetics.Net taxa4)) ≤ 1
     decide
 
 /-- `NMSC.NoAnomaly` fails for `net32On`, whatever the parameters. -/
@@ -140,7 +140,7 @@ theorem not_noAnomaly_net32On (γ ℓ h₁ h₂ L : ℝ) : ¬ NoAnomaly (net32On
 /-- **The anomaly zone, for the quartet trees of CAMUS.** For all parameters, under the NMSC on
 `net32On`, the quartet tree `01|23` is strictly less probable than `02|13` iff
 `γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1) < γ(1 - γ)(1 - e^{-L})`
-(`Brooqs.net32_anomalous_iff`). -/
+(`External.NMSC.net32_anomalous_iff`). -/
 theorem net32On_quartetProb_lt_iff (γ ℓ h₁ h₂ L : ℝ) :
     quartetProb (net32On γ ℓ h₁ h₂ L) (key4.quartet 0) <
         quartetProb (net32On γ ℓ h₁ h₂ L) (key4.quartet 1) ↔
@@ -148,14 +148,14 @@ theorem net32On_quartetProb_lt_iff (γ ℓ h₁ h₂ L : ℝ) :
         γ * (1 - γ) * (1 - Real.exp (-L)) := by
   obtain ⟨p0, p1, -⟩ := quartetProb_eq_quartetCF _ (net32On_nodup γ ℓ h₁ h₂ L) key4 keyTaxa_key4
   rw [p0, p1]
-  exact Brooqs.net32_anomalous_iff (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
+  exact External.NMSC.net32_anomalous_iff (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
     (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide) (by decide) (by decide)
     (by decide) (by decide) γ ℓ h₁ h₂ L
 
 /-- **The regular zone, for the quartet trees of CAMUS.** For all parameters, under the NMSC on
 `net32On`, the quartet tree `01|23` is strictly more probable than `02|13` iff
 `γ(1 - γ)(1 - e^{-L}) < γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1)`
-(`Brooqs.net32_regular_iff`). -/
+(`External.NMSC.net32_regular_iff`). -/
 theorem net32On_quartetProb_gt_iff (γ ℓ h₁ h₂ L : ℝ) :
     quartetProb (net32On γ ℓ h₁ h₂ L) (key4.quartet 1) <
         quartetProb (net32On γ ℓ h₁ h₂ L) (key4.quartet 0) ↔
@@ -163,7 +163,7 @@ theorem net32On_quartetProb_gt_iff (γ ℓ h₁ h₂ L : ℝ) :
         γ ^ 2 * (1 - Real.exp (-h₁)) + (1 - γ) ^ 2 * (1 - Real.exp (-h₂)) + (Real.exp ℓ - 1) := by
   obtain ⟨p0, p1, -⟩ := quartetProb_eq_quartetCF _ (net32On_nodup γ ℓ h₁ h₂ L) key4 keyTaxa_key4
   rw [p0, p1]
-  exact Brooqs.net32_regular_iff (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
+  exact External.NMSC.net32_regular_iff (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
     (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide) (by decide) (by decide)
     (by decide) (by decide) γ ℓ h₁ h₂ L
 
@@ -174,7 +174,7 @@ theorem net32On_quartetProb_eq (γ ℓ h₁ h₂ L : ℝ) :
       quartetProb (net32On γ ℓ h₁ h₂ L) (key4.quartet 2) := by
   obtain ⟨-, p1, p2⟩ := quartetProb_eq_quartetCF _ (net32On_nodup γ ℓ h₁ h₂ L) key4 keyTaxa_key4
   rw [p1, p2]
-  exact (Brooqs.net32_quartetCF_excess (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
+  exact (External.NMSC.net32_quartetCF_excess (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
     (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide) (by decide) (by decide)
     (by decide) (by decide) γ ℓ h₁ h₂ L).2.2.symm
 
@@ -215,7 +215,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasur
 which `01|23` is strictly the least probable quartet tree, almost surely, for all large numbers `n`
 of genes, `01|23` has strictly fewer copies than each of the two others among the quartet trees of
 the first `n` gene trees, and `02|13` has a copy. -/
-private theorem ar_eventually {N : Brooqs.Net taxa4} (hN : N.WellFormed)
+private theorem ar_eventually {N : Phylogenetics.Net taxa4} (hN : N.WellFormed)
     (hlt : ∀ s, s ≠ 0 → quartetProb N (key4.quartet 0) < quartetProb N (key4.quartet s))
     (G : ℕ → Ω → Finset (Finset taxa4)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -263,7 +263,7 @@ each with the law of the NMSC on `N`. For every threshold `t`, almost surely, fo
 `n` of genes, Algorithm 1 applied to the quartet trees of the first `n` gene trees returns no copy
 of `01|23` and returns a quartet tree that is not in Q(N_r). The proof is that of
 `NMSC.anomaly_filterQuartets`. -/
-theorem filterQuartets_of_least {N : Brooqs.Net taxa4} (hN : N.WellFormed)
+theorem filterQuartets_of_least {N : Phylogenetics.Net taxa4} (hN : N.WellFormed)
     (hdisp : ∀ s, DisplaysQuartet N (key4.quartet s) ↔ s = 0)
     (hlt : ∀ s, s ≠ 0 → quartetProb N (key4.quartet 0) < quartetProb N (key4.quartet s))
     (G : ℕ → Ω → Finset (Finset taxa4)) (hind : iIndepFun G P)
@@ -309,7 +309,7 @@ of `NMSC.filterQuartets_of_least`, almost surely, for all large numbers `n` of g
 maximum quartet support score for the quartet trees of the first `n` gene trees (among the
 well-labelled trees on `0, 1, 2, 3`) is a displayed tree of `N`. The proof is that of
 `NMSC.anomaly_astral`. -/
-theorem astral_of_least {N : Brooqs.Net taxa4} (hN : N.WellFormed)
+theorem astral_of_least {N : Phylogenetics.Net taxa4} (hN : N.WellFormed)
     (hdisp : ∀ s, DisplaysQuartet N (key4.quartet s) ↔ s = 0)
     (hlt : ∀ s, s ≠ 0 → quartetProb N (key4.quartet 0) < quartetProb N (key4.quartet s))
     (G : ℕ → Ω → Finset (Finset taxa4)) (hind : iIndepFun G P)
@@ -350,7 +350,7 @@ theorem astral_of_least {N : Brooqs.Net taxa4} (hN : N.WellFormed)
 /-- **Section 3.3: Quartet Filtering fails in the anomaly zone.** Let `0 < γ < 1` and `ℓ`, `h₁`,
 `h₂`, `L` be positive, with
 `γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1) < γ(1 - γ)(1 - e^{-L})`
-(`Brooqs.net32_anomalous_iff`), and let the gene trees be independent, each with the law of the
+(`External.NMSC.net32_anomalous_iff`), and let the gene trees be independent, each with the law of the
 NMSC on `net32On γ ℓ h₁ h₂ L`. For every threshold `t`, almost surely, for all large numbers `n` of
 genes, Algorithm 1 applied to the quartet trees of the first `n` gene trees returns no copy of
 `01|23`, the only quartet tree on these taxa in Q(N_r), and returns a quartet tree that is not in
@@ -419,22 +419,22 @@ theorem net32On_filterQuartets_graph {γ ℓ h₁ h₂ L : ℝ} (hγ0 : 0 < γ) 
 end Genes
 
 /-- Section 3.4, for gene trees that exist: the hypotheses of `NMSC.net32On_filterQuartets` on the
-gene trees hold for the coordinates of `Brooqs.Net.genes`, the product law of independent gene trees
+gene trees hold for the coordinates of `External.NMSC.Net.genes`, the product law of independent gene trees
 under the NMSC. -/
 theorem net32On_filterQuartets_genes {γ ℓ h₁ h₂ L : ℝ} (hγ0 : 0 < γ) (hγ1 : γ < 1)
     (hℓ : 0 < ℓ) (hh₁ : 0 < h₁) (hh₂ : 0 < h₂) (hL : 0 < L)
     (hzone : γ ^ 2 * (1 - Real.exp (-h₁)) + (1 - γ) ^ 2 * (1 - Real.exp (-h₂)) +
       (Real.exp ℓ - 1) < γ * (1 - γ) * (1 - Real.exp (-L))) (t : ℝ) :
-    ∀ᵐ ω ∂((net32On γ ℓ h₁ h₂ L).genes (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL)),
+    ∀ᵐ ω ∂((External.NMSC.Net.genes (net32On γ ℓ h₁ h₂ L)) (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL)),
       ∀ᶠ n in atTop,
         (filterQuartets t (geneQuartets (fun i => ω i) n)).count (key4.quartet 0) = 0 ∧
         ∃ q ∈ filterQuartets t (geneQuartets (fun i => ω i) n),
           ¬ DisplaysQuartet (net32On γ ℓ h₁ h₂ L) q :=
   net32On_filterQuartets hγ0 hγ1 hℓ hh₁ hh₂ hL hzone
     (fun n (ω : ℕ → Finset (Finset taxa4)) => ω n)
-    ((net32On γ ℓ h₁ h₂ L).genes_iIndepFun (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL))
-    ((net32On γ ℓ h₁ h₂ L).genes_identDistrib (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL))
-    ((net32On γ ℓ h₁ h₂ L).genes_law (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL)) t
+    ((External.NMSC.Net.genes_iIndepFun (net32On γ ℓ h₁ h₂ L)) (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL))
+    ((External.NMSC.Net.genes_identDistrib (net32On γ ℓ h₁ h₂ L)) (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL))
+    ((External.NMSC.Net.genes_law (net32On γ ℓ h₁ h₂ L)) (net32On_wellFormed hγ0 hγ1 hℓ hh₁ hh₂ hL)) t
 
 /-! ### The regular zone: Quartet Filtering keeps Q(N_r) -/
 
@@ -513,7 +513,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasur
 /-- **Section 3.4: Quartet Filtering in the regular zone.** Let `0 < γ < 1` and `ℓ`, `h₁`, `h₂`,
 `L` be positive, with
 `γ(1 - γ)(1 - e^{-L}) < γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1)`
-(`Brooqs.net32_regular_iff`), and let the gene trees be independent, each with the law of the NMSC
+(`External.NMSC.net32_regular_iff`), and let the gene trees be independent, each with the law of the NMSC
 on `net32On γ ℓ h₁ h₂ L`. For every threshold `0 < t < 1` (`1 = t₀(N₃₂)`,
 `NMSC.threshold_net32On`), almost surely, for all large numbers `n` of genes, Algorithm 1 applied to
 the multiset `Q` of the quartet trees of the first `n` gene trees returns exactly the quartet trees

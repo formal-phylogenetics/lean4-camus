@@ -41,7 +41,7 @@ variable {L : Finset ℕ}
 
 /-- A tree of the graph of `N` whose clades are the clusters of a displayed tree `K` induces the
 quartet trees that `K` induces. -/
-theorem induced_iff_induces {N : Brooqs.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
+theorem induced_iff_induces {N : Phylogenetics.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
     {T : PhyloTree} (hT : (Realization.graph (baseTree N) (pairs N)).BuiltOn T)
     {K : Finset (Finset L)} (hc : T.clades.toFinset = K.image (Finset.map (Coalescent.label L)))
     (q : Quartet) : q.induced T = true ↔ Induces K q := by
@@ -67,7 +67,7 @@ let the root of its graph `Nr = Realization.graph (baseTree N) (pairs N)` have t
 outgroup `o` as a child. If the tree `T*` on the taxa `L` is a displayed tree of `N`, as an
 unrooted tree ("T* is one of the underlying trees", `NMSC.DisplaysTree`), then `T*` rooted on the
 edge leading to the outgroup is a tree of `Nr` in the sense of Definition 1. -/
-theorem builtOn_reroot_of_displaysTree {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem builtOn_reroot_of_displaysTree {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {Tstar : PhyloTree} (hw : Tstar.WellLabelled)
     (htt : Tstar.taxa = L) (hT : DisplaysTree N Tstar) (h2 : 2 ≤ L.card) {o : ℕ}
     (ho : o ∈ (Realization.graph (baseTree N) (pairs N)).taxa)
@@ -114,7 +114,7 @@ identifiable under inclusion among the networks built on `T`, then almost surely
 numbers `n` of genes, every network built on `T` that has the best score for the output `Q` of
 Quartet Filtering on the quartet trees of the first `n` gene trees, with the fewest reticulations
 among the networks with the best score, is isomorphic to `Nr`. -/
-theorem nmsc_recovery_underlying {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_recovery_underlying {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)

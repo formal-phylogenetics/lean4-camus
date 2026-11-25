@@ -7,11 +7,11 @@ public import Camus.External.NMSC.ThreeCycle
 
 Section 3.3 of CAMUS designs Quartet Filtering (Algorithm 1) on the presumption that, where a
 level-1 network displays one quartet on four taxa, that quartet is the most probable. On the
-3-cycle above two taxa `N₃₂` (`Brooqs.net32`: `x` and `y` below the hybrid node, with an edge of
+3-cycle above two taxa `N₃₂` (`External.NMSC.net32`: `x` and `y` below the hybrid node, with an edge of
 length `ℓ` above their cherry; `z` on the side `S₁`, an edge of length `L` from the top node of the
 cycle followed by the hybrid edge of length `h₁` and inheritance probability `γ`; the side `S₂` a
 single hybrid edge of length `h₂`; `w` outside the cycle) the presumption fails for some parameters
-(`Brooqs.net32_anomaly`) and holds for others (`Brooqs.net32_long`). This file finds the parameters
+(`External.NMSC.net32_anomaly`) and holds for others (`External.NMSC.net32_long`). This file finds the parameters
 for which it fails. Write `u = e^{-ℓ}` and
 `D = γ(1 - γ)(1 - e^{-L}) - γ²(1 - e^{-h₁}) - (1 - γ)²(1 - e^{-h₂})`. For all parameters,
 `CF(xy|zw) = 1/3 + 2/3 (1 - u) - 2/3 u D` and `CF(xz|yw) = CF(xw|yz) = 1/3 - 1/3 (1 - u) + 1/3 u D`,
@@ -39,43 +39,45 @@ lineages take the parent edges `(e_i, e_j)` with probability `(1 - ρ)γ_iγ_j` 
 `(1 - ρ)γ_i² + ργ_i` for `i = j`. The NMSC of this library is `ρ = 0`, where the lineages choose
 their parents independently; at `ρ = 1` all the lineages at a hybrid node take the same parent.
 With `ρ = 0` and their `t`, `s₀`, `s₁`, `s₂`, `γ₁`, `γ₂` read as `ℓ`, `L`, `h₁`, `h₂`, `γ`, `1 - γ`,
-their formula is the CF of `xy|zw` of `Brooqs.net32_quartetCF`, and for `s₁ = s₂ = 0` their
-simplified formula is `Brooqs.net32_quartetCF_excess`. They observe that the CF is least for
+their formula is the CF of `xy|zw` of `External.NMSC.net32_quartetCF`, and for `s₁ = s₂ = 0` their
+simplified formula is `External.NMSC.net32_quartetCF_excess`. They observe that the CF is least for
 `s₁ = s₂ = 0` and, with `t = 0` and `s₀ → ∞`, tends to `1/3 - (2/3)(1 - ρ)γ₁γ₂ ≤ 1/3`, so that a
 3₂-cycle is anomalous for some parameters, for every `ρ < 1` and `γ₁ ∈ (0, 1)`; their Theorem 8
 extends this existence statement to every 4-taxon network of type 1 or 2 that contains a 3₂-cycle.
 Since their Example 1 gives the CF in closed form for all parameters, the exact region follows from
 it, though they do not write it out; they credit Allman et al. (2019) with a study of the anomaly
 zone of the 3₂-cycle for `ρ = 0`. This file writes out and proves, for `ρ = 0` and the network
-`N₃₂` itself, the exact set of anomalous parameters (`Brooqs.net32_anomalous_iff`). Their remark
+`N₃₂` itself, the exact set of anomalous parameters (`External.NMSC.net32_anomalous_iff`). Their remark
 that the CFs of a 3₂-cycle are those of a quartet tree whose internal edge may have negative length
 reads here: the internal edge has length `τ` with `e^{-τ} = u (1 + D)`, and `N₃₂` is anomalous iff
 `τ < 0`.
 
 ## Main results
 
-* `Brooqs.net32_quartetCF_sum`, `Brooqs.net32_quartetCF_excess`: the three CFs add up to `1`, and
+* `External.NMSC.net32_quartetCF_sum`, `External.NMSC.net32_quartetCF_excess`: the three CFs add up to `1`, and
   their expression in `u` and `D`.
-* `Brooqs.net32_anomalous_iff`, `Brooqs.net32_anomalous_iff_u`: the anomaly zone.
-* `Brooqs.net32_regular_iff`, `Brooqs.net32_boundary_iff`, `Brooqs.net32_boundary_iff_third`: the
+* `External.NMSC.net32_anomalous_iff`, `External.NMSC.net32_anomalous_iff_u`: the anomaly zone.
+* `External.NMSC.net32_regular_iff`, `External.NMSC.net32_boundary_iff`, `External.NMSC.net32_boundary_iff_third`: the
   zone where the displayed quartet is strictly the most probable, and the boundary between the two
   zones, where the three CFs are `1/3`.
-* `Brooqs.net32_anomalous_of_short`, `Brooqs.exists_net32_anomalous_of_short`: short edges at the
+* `External.NMSC.net32_anomalous_of_short`, `External.NMSC.exists_net32_anomalous_of_short`: short edges at the
   hybrid node make `N₃₂` anomalous.
-* `Brooqs.net32_not_anomalous_of_le`, `Brooqs.net32_regular_of_le`, `Brooqs.net32_regular_of_log`:
+* `External.NMSC.net32_not_anomalous_of_le`, `External.NMSC.net32_regular_of_le`, `External.NMSC.net32_regular_of_log`:
   a long edge below the hybrid node makes it regular.
-* `Brooqs.net32_exists_anomalous_iff`, `Brooqs.net32_exists_anomalous_iff_log`: the edges below the
+* `External.NMSC.net32_exists_anomalous_iff`, `External.NMSC.net32_exists_anomalous_iff_log`: the edges below the
   hybrid node for which some parameters make `N₃₂` anomalous.
 
 ## Proof
 
-By `Brooqs.net32_quartetCF`, `CF(xz|yw) - CF(xy|zw) = 3 CF(xz|yw) - 1 = u (1 + D) - 1`, which is
-`u (D - (e^ℓ - 1))` (`Brooqs.net32_quartetCF_sub`); its sign is the sign of `D - (e^ℓ - 1)`.
+By `External.NMSC.net32_quartetCF`, `CF(xz|yw) - CF(xy|zw) = 3 CF(xz|yw) - 1 = u (1 + D) - 1`, which is
+`u (D - (e^ℓ - 1))` (`External.NMSC.net32_quartetCF_sub`); its sign is the sign of `D - (e^ℓ - 1)`.
 -/
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 universe u
 
@@ -131,7 +133,7 @@ theorem net32_quartetCF_sub {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (hxw :
   linear_combination hk
 
 /-- **The anomaly zone of `N₃₂`.** For all parameters, the quartet `xy|zw`, the only one of the
-three quartets on `x, y, z, w` that `N₃₂` displays (`Brooqs.net32_displays`), has a strictly smaller
+three quartets on `x, y, z, w` that `N₃₂` displays (`External.NMSC.net32_displays`), has a strictly smaller
 CF than `xz|yw`, which has the same CF as `xw|yz`, iff
 `γ²(1 - e^{-h₁}) + (1 - γ)²(1 - e^{-h₂}) + (e^ℓ - 1) < γ(1 - γ)(1 - e^{-L})`.
 This is the anomaly of Ané et al. (2024) on the 3₂-cycle `N₃₂` under their NMSC(0): their Example 1
@@ -254,7 +256,7 @@ theorem net32_anomalous_of_short {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (
   linarith
 
 /-- For `0 < γ < 1` and `L > 0` there is `ε > 0` such that `N₃₂` is anomalous whenever `ℓ`, `h₁`
-and `h₂` are at most `ε` (`Brooqs.net32_anomalous_of_short`). -/
+and `h₂` are at most `ε` (`External.NMSC.net32_anomalous_of_short`). -/
 theorem exists_net32_anomalous_of_short {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (hxw : x ≠ w)
     (hyz : y ≠ z) (hyw : y ≠ w) (hzw : z ≠ w) {γ L : ℝ} (hγ0 : 0 < γ) (hγ1 : γ < 1)
     (hL : 0 < L) :
@@ -366,4 +368,4 @@ theorem net32_exists_anomalous_iff_log {x y z w : X} (hxy : x ≠ y) (hxz : x �
         (by norm_num) ℓ).2 (by linarith)
     exact ⟨1 / 2, h₁, h₂, L, by norm_num, by norm_num, hh₁, hh₂, hL, hlt⟩
 
-end Brooqs
+end External.NMSC

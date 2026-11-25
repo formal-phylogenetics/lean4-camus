@@ -13,7 +13,7 @@ ASTRAL produces will be in T". This file shows that, for one level-1 network und
 Algorithm 1 does both things that the paper does not want, whatever the threshold, and that no
 tree of maximum quartet support score is a displayed tree.
 
-The network is `N₃₂` of `Brooqs.net32_anomaly` on the taxa `0, 1, 2, 3` (`NMSC.anomalyNet`): `0`
+The network is `N₃₂` of `External.NMSC.net32_anomaly` on the taxa `0, 1, 2, 3` (`NMSC.anomalyNet`): `0`
 and `1` below the hybrid node of a 3-cycle, `2` on a side of the cycle and `3` outside it. Of the
 three quartet trees on these taxa, it displays only `01|23` (`NMSC.anomalyNet_displaysQuartet`),
 and under the NMSC `01|23` is strictly less probable than `02|13` and `03|12`, which are equally
@@ -31,7 +31,7 @@ for the quartet trees that this graph displays (`NMSC.anomaly_filterQuartets_gra
 * `NMSC.anomalyNet`, `NMSC.anomalyNet_displaysQuartet`, `NMSC.anomalyNet_quartetProb`: the network,
   its displayed quartet trees on `0, 1, 2, 3`, and their probabilities.
 * `NMSC.anomalyNet_anomalous`, `NMSC.not_noAnomaly_anomalyNet`: the four taxa are in the
-  anomalous configuration of `Brooqs.Net.Anomalous`.
+  anomalous configuration of `External.NMSC.Net.Anomalous`.
 * `NMSC.anomalyNet_not_regularOn`: the four taxa do not have the CF pattern that Quartet Filtering
   presumes (`NMSC.RegularOn`).
 * `NMSC.anomaly_filterQuartets`, `NMSC.anomaly_filterQuartets_genes`: for every threshold, almost
@@ -58,15 +58,15 @@ def key4 : QuartetKey := ⟨0, 1, 2, 3, by decide, by decide, by decide⟩
 
 theorem keyTaxa_key4 : keyTaxa key4 ⊆ taxa4 := subset_rfl
 
-/-- The anomalous network `N₃₂` of `Brooqs.net32_anomaly` on the taxa `0, 1, 2, 3`: the taxa
+/-- The anomalous network `N₃₂` of `External.NMSC.net32_anomaly` on the taxa `0, 1, 2, 3`: the taxa
 `x = 0` and `y = 1` below the hybrid node of a 3-cycle, `z = 2` on a side of the cycle and `w = 3`
 outside it, with `γ = 1/2`, `ℓ = h₁ = h₂ = 1/20` and `L = 3`. -/
-def anomalyNet : Brooqs.Net taxa4 :=
-  Brooqs.net32 (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3 ⟨0, by decide⟩ ⟨1, by decide⟩ ⟨2, by decide⟩
+def anomalyNet : Phylogenetics.Net taxa4 :=
+  External.NMSC.net32 (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3 ⟨0, by decide⟩ ⟨1, by decide⟩ ⟨2, by decide⟩
     ⟨3, by decide⟩
 
 theorem anomalyNet_wellFormed : anomalyNet.WellFormed :=
-  Brooqs.net32_wellFormed (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+  External.NMSC.net32_wellFormed (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num) (by norm_num)
 
 private theorem an_keyTaxon (i : Fin 4) :
@@ -75,7 +75,7 @@ private theorem an_keyTaxon (i : Fin 4) :
 /-- Of the three quartet trees on `0, 1, 2, 3`, the network displays only `01|23`. -/
 theorem anomalyNet_displaysQuartet (s : Fin 3) :
     DisplaysQuartet anomalyNet (key4.quartet s) ↔ s = 0 := by
-  obtain ⟨h0, h1, h2⟩ := Brooqs.net32_displays (X := taxa4) (x := ⟨0, by decide⟩)
+  obtain ⟨h0, h1, h2⟩ := External.NMSC.net32_displays (X := taxa4) (x := ⟨0, by decide⟩)
     (y := ⟨1, by decide⟩) (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide)
     (by decide) (by decide) (by decide) (by decide) (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3
   obtain ⟨e0, e1, e2⟩ := displaysQuartet_iff anomalyNet key4 keyTaxa_key4
@@ -93,7 +93,7 @@ theorem anomalyNet_quartetProb :
   obtain ⟨p0, p1, p2⟩ := quartetProb_eq_quartetCF anomalyNet anomalyNet_wellFormed.2 key4
     keyTaxa_key4
   rw [p0, p1, p2]
-  exact Brooqs.net32_anomaly (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
+  exact External.NMSC.net32_anomaly (X := taxa4) (x := ⟨0, by decide⟩) (y := ⟨1, by decide⟩)
     (z := ⟨2, by decide⟩) (w := ⟨3, by decide⟩) (by decide) (by decide) (by decide) (by decide)
     (by decide) (by decide)
 
@@ -130,10 +130,10 @@ private theorem an_tree_facts : an_tree.WellLabelled ∧ an_tree.taxa = taxa4 �
   refine ⟨by decide, by decide, by decide⟩
 
 /-- The four taxa `0, 1, 2, 3` of the network are in the anomalous configuration
-(`Brooqs.Net.Anomalous`): `0` and `1` below the hybrid node of the 3-cycle, `2` on a side of it and
+(`External.NMSC.Net.Anomalous`): `0` and `1` below the hybrid node of the 3-cycle, `2` on a side of it and
 `3` outside it. -/
-theorem anomalyNet_anomalous : anomalyNet.Anomalous (keyTaxon key4 keyTaxa_key4) := by
-  refine ⟨Brooqs.net32Cycle (X := taxa4) (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3 ⟨0, by decide⟩
+theorem anomalyNet_anomalous : (External.NMSC.Net.Anomalous anomalyNet) (keyTaxon key4 keyTaxa_key4) := by
+  refine ⟨External.NMSC.net32Cycle (X := taxa4) (1 / 2) (1 / 20) (1 / 20) (1 / 20) 3 ⟨0, by decide⟩
     ⟨1, by decide⟩ ⟨2, by decide⟩ ⟨3, by decide⟩, ?_, ?_, ?_⟩ <;> decide
 
 /-- The network is not covered by `NMSC.nmsc_filterQuartets_of_noAnomaly`: it has the anomalous
@@ -276,16 +276,16 @@ theorem anomaly_filterQuartets (G : ℕ → Ω → Finset (Finset taxa4)) (hind 
 
 /-- Section 3.4, for gene trees that exist: the hypotheses of `anomaly_filterQuartets` hold for the
 coordinates of `anomalyNet.genes`, the product law of independent gene trees under the NMSC
-(`Brooqs.Net.genes`). -/
+(`External.NMSC.Net.genes`). -/
 theorem anomaly_filterQuartets_genes (t : ℝ) :
-    ∀ᵐ ω ∂(anomalyNet.genes anomalyNet_wellFormed), ∀ᶠ n in atTop,
+    ∀ᵐ ω ∂((External.NMSC.Net.genes anomalyNet) anomalyNet_wellFormed), ∀ᶠ n in atTop,
       (filterQuartets t (geneQuartets (fun i => ω i) n)).count (key4.quartet 0) = 0 ∧
       ∃ q ∈ filterQuartets t (geneQuartets (fun i => ω i) n),
         ¬ DisplaysQuartet anomalyNet q :=
   anomaly_filterQuartets (fun n (ω : ℕ → Finset (Finset taxa4)) => ω n)
-    (anomalyNet.genes_iIndepFun anomalyNet_wellFormed)
-    (anomalyNet.genes_identDistrib anomalyNet_wellFormed)
-    (anomalyNet.genes_law anomalyNet_wellFormed) t
+    ((External.NMSC.Net.genes_iIndepFun anomalyNet) anomalyNet_wellFormed)
+    ((External.NMSC.Net.genes_identDistrib anomalyNet) anomalyNet_wellFormed)
+    ((External.NMSC.Net.genes_law anomalyNet) anomalyNet_wellFormed) t
 
 /-- **Section 3.3: the tree of ASTRAL need not be displayed.** "There is no guarantee that the tree
 T* that ASTRAL produces will be in T." Let the gene trees be independent, each with the law of the

@@ -13,7 +13,7 @@ The theorems on Quartet Filtering under the multispecies coalescent (`Coalescent
 the unrooted gene tree of the MSC on the species tree `σ` (`hlaw`). This file shows that these
 hypotheses can hold together, so that the theorems are not vacuous. The distribution
 `σ.unrootedDist id` is a probability measure on the unrooted gene trees (`Coalescent.geneLaw`),
-as lean4-adr11 proves (`Coalescent.geneDist_nonneg`, `Coalescent.geneDist_sum`); on the space of
+as lean4-phylogenetics proves (`Coalescent.geneDist_nonneg`, `Coalescent.geneDist_sum`); on the space of
 sequences of gene trees with the product law (`Coalescent.genes`, `Measure.infinitePi`), the
 coordinates are independent and have that law (`Coalescent.genes_iIndepFun`,
 `Coalescent.genes_identDistrib`, `Coalescent.genes_law`). Every well-labelled tree of CAMUS is the
@@ -36,18 +36,18 @@ namespace Camus
 
 namespace Coalescent
 
-open Finset Filter Topology MeasureTheory ProbabilityTheory ADR11 Algorithm1
+open Finset Filter Topology MeasureTheory ProbabilityTheory Phylogenetics Algorithm1
 
 variable {L : Finset ℕ}
 
-/-- The probabilities of the unrooted gene trees of the MSC are nonnegative (lean4-adr11's
-`ADR11.unrootedDist_nonneg`, with one lineage per taxon). -/
+/-- The probabilities of the unrooted gene trees of the MSC are nonnegative (lean4-phylogenetics's
+`Phylogenetics.unrootedDistOf_nonneg`, with one lineage per taxon). -/
 theorem geneDist_nonneg (σ : SpeciesTree L) (T : Finset (Finset L)) :
     0 ≤ σ.unrootedDist id T :=
   unrootedDistOf_nonneg σ.isHierarchy (fun A hA hAu => (σ.length_pos A hA hAu).le) id T
 
-/-- The probabilities of the unrooted gene trees of the MSC sum to 1 (lean4-adr11's
-`ADR11.unrootedDist_sum`, with one lineage per taxon). -/
+/-- The probabilities of the unrooted gene trees of the MSC sum to 1 (lean4-phylogenetics's
+`Phylogenetics.unrootedDistOf_sum`, with one lineage per taxon). -/
 theorem geneDist_sum (σ : SpeciesTree L) : ∑ T, σ.unrootedDist id T = 1 :=
   unrootedDistOf_sum σ.isHierarchy σ.length id
 
@@ -148,7 +148,7 @@ end PhyloTree
 
 namespace Coalescent
 
-open Finset Filter Topology MeasureTheory ADR11 Algorithm1
+open Finset Filter Topology MeasureTheory Phylogenetics Algorithm1
 
 /-- The species tree whose clusters are the clades of the well-labelled tree `t`, as sets of taxa
 of `t`, with all edge lengths 1. -/

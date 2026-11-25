@@ -24,7 +24,7 @@ topology too. The threshold must be positive in the first statement: for `t = 0`
 `q₂` whenever `f₂ > f₃` (`retainSecond_zero`).
 
 The gene trees are random variables `G n : Ω → Finset (Finset L)`, unrooted trees on the taxa `L`
-in the representation of lean4-adr11 (`Camus/Pipelines/Coalescent/Quartets.lean`), independent
+in the representation of lean4-phylogenetics (`Camus/Pipelines/Coalescent/Quartets.lean`), independent
 (`ProbabilityTheory.iIndepFun`) and identically distributed (`ProbabilityTheory.IdentDistrib`).
 Under the MSC on `σ`, `G 0` has the distribution `σ.unrootedDist id`. The multiset `Q` given to
 Algorithm 1 is `geneQuartets`: all quartet trees induced by the first `n` gene trees, each gene
@@ -68,7 +68,7 @@ namespace Camus
 
 namespace Coalescent
 
-open Finset Filter Topology MeasureTheory ProbabilityTheory ADR11 Algorithm1
+open Finset Filter Topology MeasureTheory ProbabilityTheory Phylogenetics Algorithm1
 
 variable {L : Finset ℕ}
 

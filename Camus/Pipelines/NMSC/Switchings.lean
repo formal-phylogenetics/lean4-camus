@@ -12,7 +12,7 @@ below the vertices of `N` in `S` (`DisplayedSubdivision.clades_toFinset_eq`). So
 as families of clades, are the families `N.vertices.image (N.cladeBelow S)` over the switchings
 `S` of `N` (`RootedNetwork.exists_builtOn_clades`, `RootedNetwork.BuiltOn.exists_switching_clades`).
 For the graph of a network `N` of the NMSC, this reduces the comparison of its trees with the
-displayed trees of `N` (`Brooqs.Net.displayed`) to the clades below the vertices of its switchings
+displayed trees of `N` (`External.NMSC.Net.displayed`) to the clades below the vertices of its switchings
 (`NMSC.exists_builtOn_of_switching_clades`), and gives the recovery of Section 3.2 through the tree
 of every switching (`NMSC.nmsc_recovery_switching`).
 
@@ -318,7 +318,7 @@ variable {L : Finset ℕ}
 /-- A displayed tree `K` of `N` is the family of clades of a tree of the graph
 `Realization.graph (baseTree N) (pairs N)` of `N`, in the sense of Definition 1, as soon as some
 switching of the graph has the clusters of `K` as its clades below the vertices. -/
-theorem exists_builtOn_of_switching_clades {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem exists_builtOn_of_switching_clades {N : Phylogenetics.Net L} (hN : N.WellFormed)
     {K : Finset (Finset L)} {S : Finset (ℕ × ℕ)}
     (hS : (Realization.graph (baseTree N) (pairs N)).Switching S)
     (hK : (Realization.graph (baseTree N) (pairs N)).vertices.image
@@ -342,7 +342,7 @@ hypotheses of `NMSC.nmsc_recovery_builtOn` (an outgroup leaf `z` child of the ro
 if `Nr` is identifiable under inclusion among the networks built on `T`, then almost surely, for
 all large numbers `n` of genes, every network built on `T` with the best score for the output `Q` of
 Quartet Filtering, with the fewest reticulations among them, is isomorphic to `Nr`. -/
-theorem nmsc_recovery_switching {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_recovery_switching {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)

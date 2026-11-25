@@ -24,27 +24,19 @@ import all Camus.DP.Frontier
 import all Camus.DP.Packing
 import all Camus.DP.Theorem1
 import all Camus.Defs
+import all Camus.External.AllmanDegnanRhodes2011.FourTaxa
 import all Camus.External.NMSC.AnomalyGeneral
 import all Camus.External.NMSC.AnomalyRegion
 import all Camus.External.NMSC.AnomalyShapes
-import all Camus.External.NMSC.Arms
-import all Camus.External.NMSC.Basic
-import all Camus.External.NMSC.Consistency
 import all Camus.External.NMSC.Context
 import all Camus.External.NMSC.Cycle
 import all Camus.External.NMSC.Displayed
-import all Camus.External.NMSC.Displays
 import all Camus.External.NMSC.FourComponents
 import all Camus.External.NMSC.GeneLaw
-import all Camus.External.NMSC.Instance
-import all Camus.External.NMSC.Model
 import all Camus.External.NMSC.Pairs
 import all Camus.External.NMSC.Pattern
-import all Camus.External.NMSC.Process
-import all Camus.External.NMSC.Sampling
 import all Camus.External.NMSC.Splits
 import all Camus.External.NMSC.Swap
-import all Camus.External.NMSC.Symmetry
 import all Camus.External.NMSC.ThreeCycle
 import all Camus.External.WarnowTabatabaeeEvans.Observation2
 import all Camus.External.WarnowTabatabaeeEvans.Sampling
@@ -222,11 +214,11 @@ meta def externalResults : List (String × Name) :=
    ("Support of the SNP quartets (Warnow, Tabatabaee, Evans 2025, Theorem 6)",
     ``Camus.External.support_tendsto),
    ("Quartet CFs of the components of a cycle under the NMSC (Banos 2019)",
-    ``Brooqs.nmsc_quartetCF),
+    ``Phylogenetics.nmsc_quartetCF),
    ("Quartet CFs of four taxa in four components of a cycle under the NMSC (Banos 2019)",
-    ``Brooqs.quartetCF_eq_of_components),
+    ``External.NMSC.quartetCF_eq_of_components),
    ("The anomalous 3-cycle under the NMSC (Ane, Fogg, Allman, Banos, Rhodes 2024)",
-    ``Brooqs.net32_anomaly)]
+    ``External.NMSC.net32_anomaly)]
 
 /-- The numbered results of the paper, and its unnumbered claims, in the order of the paper. -/
 meta def paperResults : List (String × Name) :=
@@ -290,7 +282,7 @@ meta def paperResults : List (String × Name) :=
     ``Camus.RootedNetwork.BuiltOn.anchored_of_outgroup),
    ("Sec 3.2, a tree of N need not be a basis (E8)",
     ``Camus.Counterexamples.camus_output_not_rootAboveNet),
-   ("Sec 3.3, quartet CFs of every four taxa under the NMSC", ``Brooqs.Net.weakPattern),
+   ("Sec 3.3, quartet CFs of every four taxa under the NMSC", ``External.NMSC.Net.weakPattern),
    ("Sec 3.3, the filter returns Q(N_r) under the NMSC, without the anomaly",
     ``Camus.NMSC.nmsc_filterQuartets_support),
    ("Sec 3.3, the filter on an anomalous network (E9)", ``Camus.NMSC.anomaly_filterQuartets),
@@ -304,12 +296,12 @@ meta def paperResults : List (String × Name) :=
    ("Sec 3.3, the pipeline through one of the underlying trees",
     ``Camus.NMSC.nmsc_recovery_underlying),
    ("Sec 3.3, the NMSC does not depend on the order of the sides of a cycle",
-    ``Brooqs.Net.SideSwap.geneTreeDist_eq),
-   ("Sec 3.3, the region of the anomaly of the 3-cycle (E9)", ``Brooqs.net32_anomalous_iff),
+    ``External.NMSC.Net.SideSwap.geneTreeDist_eq),
+   ("Sec 3.3, the region of the anomaly of the 3-cycle (E9)", ``External.NMSC.net32_anomalous_iff),
    ("Sec 3.3, the filter in the region of the anomaly (E9)", ``Camus.NMSC.net32On_filterQuartets),
    ("Sec 3.3, the filter outside the region of the anomaly (E9)",
     ``Camus.NMSC.net32On_filterQuartets_regular),
-   ("Sec 3.3, the anomaly in every network (E9)", ``Brooqs.Net.Cycle.anomalous_iff_of_anomalous),
+   ("Sec 3.3, the anomaly in every network (E9)", ``External.NMSC.Net.Cycle.anomalous_iff_of_anomalous),
    ("Sec 3.3, the filter drops Q(N_r) iff the anomaly holds (E9)", ``Camus.NMSC.anomalous_drop_iff),
    ("Sec 3.3, the filter on the boundary of the anomaly (E9)",
     ``Camus.NMSC.not_ae_filterQuartets_of_equal),

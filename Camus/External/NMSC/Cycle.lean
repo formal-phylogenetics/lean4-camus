@@ -1,149 +1,42 @@
 module
 
 public import Camus.External.NMSC.Context
-public import Camus.External.NMSC.Arms
+public import Phylogenetics.NMSC.Level1.Cycle
 
 /-!
-# The quartet CFs of the components of a cycle (BROOQS's Definition 2 with Fig. S1)
+# The quartet CF of four taxa in four components of a cycle
 
-Under the NMSC on a metric level-1 network `N`, the quartet CF of four taxa from distinct
-components of a cycle `Ω` is the CF `cycleCF M` of the induced metric quarnet, where the metric
-cycle `M` has the inheritance probability and the edge lengths of `Ω` (`Brooqs.nmsc_quartetCF`).
-This is the result that BROOQS takes from Baños (2019) and states in its Fig. S1.
+`Phylogenetics.nmsc_quartetCF` (lean4-phylogenetics) gives the quartet CFs of the components of a
+cycle `Ω` of a metric level-1 network `N` under the NMSC: those of the induced metric quarnet
+(Baños 2019). `External.NMSC.quartetCF_eq_of_components` states its steps for four given taxa
+`s 0, …, s 3` in distinct components, at the positions `pos l`: the quartet CF is the `γ`-mixture of
+the CFs of the quartet trees that the positions induce on the path `0 — 1 — ⋯ — d`, with the hybrid
+component at position `0` or `d`.
 
-The proof:
-* `Brooqs.quartetCF_eq_sum_top` reduces the CF to the expected score of the forest at the top node
-  of `Ω`;
-* the components hanging from `Ω` (and the hybrid component) each send at most one lineage, which
-  reaches the cycle unchanged (`Brooqs.Net.forestDist_of_card_le_one`); the lineage of the hybrid
-  component takes the side of `γ` with probability `γ` (`Brooqs.Net.forestDist_cycle_of_single`);
-* each side is then an arm of the displayed tree (`Brooqs.Side.forestDist_eq_armDist`), with the
-  positions of the components and the edge lengths `Ω.edgeLen`, and `Brooqs.displayed_score`
-  computes the expected score;
-* the two displayed trees put the hybrid component at position `0` and `d`, as in `cycleCF`.
-
-The bookkeeping between the positions of the components (`Ω.components`), the nodes of the two
-sides and the edges of the cycle (`Ω.edges`) is in the lemmas `Brooqs.Net.Cycle.component_zero`,
-`Brooqs.Net.Cycle.component_side₁`, `Brooqs.Net.Cycle.component_root`,
-`Brooqs.Net.Cycle.component_side₂`, `Brooqs.Net.Cycle.size_of_top_eq`,
-`Brooqs.Net.Cycle.size_of_top_ne`, `Brooqs.Net.Cycle.edgeLen_side₁` and the private lemmas around
-them; the components are pairwise disjoint (`Brooqs.Net.Cycle.component_disjoint`) because the
-leaves of a well-formed network have distinct labels.
+The proof is that of `Phylogenetics.nmsc_quartetCF`: `Phylogenetics.quartetCF_eq_sum_top` reduces the
+CF to the expected score of the forest at the top node of `Ω`; each component sends at most one
+lineage, which reaches the cycle unchanged; each side of the cycle is an arm of the displayed tree
+(`Phylogenetics.Side.forestDist_eq_armDist`), and `Phylogenetics.displayed_score` computes the
+expected score. The private steps, about the positions of the components, the nodes of the sides
+and the edges of the cycle, are those of `Phylogenetics.nmsc_quartetCF`, which lean4-phylogenetics
+does not export.
 -/
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset Matrix
 
 universe u
-
-/-- The process along a side is the arm process of its nodes, listed from the bottom. -/
-theorem Side.forestDist_eq_armDist {X : Type u} [DecidableEq X] (s : Fin 4 → X) (S : Side X)
-    (F : Finset (Finset (Fin 4))) :
-    S.forestDist s F = armDist (Pi.single F 1 ᵥ* kingmanTransition S.hybLen)
-      (S.nodes.reverse.map fun n => (n.2.2.forestDist s ᵥ* kingmanTransition n.2.1, n.1)) := by
-  match S with
-  | .hyb ℓ =>
-    simp only [Side.forestDist, Side.hybLen, Side.nodes, List.reverse_nil, List.map_nil, armDist,
-      List.foldl_nil, single_one_vecMul, row_apply']
-  | .node ℓ b N S =>
-    rw [Side.forestDist]
-    beta_reduce
-    rw [Side.forestDist_eq_armDist s S F]
-    simp only [Side.nodes, Side.hybLen, List.reverse_cons, List.map_append, List.map_cons,
-      List.map_nil, armDist, List.foldl_append, List.foldl_cons, List.foldl_nil]
 
 /-! ### Subnetworks -/
 
 section Structure
 
 variable {X : Type u}
-
-mutual
-/-- The leaves of a subnetwork are a sublist of the leaves of the network. -/
-theorem Net.leaves_sublist_of_mem_subnets :
-    ∀ {N M : Net X}, M ∈ N.subnets → M.leaves.Sublist N.leaves
-  | .leaf x, M, h => by
-    simp only [Net.subnets, List.mem_singleton] at h
-    subst h
-    exact List.Sublist.refl _
-  | .tree ℓ₁ N₁ ℓ₂ N₂, M, h => by
-    simp only [Net.subnets, List.mem_cons, List.mem_append] at h
-    rcases h with rfl | h | h
-    · exact List.Sublist.refl _
-    · exact (Net.leaves_sublist_of_mem_subnets h).trans (by simp [Net.leaves])
-    · exact (Net.leaves_sublist_of_mem_subnets h).trans (by simp [Net.leaves])
-  | .cycle γ S₁ S₂ ℓ N, M, h => by
-    simp only [Net.subnets, List.mem_cons, List.mem_append] at h
-    rcases h with rfl | (h | h) | h
-    · exact List.Sublist.refl _
-    · exact (Side.leaves_sublist_of_mem_subnets h).trans (by simp [Net.leaves])
-    · exact (Side.leaves_sublist_of_mem_subnets h).trans (by simp [Net.leaves])
-    · exact (Net.leaves_sublist_of_mem_subnets h).trans (by simp [Net.leaves])
-
-/-- The leaves of a subnetwork hanging from a side are a sublist of the leaves of the side. -/
-theorem Side.leaves_sublist_of_mem_subnets :
-    ∀ {S : Side X} {M : Net X}, M ∈ S.subnets → M.leaves.Sublist S.leaves
-  | .hyb ℓ, M, h => by simp [Side.subnets] at h
-  | .node ℓ b N S, M, h => by
-    simp only [Side.subnets, List.mem_append] at h
-    rcases h with h | h
-    · exact (Net.leaves_sublist_of_mem_subnets h).trans (by simp [Side.leaves])
-    · exact (Side.leaves_sublist_of_mem_subnets h).trans (by simp [Side.leaves])
-end
-
-mutual
-/-- The subnetworks of a metric network are metric. -/
-theorem Net.isMetric_of_mem_subnets :
-    ∀ {N M : Net X}, M ∈ N.subnets → N.IsMetric → M.IsMetric
-  | .leaf x, M, h, _ => by
-    simp only [Net.subnets, List.mem_singleton] at h
-    subst h
-    trivial
-  | .tree ℓ₁ N₁ ℓ₂ N₂, M, h, hN => by
-    simp only [Net.subnets, List.mem_cons, List.mem_append] at h
-    rcases h with rfl | h | h
-    · exact hN
-    · exact Net.isMetric_of_mem_subnets h hN.2.2.1
-    · exact Net.isMetric_of_mem_subnets h hN.2.2.2
-  | .cycle γ S₁ S₂ ℓ N, M, h, hN => by
-    simp only [Net.subnets, List.mem_cons, List.mem_append] at h
-    rcases h with rfl | (h | h) | h
-    · exact hN
-    · exact Side.isMetric_of_mem_subnets h hN.2.2.2.1
-    · exact Side.isMetric_of_mem_subnets h hN.2.2.2.2.1
-    · exact Net.isMetric_of_mem_subnets h hN.2.2.2.2.2.1
-
-/-- The subnetworks hanging from a metric side are metric. -/
-theorem Side.isMetric_of_mem_subnets :
-    ∀ {S : Side X} {M : Net X}, M ∈ S.subnets → S.IsMetric → M.IsMetric
-  | .hyb ℓ, M, h, _ => by simp [Side.subnets] at h
-  | .node ℓ b N S, M, h, hS => by
-    simp only [Side.subnets, List.mem_append] at h
-    rcases h with h | h
-    · exact Net.isMetric_of_mem_subnets h hS.2.2.1
-    · exact Side.isMetric_of_mem_subnets h hS.2.2.2
-end
-
-/-- The leaves below a side are those of the networks hanging from its nodes. -/
-theorem Side.leaves_eq_flatten :
-    ∀ S : Side X, S.leaves = (S.nodes.map fun n => n.2.2.leaves).flatten
-  | .hyb _ => rfl
-  | .node ℓ b N S => by simp [Side.leaves, Side.nodes, Side.leaves_eq_flatten S]
-
-private theorem nc_side_isMetric_nodes :
-    ∀ {S : Side X}, S.IsMetric → (∀ n ∈ S.nodes, 0 < n.1) ∧ 0 < S.hybLen
-  | .hyb ℓ, h => ⟨by simp [Side.nodes], h⟩
-  | .node ℓ b N S, h => by
-    obtain ⟨h1, h2⟩ := nc_side_isMetric_nodes h.2.2.2
-    refine ⟨?_, h2⟩
-    intro n hn
-    simp only [Side.nodes, List.mem_cons] at hn
-    rcases hn with rfl | hn
-    · exact h.1
-    · exact h1 n hn
 
 private theorem nc_pendant_sublist {S : Side X} {n : ℝ × ℝ × Net X} (hn : n ∈ S.nodes) :
     n.2.2.leaves.Sublist S.leaves := by
@@ -231,15 +124,6 @@ private theorem nc_edgeLen_of_eq_of_gt (h : Ω.top = N) {m : ℕ}
   congr 2
   simp; omega
 
-/-- For `1 ≤ m < p`, the length `Ω.edgeLen m` of the edge of the cycle between the positions `m`
-and `m + 1` is the length of the edge above the node at height `m` of `side₁` (counted from the
-hybrid node; the component at position `m` hangs from that node). -/
-theorem Net.Cycle.edgeLen_side₁ {m : ℕ} (hm1 : 1 ≤ m) (hm : m < Ω.side₁.nodes.length) :
-    Ω.edgeLen m = (Ω.side₁.nodes.reverse[m - 1]'(by simp; omega)).1 := by
-  obtain ⟨i, rfl⟩ : ∃ i, m = i + 1 := ⟨m - 1, by omega⟩
-  rw [nc_edgeLen_of_lt Ω hm, ncE_side₁ Ω (by omega)]
-  rfl
-
 end CycleEdges
 
 /-! ### The components of a cycle -/
@@ -247,65 +131,6 @@ end CycleEdges
 section CycleComponents
 
 variable {X : Type u} [DecidableEq X] {N : Net X} (Ω : N.Cycle)
-
-private theorem nc_components_of_eq (h : Ω.top = N) :
-    Ω.components = [Ω.below.taxa] ++ Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa) ++
-      Ω.side₂.nodes.map (fun n => n.2.2.taxa) := by
-  simp only [Net.Cycle.components, ite_eq_left h, List.append_nil]
-
-private theorem nc_components_of_ne (h : Ω.top ≠ N) :
-    Ω.components = [Ω.below.taxa] ++ Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa) ++
-      [N.taxa \ Ω.top.taxa] ++ Ω.side₂.nodes.map (fun n => n.2.2.taxa) := by
-  simp only [Net.Cycle.components, ite_eq_right h]
-
-/-- The size of a cycle whose top node is the root of the network. -/
-theorem Net.Cycle.size_of_top_eq (h : Ω.top = N) :
-    Ω.size = Ω.side₁.nodes.length + Ω.side₂.nodes.length + 1 := by
-  rw [Net.Cycle.size, nc_components_of_eq Ω h]
-  simp only [List.length_append, List.length_cons, List.length_nil, List.length_map,
-    List.length_reverse]
-  omega
-
-/-- The size of a cycle whose top node is not the root of the network. -/
-theorem Net.Cycle.size_of_top_ne (h : Ω.top ≠ N) :
-    Ω.size = Ω.side₁.nodes.length + Ω.side₂.nodes.length + 2 := by
-  rw [Net.Cycle.size, nc_components_of_ne Ω h]
-  simp only [List.length_append, List.length_cons, List.length_nil, List.length_map,
-    List.length_reverse]
-  omega
-
-/-- The component at position `0` is the hybrid component. -/
-theorem Net.Cycle.component_zero : Ω.component 0 = Ω.below.taxa := by
-  simp [Net.Cycle.component, Net.Cycle.components]
-
-/-- The component at position `i + 1 ≤ p` hangs from the node at height `i + 1` of `side₁`. -/
-theorem Net.Cycle.component_side₁ {i : ℕ} (hi : i < Ω.side₁.nodes.length) :
-    Ω.component (i + 1) = (Ω.side₁.nodes.reverse[i]'(by simpa using hi)).2.2.taxa := by
-  have hA : i < (Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa)).length := by simpa using hi
-  unfold Net.Cycle.component Net.Cycle.components
-  simp only [List.append_assoc, List.cons_append, List.nil_append]
-  rw [List.getD_cons_succ, List.getD_append _ _ _ _ hA, List.getD_eq_getElem _ _ hA,
-    List.getElem_map]
-
-/-- The component at position `p + 1` is the component of the root, if the top node of the cycle
-is not the root. -/
-theorem Net.Cycle.component_root (h : Ω.top ≠ N) :
-    Ω.component (Ω.side₁.nodes.length + 1) = N.taxa \ Ω.top.taxa := by
-  rw [Net.Cycle.component, nc_components_of_ne Ω h, List.append_assoc,
-    List.getD_append_right _ _ _ _ (by simp)]
-  simp
-
-/-- The component at position `d - (i + 1)` hangs from the node at height `i + 1` of `side₂`
-(counted from the hybrid node). -/
-theorem Net.Cycle.component_side₂ {i : ℕ} (hi : i < Ω.side₂.nodes.length) :
-    Ω.component (Ω.size - (i + 1)) = (Ω.side₂.nodes.reverse[i]'(by simpa using hi)).2.2.taxa := by
-  obtain ⟨pre, hpre⟩ :
-      ∃ pre, Ω.components = pre ++ Ω.side₂.nodes.map (fun n => n.2.2.taxa) := ⟨_, rfl⟩
-  have hs : Ω.size = pre.length + Ω.side₂.nodes.length := by rw [Net.Cycle.size, hpre]; simp
-  rw [Net.Cycle.component, hpre, List.getD_append_right _ _ _ _ (by omega),
-    List.getD_eq_getElem _ _ (by simp; omega), List.getElem_map, List.getElem_reverse]
-  exact congrArg (fun n : ℝ × ℝ × Net X => n.2.2.taxa) (getElem_congr_idx (c := Ω.side₂.nodes)
-    (show Ω.size - (i + 1) - pre.length = Ω.side₂.nodes.length - 1 - i by omega))
 
 private theorem nc_component_of_le {i : ℕ} (hi : Ω.size ≤ i) : Ω.component i = ∅ :=
   List.getD_eq_default _ _ hi
@@ -319,11 +144,6 @@ private theorem nc_top_sublist : Ω.top.leaves.Sublist N.leaves :=
   Net.leaves_sublist_of_mem_subnets Ω.mem
 
 omit [DecidableEq X] in
-private theorem nc_below_sublist : Ω.below.leaves.Sublist N.leaves :=
-  (by rw [nc_top_leaves]; exact List.sublist_append_right _ _ : Ω.below.leaves.Sublist _).trans
-    (nc_top_sublist Ω)
-
-omit [DecidableEq X] in
 private theorem nc_pendant₁_sublist {n : ℝ × ℝ × Net X} (hn : n ∈ Ω.side₁.nodes) :
     n.2.2.leaves.Sublist Ω.top.leaves :=
   (nc_pendant_sublist hn).trans (by
@@ -334,71 +154,6 @@ private theorem nc_pendant₂_sublist {n : ℝ × ℝ × Net X} (hn : n ∈ Ω.s
     n.2.2.leaves.Sublist Ω.top.leaves :=
   (nc_pendant_sublist hn).trans (by
     rw [nc_top_leaves]; exact (List.sublist_append_right _ _).trans (List.sublist_append_left _ _))
-
-/-- The networks hanging below the cycle: the network below the hybrid node and the pendant
-ones. -/
-private def ncT : List (Net X) :=
-  [Ω.below] ++ Ω.side₁.nodes.reverse.map (fun n => n.2.2) ++ Ω.side₂.nodes.map (fun n => n.2.2)
-
-omit [DecidableEq X] in
-private theorem ncT_perm : ((ncT Ω).map Net.leaves).flatten.Perm Ω.top.leaves := by
-  rw [nc_top_leaves, Side.leaves_eq_flatten, Side.leaves_eq_flatten]
-  simp only [ncT, List.map_append, List.flatten_append, List.map_reverse, List.map_map,
-    List.map_cons, List.map_nil, List.flatten_cons, List.flatten_nil, List.append_nil]
-  refine (List.Perm.append_right _ (List.Perm.append_left _
-    (List.Perm.flatten (List.reverse_perm _)))).trans ?_
-  rw [List.append_assoc]
-  exact List.perm_append_comm
-
-private theorem ncT_taxa_subset {M : Net X} (hM : M ∈ ncT Ω) : M.taxa ⊆ Ω.top.taxa := by
-  intro y hy
-  simp only [Net.taxa, List.mem_toFinset] at hy ⊢
-  exact (ncT_perm Ω).subset (List.mem_flatten.2 ⟨M.leaves, List.mem_map_of_mem hM, hy⟩)
-
-private theorem ncT_pairwise (hN : N.leaves.Nodup) :
-    ((ncT Ω).map Net.taxa).Pairwise Disjoint := by
-  have h1 : ((ncT Ω).map Net.leaves).flatten.Nodup :=
-    (ncT_perm Ω).nodup_iff.2 ((nc_top_sublist Ω).nodup hN)
-  have h2 := (List.nodup_flatten.1 h1).2
-  rw [List.pairwise_map] at h2 ⊢
-  exact h2.imp fun h => List.disjoint_toFinset_iff_disjoint.2 h
-
-private theorem nc_components_pairwise (hN : N.leaves.Nodup) :
-    Ω.components.Pairwise Disjoint := by
-  have hT := ncT_pairwise Ω hN
-  have hTeq : (ncT Ω).map Net.taxa = [Ω.below.taxa] ++
-      Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa) ++
-        Ω.side₂.nodes.map (fun n => n.2.2.taxa) := by
-    simp [ncT, Function.comp_def]
-  by_cases h : Ω.top = N
-  · rw [nc_components_of_eq Ω h, ← hTeq]
-    exact hT
-  · have hperm : ([Ω.below.taxa] ++ Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa) ++
-        [N.taxa \ Ω.top.taxa] ++ Ω.side₂.nodes.map (fun n => n.2.2.taxa)).Perm
-        ((N.taxa \ Ω.top.taxa) :: ([Ω.below.taxa] ++
-          Ω.side₁.nodes.reverse.map (fun n => n.2.2.taxa) ++
-            Ω.side₂.nodes.map (fun n => n.2.2.taxa))) := by
-      rw [List.append_assoc _ [N.taxa \ Ω.top.taxa]]
-      exact List.perm_middle
-    rw [nc_components_of_ne Ω h, List.Perm.pairwise_iff (R := Disjoint) (fun h => h.symm) hperm,
-      List.pairwise_cons, ← hTeq]
-    refine ⟨fun c hc => ?_, hT⟩
-    obtain ⟨M, hM, rfl⟩ := List.mem_map.1 hc
-    exact sdiff_disjoint.mono_right (ncT_taxa_subset Ω hM)
-
-/-- The components of a cycle of a network with distinct leaf labels are pairwise disjoint. -/
-theorem Net.Cycle.component_disjoint (hN : N.leaves.Nodup) {i j : ℕ} (hij : i ≠ j) :
-    Disjoint (Ω.component i) (Ω.component j) := by
-  have hpw := List.pairwise_iff_getElem.1 (nc_components_pairwise Ω hN)
-  unfold Net.Cycle.component
-  rcases lt_or_ge i Ω.components.length with hi | hi
-  · rcases lt_or_ge j Ω.components.length with hj | hj
-    · rw [List.getD_eq_getElem _ _ hi, List.getD_eq_getElem _ _ hj]
-      rcases Nat.lt_or_gt_of_ne hij with h | h
-      · exact hpw i j hi hj h
-      · exact (hpw j i hj hi h).symm
-    · rw [List.getD_eq_default _ _ hj]; exact disjoint_empty_right _
-  · rw [List.getD_eq_default _ _ hi]; exact disjoint_empty_left _
 
 private theorem nc_top_taxa_subset : Ω.top.taxa ⊆ N.taxa := fun y hy => by
   simp only [Net.taxa, List.mem_toFinset] at hy ⊢
@@ -436,35 +191,6 @@ private theorem nc_component_subset (i : ℕ) : Ω.component i ⊆ N.taxa := by
   · exact (nc_component_subset_top Ω (by tauto)).trans (nc_top_taxa_subset Ω)
 
 end CycleComponents
-
-/-- A cycle of a metric network has a metric cycle with its inheritance probability and edge
-lengths. -/
-theorem Net.Cycle.exists_metricCycle {X : Type u} [DecidableEq X] {N : Net X}
-    (hN : N.WellFormed) (Ω : N.Cycle) :
-    ∃ M : MetricCycle Ω.size, M.γ = Ω.γ ∧ ∀ m, 1 ≤ m → m ≤ Ω.size - 2 → M.w m = Ω.edgeLen m := by
-  have hmet : Ω.top.IsMetric := Net.isMetric_of_mem_subnets Ω.mem hN.1
-  obtain ⟨hγ0, hγ1, -, hS₁, hS₂, -, -⟩ := hmet
-  -- all the edges of the two sides have positive lengths
-  have hE : ∀ y ∈ ncE Ω, 0 < y := by
-    intro y hy
-    simp only [ncE, List.mem_append, List.mem_singleton, List.mem_map, List.mem_reverse] at hy
-    rcases hy with ((rfl | ⟨n, hn, rfl⟩) | ⟨n, hn, rfl⟩) | rfl
-    · exact (nc_side_isMetric_nodes hS₁).2
-    · exact (nc_side_isMetric_nodes hS₁).1 n hn
-    · exact (nc_side_isMetric_nodes hS₂).1 n hn
-    · exact (nc_side_isMetric_nodes hS₂).2
-  have hEm : ∀ m, m < (ncE Ω).length → 0 < (ncE Ω).getD m 0 := fun m hm => by
-    rw [List.getD_eq_getElem _ _ hm]; exact hE _ (List.getElem_mem hm)
-  have hl := ncE_length Ω
-  refine ⟨⟨Ω.γ, Ω.edgeLen, hγ0, hγ1, fun m hm1 hm2 => ?_⟩, rfl, fun _ _ _ => rfl⟩
-  by_cases h : Ω.top = N
-  · have hs := Net.Cycle.size_of_top_eq Ω h
-    rcases lt_trichotomy m Ω.side₁.nodes.length with hm | rfl | hm
-    · rw [nc_edgeLen_of_lt Ω hm]; exact hEm _ (by omega)
-    · rw [nc_edgeLen_of_eq_p Ω h]; exact add_pos (hEm _ (by omega)) (hEm _ (by omega))
-    · rw [nc_edgeLen_of_eq_of_gt Ω h hm]; exact hEm _ (by omega)
-  · have hs := Net.Cycle.size_of_top_ne Ω h
-    rw [nc_edgeLen_of_ne Ω h]; exact hEm _ (by omega)
 
 /-! ### The sides as arms of the displayed trees -/
 
@@ -520,7 +246,7 @@ private theorem nc_card_roots_posForest {pos : Fin 4 → ℕ} (hinj : Function.I
 private theorem nc_single_posForest {pos : Fin 4 → ℕ} (hinj : Function.Injective pos) (h : ℕ)
     (t : ℝ) :
     Pi.single (posForest pos h) 1 ᵥ* kingmanTransition t = Pi.single (posForest pos h) 1 :=
-  single_vecMul_kingmanTransition (isGood_singletons _).1 (nc_card_roots_posForest hinj h) t
+  single_vecMul_kingmanTransition (isGoodForest_singletons _).1 (nc_card_roots_posForest hinj h) t
 
 private theorem nc_posForest_cases {pos : Fin 4 → ℕ} (hinj : Function.Injective pos) (h : ℕ) :
     posForest pos h = ∅ ∨ ∃ l, posForest pos h = {{l}} := by
@@ -636,7 +362,7 @@ private theorem nc_side₂_eq_rightArm (s : Fin 4 → X)
               Ω.side₁.nodes.length + 1 + (Ω.side₂.nodes.length - 1 - i) by omega,
             ncE_side₂ Ω hj]
 
-/-- The shape of the displayed trees of `Ω`, as `Brooqs.displayed_score` takes it: the top node
+/-- The shape of the displayed trees of `Ω`, as `Phylogenetics.displayed_score` takes it: the top node
 is a node of the path (the root component hangs there) or lies inside its edge `p`. -/
 private theorem nc_rv : ∃ rv : Bool,
     Ω.size = Ω.side₁.nodes.length + Ω.side₂.nodes.length + 1 + (if rv then 1 else 0) ∧
@@ -726,102 +452,10 @@ private theorem nc_sum_top (hN : N.leaves.Nodup) (s : Fin 4 → X) {pos : Fin 4 
 
 end Arms
 
-/-- `pathCF w` at distinct positions in `[0, d]` reads `w` only on `[1, d - 2]`, between the two
-middle positions. -/
-private theorem nc_pathCF_congr {w w' : ℕ → ℝ} {d a b c e : ℕ} (hab : a ≠ b) (hac : a ≠ c)
-    (hae : a ≠ e) (hbc : b ≠ c) (hbe : b ≠ e) (hce : c ≠ e) (ha : a ≤ d) (hb : b ≤ d)
-    (hc : c ≤ d) (he : e ≤ d) (hw : ∀ m, 1 ≤ m → m ≤ d - 2 → w m = w' m) :
-    pathCF w a b c e = pathCF w' a b c e := by
-  simp only [pathCF, pathLen]
-  rw [sum_congr rfl fun m hm => hw m (by rw [mem_Ico] at hm; omega) (by rw [mem_Ico] at hm; omega)]
-
-/-- BROOQS's Definition 2 with its Fig. S1 (the induced metric quarnets of Baños 2019): under the
-NMSC on a
-metric level-1 network `N`, the component CFs of a cycle `Ω`, for any choice `x` of one taxon per
-component, are the CFs of the induced metric quarnets, those of the metric cycle `M` with the
-inheritance probability and edge lengths of `Ω`. -/
-theorem nmsc_quartetCF {X : Type u} [DecidableEq X] (N : Net X) (hN : N.WellFormed)
-    (Ω : N.Cycle) {d : ℕ} (hΩ : Ω.size = d) (M : MetricCycle d) (hγ : M.γ = Ω.γ)
-    (hw : ∀ m, 1 ≤ m → m ≤ d - 2 → M.w m = Ω.edgeLen m) (ord : Equiv.Perm (Fin d))
-    (x : Fin d → X) (hx : ∀ i : Fin d, x (ord i) ∈ Ω.component i) :
-    NMSCQuartetCF M ord (N.componentCF x) := by
-  subst hΩ
-  intro a b c e hab hac hae hbc hbe hce
-  -- the lineages `0, 1, 2, 3`, their taxa `s` and the positions `pos` of their components
-  set v : Fin 4 → Fin Ω.size := ![a, b, c, e] with hv
-  have hvinj : Function.Injective v := by
-    intro i j hij
-    fin_cases i <;> fin_cases j <;> simp_all [v, eq_comm]
-  set pos : Fin 4 → ℕ := fun l => (ord.symm (v l) : ℕ) with hpos
-  set s : Fin 4 → X := fun l => x (v l) with hsdef
-  have hinj : Function.Injective pos := fun i j h => hvinj (ord.symm.injective (Fin.ext h))
-  have hlt : ∀ l, pos l < Ω.size := fun l => (ord.symm (v l)).isLt
-  have hs : ∀ l, s l ∈ Ω.component (pos l) := fun l => by
-    have := hx (ord.symm (v l))
-    rwa [Equiv.apply_symm_apply] at this
-  have hcomp : ∀ l h, s l ∈ Ω.component h ↔ pos l = h := fun l h =>
-    ⟨fun hm => by
-      by_contra hne
-      exact disjoint_left.1 (Net.Cycle.component_disjoint Ω hN.2 hne) (hs l) hm,
-     fun he => he ▸ hs l⟩
-  -- the hypotheses of `quartetCF_eq_sum_top`: at most one taxon in the component of the root
-  have hsinj : Function.Injective s := fun i j h => hinj ((hcomp i (pos j)).1 (h ▸ hs j))
-  have hsN : ∀ l, s l ∈ N.taxa := fun l => nc_component_subset Ω _ (hs l)
-  have h3 : 3 ≤ #(univ.filter fun l => s l ∈ Ω.top.taxa) := by
-    have hout : #(univ.filter fun l => ¬ s l ∈ Ω.top.taxa) ≤ 1 := by
-      refine (card_le_card fun l hl => ?_).trans
-        (nc_card_filter_le_one hinj (Ω.side₁.nodes.length + 1))
-      simp only [mem_filter, mem_univ, true_and] at hl ⊢
-      by_contra hne
-      exact hl (nc_component_subset_top Ω (Or.inr hne) (hs l))
-    have := card_filter_add_card_filter_not (s := (univ : Finset (Fin 4)))
-      (fun l => s l ∈ Ω.top.taxa)
-    rw [card_univ, Fintype.card_fin] at this
-    omega
-  have key : N.quartetCF (s 0) (s 1) (s 2) (s 3) =
-      cycleCF M (pos 0) (pos 1) (pos 2) (pos 3) := by
-    rw [quartetCF_eq_sum_top N hN.2 Ω s hsN h3, nc_sum_top Ω hN.2 s hinj hlt hs]
-    -- `M.w` and `Ω.edgeLen` agree where `pathCF` reads them
-    have hd : ∀ {i j : Fin 4}, i ≠ j → pos i ≠ pos j := fun h h' => h (hinj h')
-    have hpc : pathCF M.w (pos 0) (pos 1) (pos 2) (pos 3) =
-        pathCF Ω.edgeLen (pos 0) (pos 1) (pos 2) (pos 3) :=
-      nc_pathCF_congr (hd (by decide)) (hd (by decide)) (hd (by decide)) (hd (by decide))
-        (hd (by decide)) (hd (by decide)) (hlt 0).le (hlt 1).le (hlt 2).le (hlt 3).le hw
-    have hd' : ∀ {i j : Fin 4}, i ≠ j →
-        toRightEnd Ω.size (pos i) ≠ toRightEnd Ω.size (pos j) := fun {i j} h h' => by
-      have := hd h
-      have := hlt i
-      have := hlt j
-      unfold toRightEnd at h'
-      split_ifs at h' <;> omega
-    have hle : ∀ l, toRightEnd Ω.size (pos l) ≤ Ω.size := fun l => by
-      have := hlt l
-      unfold toRightEnd
-      split_ifs <;> omega
-    have hpc' : pathCF M.w (toRightEnd Ω.size (pos 0)) (toRightEnd Ω.size (pos 1))
-        (toRightEnd Ω.size (pos 2)) (toRightEnd Ω.size (pos 3)) =
-        pathCF Ω.edgeLen (toRightEnd Ω.size (pos 0)) (toRightEnd Ω.size (pos 1))
-          (toRightEnd Ω.size (pos 2)) (toRightEnd Ω.size (pos 3)) :=
-      nc_pathCF_congr (hd' (by decide)) (hd' (by decide)) (hd' (by decide)) (hd' (by decide))
-        (hd' (by decide)) (hd' (by decide)) (hle 0) (hle 1) (hle 2) (hle 3) hw
-    unfold cycleCF
-    rw [hγ]
-    split_ifs with h0
-    · rw [hpc, hpc']
-    · -- no taxon in the hybrid component: the two displayed trees give the same CF
-      have htre : ∀ a : ℕ, a ≠ 0 → toRightEnd Ω.size a = a := fun a ha => by
-        unfold toRightEnd
-        exact ite_eq_right ha
-      simp only [not_or] at h0
-      rw [htre _ h0.1, htre _ h0.2.1, htre _ h0.2.2.1, htre _ h0.2.2.2, hpc]
-      ring
-  exact key
-
 /-- The quartet CF of four taxa `s 0, …, s 3` in four distinct components of a cycle `Ω`, at the
 positions `pos l`, is the CF of the induced metric quarnet: the `γ`-mixture of the CFs of the
 quartet trees that the positions induce on the path `0 — 1 — ⋯ — d` with the hybrid component at
-position `0` or at position `d`. (This wraps the steps of `Brooqs.nmsc_quartetCF` for four given
-taxa; it was added to the copy from lean4-brooqs for the analysis of Section 3.3 of CAMUS.) -/
+position `0` or at position `d`. (The steps of `Phylogenetics.nmsc_quartetCF` for four given taxa.) -/
 theorem quartetCF_eq_of_components {X : Type u} [DecidableEq X] (N : Net X) (hN : N.WellFormed)
     (Ω : N.Cycle) (s : Fin 4 → X) {pos : Fin 4 → ℕ} (hinj : Function.Injective pos)
     (hlt : ∀ l, pos l < Ω.size) (hs : ∀ l, s l ∈ Ω.component (pos l)) :
@@ -848,4 +482,4 @@ theorem quartetCF_eq_of_components {X : Type u} [DecidableEq X] (N : Net X) (hN 
     omega
   rw [quartetCF_eq_sum_top N hN.2 Ω s hsN h3, nc_sum_top Ω hN.2 s hinj hlt hs]
 
-end Brooqs
+end External.NMSC

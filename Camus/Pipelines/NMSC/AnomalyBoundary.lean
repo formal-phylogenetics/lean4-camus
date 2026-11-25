@@ -64,17 +64,17 @@ variable {L : Finset ℕ}
 /-! ### The quartet tree that a gene tree induces on four taxa -/
 
 /-- The gene trees in the support of the NMSC are good forests: nested or disjoint clusters. -/
-theorem isGood_of_geneTreeDist {N : Brooqs.Net L} (hN : N.leaves.Nodup) {T : Finset (Finset L)}
-    (hT : N.geneTreeDist id T ≠ 0) : Brooqs.IsGood T := by
-  unfold Brooqs.Net.geneTreeDist at hT
+theorem isGood_of_geneTreeDist {N : Phylogenetics.Net L} (hN : N.leaves.Nodup) {T : Finset (Finset L)}
+    (hT : N.geneTreeDist id T ≠ 0) : Phylogenetics.IsGoodForest T := by
+  unfold Phylogenetics.Net.geneTreeDist at hT
   simp only [Matrix.vecMul, dotProduct] at hT
   obtain ⟨F, -, hF⟩ := exists_ne_zero_of_sum_ne_zero hT
   have hF' := left_ne_zero_of_mul hF
-  rw [Brooqs.Net.forestDist_eq] at hF'
-  obtain ⟨hFg, -, -⟩ := Brooqs.Net.forestDistOf_single_support N hN (Brooqs.sampledAt id)
-    (fun _ _ => Brooqs.isGood_singletons _)
-    (fun _ _ _ _ hab => Brooqs.disjoint_lineages_sampledAt id hab) hF'
-  exact (Brooqs.kingmanAbsorption_support hFg (right_ne_zero_of_mul hF)).1
+  rw [Phylogenetics.Net.forestDist_eq] at hF'
+  obtain ⟨hFg, -, -⟩ := Phylogenetics.Net.forestDistOf_single_support N hN (Phylogenetics.sampledAt id)
+    (fun _ _ => Phylogenetics.isGoodForest_singletons _)
+    (fun _ _ _ _ hab => Phylogenetics.disjoint_lineages_sampledAt id hab) hF'
+  exact (Phylogenetics.kingmanAbsorption_support_good hFg (right_ne_zero_of_mul hF)).1
 
 private theorem bd_side_pattern : ∀ u v : Fin 3, u ≠ v → ∀ X Y : Finset (Fin 4),
     (X = side u ∨ X = (side u)ᶜ) → (Y = side v ∨ Y = (side v)ᶜ) →
@@ -84,7 +84,7 @@ private theorem bd_side_pattern : ∀ u v : Fin 3, u ≠ v → ∀ X Y : Finset 
 /-- **A gene tree induces at most one quartet tree on four taxa.** A good forest (nested or
 disjoint clusters) does not induce two different quartet trees on the four taxa `k`. -/
 theorem induces_unique {k : QuartetKey} (hk : keyTaxa k ⊆ L) {T : Finset (Finset L)}
-    (hT : Brooqs.IsGood T) {u v : Fin 3} (hu : Induces T (k.quartet u))
+    (hT : Phylogenetics.IsGoodForest T) {u v : Fin 3} (hu : Induces T (k.quartet u))
     (hv : Induces T (k.quartet v)) : u = v := by
   by_contra huv
   obtain ⟨-, A, hA, hAu⟩ := hu
@@ -109,7 +109,7 @@ def blockLabel (k : QuartetKey) (T : Finset (Finset L)) : Fin 3 :=
 
 /-- If the three quartet trees on `k` have probability `1/3`, every gene tree in the support of the
 NMSC induces exactly one of them, the one of label `blockLabel k T`. -/
-theorem induces_iff_blockLabel {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem induces_iff_blockLabel {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     {T : Finset (Finset L)} (hT : N.geneTreeDist id T ≠ 0) (u : Fin 3) :
     Induces T (k.quartet u) ↔ blockLabel k T = u := by
@@ -133,7 +133,7 @@ theorem induces_iff_blockLabel {N : Brooqs.Net L} (hN : N.WellFormed) {k : Quart
       norm_num
   -- in expectation, a gene tree induces exactly one
   have hsum : ∑ T', N.geneTreeDist id T' * m T' = ∑ T', N.geneTreeDist id T' := by
-    rw [Brooqs.Net.geneTreeDist_sum hN.2]
+    rw [Phylogenetics.Net.sum_geneTreeDist _ hN.2]
     have h3 : ∑ v : Fin 3, quartetProb N (k.quartet v) = 1 := by
       simp only [hthird, sum_const, card_univ, Fintype.card_fin, nsmul_eq_mul]
       norm_num
@@ -144,7 +144,7 @@ theorem induces_iff_blockLabel {N : Brooqs.Net L} (hN : N.WellFormed) {k : Quart
     have hnn : ∀ T', 0 ≤ N.geneTreeDist id T' * (1 - m T') := fun T' => by
       by_cases h : N.geneTreeDist id T' = 0
       · rw [h, zero_mul]
-      · exact mul_nonneg (Brooqs.Net.geneTreeDist_nonneg hN id T') (by linarith [hm1 T' h])
+      · exact mul_nonneg (Phylogenetics.Net.geneTreeDist_nonneg _ hN id T') (by linarith [hm1 T' h])
     have htot : ∑ T', N.geneTreeDist id T' * (1 - m T') = 0 := by
       simp only [mul_sub, mul_one, sum_sub_distrib, hsum, sub_self]
     exact fun T' => (sum_eq_zero_iff_of_nonneg fun T' _ => hnn T').1 htot T' (mem_univ _)
@@ -398,7 +398,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasur
 def labels (k : QuartetKey) (G : ℕ → Ω → Finset (Finset L)) (n : ℕ) (ω : Ω) : Fin n → Fin 3 :=
   fun i => blockLabel k (G i ω)
 
-private theorem bd_measureReal (N : Brooqs.Net L) (G0 : Ω → Finset (Finset L))
+private theorem bd_measureReal (N : Phylogenetics.Net L) (G0 : Ω → Finset (Finset L))
     (hG0 : AEMeasurable G0 P) (hlaw : ∀ T, P.real (G0 ⁻¹' {T}) = N.geneTreeDist id T)
     (S : Finset (Finset (Finset L))) :
     P.real (G0 ⁻¹' ↑S) = ∑ T ∈ S, N.geneTreeDist id T := by
@@ -410,7 +410,7 @@ private theorem bd_measureReal (N : Brooqs.Net L) (G0 : Ω → Finset (Finset L)
   rw [← hmap, hlaw]
 
 /-- Almost surely, every gene tree is in the support of the NMSC. -/
-theorem ae_geneTreeDist_ne_zero {N : Brooqs.Net L} (G : ℕ → Ω → Finset (Finset L))
+theorem ae_geneTreeDist_ne_zero {N : Phylogenetics.Net L} (G : ℕ → Ω → Finset (Finset L))
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
     ∀ᵐ ω ∂P, ∀ i, N.geneTreeDist id (G i ω) ≠ 0 := by
@@ -432,7 +432,7 @@ theorem ae_geneTreeDist_ne_zero {N : Brooqs.Net L} (G : ℕ → Ω → Finset (F
 /-- **The label sequences are uniform.** If the three quartet trees on `k` have probability `1/3`,
 each sequence of `n` labels is that of the first `n` gene trees with probability `3^{-n}`: the gene
 trees are independent. -/
-theorem prob_labels_eq {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem prob_labels_eq {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -472,7 +472,7 @@ theorem prob_labels_eq {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
 
 /-- If the three quartet trees on `k` have probability `1/3`, the labels of the first `n` gene trees
 form a sequence of the set `S` with probability `#S / 3^n`. -/
-theorem prob_labels_mem {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem prob_labels_mem {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -492,7 +492,7 @@ theorem prob_labels_mem {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
 have probability `1/3`, the probability that the quartet tree `u` is a most frequent one among the
 quartet trees that the first `n` gene trees induce on `k` is `#(maxLabels n u) / 3^n`, the same for
 the three (`NMSC.card_maxLabels`). -/
-theorem prob_counts_eq {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem prob_counts_eq {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -565,7 +565,7 @@ taxa `k`, `k.quartet d`, and let the three quartet trees on `k` have probability
 threshold `t`, it is not almost sure that, for all large numbers `n` of genes, Algorithm 1 applied
 to the quartet trees of the first `n` gene trees returns on `k` exactly the copies of the quartet
 tree of Q(N_r): the probability of that event is less than `1`. -/
-theorem not_ae_filterQuartets_of_equal {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem not_ae_filterQuartets_of_equal {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) {d : Fin 3} (hdisp : ∀ u, DisplaysQuartet N (k.quartet u) ↔ u = d)
     (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
@@ -632,7 +632,7 @@ threshold `t`, it is not almost sure that, for all large numbers `n` of genes, A
 no copy of the displayed quartet tree `k.quartet d`: whenever it is strictly the most frequent,
 Algorithm 1 keeps its copies, and it is so with probability at least `1/9` for every positive
 number of genes (`NMSC.card_strictLabels_succ`). -/
-theorem not_ae_drop_of_equal {N : Brooqs.Net L} (hN : N.WellFormed) {k : QuartetKey}
+theorem not_ae_drop_of_equal {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : QuartetKey}
     (hk : keyTaxa k ⊆ L) (d : Fin 3) (hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -716,16 +716,16 @@ theorem not_ae_drop_of_equal {N : Brooqs.Net L} (hN : N.WellFormed) {k : Quartet
 `NMSC.anomalous_filterQuartets`, if `p D = 1 - p`, then for every threshold `t`, it is not almost
 sure that, for all large numbers `n` of genes, Algorithm 1 returns on the four taxa `k` exactly the
 copies of the quartet tree of Q(N_r) (`NMSC.not_ae_filterQuartets_of_equal`). -/
-theorem anomalous_not_ae_filterQuartets_boundary {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem anomalous_not_ae_filterQuartets_boundary {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1)
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
-    C.apartProb (blockSample k hk i j a b) * C.anomalyExcess (blockSample k hk i j a b) =
-      1 - C.apartProb (blockSample k hk i j a b) →
+    (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) * (External.NMSC.Net.Cycle.anomalyExcess C) (blockSample k hk i j a b) =
+      1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) →
       ∀ t, ¬ ∀ᵐ ω ∂P, ∀ᶠ n in atTop, ∀ u,
         (filterQuartets t (geneQuartets (fun i => G i ω) n)).count (k.quartet u) =
           if DisplaysQuartet N (k.quartet u) then
@@ -740,17 +740,17 @@ theorem anomalous_not_ae_filterQuartets_boundary {N : Brooqs.Net L} (hN : N.Well
 Under the assumptions of `NMSC.anomalous_filterQuartets`, with `p`, `γ`, the positive lengths `h₁`,
 `h₂`, `L₀` of `NMSC.anomalous_quartetProb` and
 `D = γ(1 - γ)(1 - e^{-L₀}) - γ²(1 - e^{-h₁}) - (1 - γ)²(1 - e^{-h₂})`
-(`Brooqs.Net.Cycle.anomalyExcess`): for every threshold
+(`External.NMSC.Net.Cycle.anomalyExcess`): for every threshold
 `0 < t < t₀(N)`, almost surely, for all large numbers `n` of genes, Algorithm 1 returns no copy of
 the quartet tree of Q(N_r) on the four taxa `k` iff `1 - p < p D`. In the anomaly zone it drops it
 (`NMSC.filterQuartets_block_of_least`); outside the zone and off its boundary it keeps all its
 copies (`NMSC.filterQuartets_block_of_most`); on the boundary it keeps them with probability at
 least `1/9` at every positive number of genes (`NMSC.not_ae_drop_of_equal`). -/
-theorem anomalous_drop_iff {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem anomalous_drop_iff {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1)
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
@@ -758,10 +758,10 @@ theorem anomalous_drop_iff {N : Brooqs.Net L} (hN : N.WellFormed)
       ((∀ᵐ ω ∂P, ∀ᶠ n in atTop,
           (filterQuartets t (geneQuartets (fun i => G i ω) n)).count
             (k.quartet (pairIndex i j)) = 0) ↔
-        1 - C.apartProb (blockSample k hk i j a b) <
-          C.apartProb (blockSample k hk i j a b) * C.anomalyExcess (blockSample k hk i j a b)) := by
+        1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) <
+          (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) * (External.NMSC.Net.Cycle.anomalyExcess C) (blockSample k hk i j a b)) := by
   obtain ⟨hdisp, -, -, -, e0, e1⟩ := anomalous_quartetProb hN htaxa hk C hinj hbelow h3 h1
-  unfold Brooqs.Net.Cycle.anomalyExcess
+  unfold External.NMSC.Net.Cycle.anomalyExcess
   refine fun t ht ht₀ => ⟨fun hdrop => ?_, fun hzone => ?_⟩
   · -- outside the zone, Algorithm 1 does not almost surely drop the displayed quartet tree
     by_contra hzone
@@ -805,13 +805,13 @@ theorem anomalous_drop_iff {N : Brooqs.Net L} (hN : N.WellFormed)
         obtain ⟨q0, q1, q2⟩ := quartetProb_eq_quartetCF N hN.2 k hk
         rw [q0, q1, q2]
         have hsN : ∀ l, keyTaxon k hk l ∈ N.taxa := fun l => htaxa _
-        rw [N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 1) (k := 2) (l := 3)
+        rw [(External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 1) (k := 2) (l := 3)
             (by decide),
-          N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 2) (k := 1) (l := 3)
+          (External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 2) (k := 1) (l := 3)
             (by decide),
-          N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 3) (k := 1) (l := 2)
+          (External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 3) (k := 1) (l := 2)
             (by decide)]
-        exact Brooqs.Net.splitCF_sum hN.2 hsN
+        exact External.NMSC.Net.splitCF_sum hN.2 hsN
       have hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3 := fun u => by
         rw [hall u]
         rw [hall 0, hall 1, hall 2] at hsum
@@ -833,11 +833,11 @@ probable.** Under the assumptions of `NMSC.anomalous_filterQuartets`, for every 
 the quartet tree of Q(N_r) on the four taxa `k` iff that quartet tree is strictly less probable
 than the two others (`NMSC.anomalous_drop_iff`, with the probabilities of
 `NMSC.anomalous_quartetProb`). -/
-theorem anomalous_drop_iff_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem anomalous_drop_iff_quartetProb {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1)
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
@@ -850,7 +850,7 @@ theorem anomalous_drop_iff_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
   intro t ht ht₀
   rw [anomalous_drop_iff hN htaxa hk C hinj hbelow h3 h1 G hind hid hlaw t ht ht₀]
   obtain ⟨-, -, -, -, e0, e1⟩ := anomalous_quartetProb hN htaxa hk C hinj hbelow h3 h1
-  unfold Brooqs.Net.Cycle.anomalyExcess
+  unfold External.NMSC.Net.Cycle.anomalyExcess
   constructor
   · intro h u hu
     rw [e0, e1 u hu]

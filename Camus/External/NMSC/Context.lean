@@ -1,36 +1,32 @@
 module
 
-public import Camus.External.NMSC.Process
-public import Camus.External.NMSC.Symmetry
+public import Phylogenetics.NMSC.Level1.Context
 
 /-!
-# From the network to the top of a cycle
+# The quartet CF from the forest at the root of a subnetwork
 
-Let `Ω` be a cycle of the network `N`, and sample one lineage from each of four taxa of `N`, at
-least three of which lie below the top node of `Ω`. The rest of `N` (the component of `Ω`
-that contains the root of `N`, with at most one sampled lineage, and the population above the
-root) acts on the forest arriving at the top node of `Ω` by a nice kernel
-(`Brooqs.NiceKernel`). Hence the quartet CF of the four taxa is the expected score
-`Brooqs.quartetScore` of that forest (`Brooqs.quartetCF_eq_sum_top`): `1` if the forest has the
-cluster `{0, 1}` or `{2, 3}`, `0` if it has another cluster of two lineages, `1/3` otherwise.
+`Phylogenetics.quartetCF_eq_sum_top` (lean4-phylogenetics) shows that, when at least three of four
+sampled lineages lie below the top node of a cycle `Ω` of `N`, the quartet CF of the four taxa is
+the expected score `Phylogenetics.quartetScore` of the forest arriving at the top node of `Ω`: the
+rest of `N` acts on that forest by a nice kernel (`Phylogenetics.NiceKernel`). Its argument does
+not use the cycle, and this file states it for any subnetwork `C` of `N` (below a cut edge):
 
-The rest of `N` is a network `K : Net (Option X)` with one leaf labelled `none`, where the top of
-`Ω` is substituted (`Brooqs.Net.bind`). The network coalescent on `K` is linear in the forest at
-`none`; its kernel, followed by the population above the root, is nice, and the gene trees it
-produces are complete binary trees on the four lineages, whose score is the indicator of the split
-`{0, 1} | {2, 3}`.
+* `External.NMSC.exists_context_kernel`: the rest of `N` acts on the forest at the root of `C` by a
+  nice kernel, which adds the lineages sampled from the taxa outside `C`;
+* `External.NMSC.quartetCF_eq_sum_subnet`: if at least three of the four lineages are sampled
+  below the root of `C`, the quartet CF is the expected score of the forest there.
 
-The argument does not use the cycle: for any subnetwork `C` of `N` (below a cut edge), the rest of
-`N` acts on the forest at the root of `C` by a nice kernel (`Brooqs.exists_context_kernel`), and if
-at least three of the four lineages are sampled below the root of `C`, the quartet CF is the
-expected score of the forest there (`Brooqs.quartetCF_eq_sum_subnet`, of which
-`Brooqs.quartetCF_eq_sum_top` is the case of the top node of a cycle). These two generalizations
-were added to the copy from lean4-brooqs for the analysis of Section 3.3 of CAMUS.
+The rest of `N` is a network `K : Net (Option X)` with one leaf labelled `none`, where `C` is
+substituted (`Phylogenetics.Net.bind`); the network coalescent on `K` is linear in the forest at
+`none`. The private steps are those of the proof of `Phylogenetics.quartetCF_eq_sum_top`, which
+lean4-phylogenetics does not export.
 -/
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset Matrix
 
@@ -293,11 +289,6 @@ private theorem ns_side_context (C : Net X) :
         rw [ns_net_bind_some (fun o => o.elim C Net.leaf) (fun _ => rfl), ← hTS]
 end
 
-private theorem ns_leaves_ne_nil : ∀ N : Net X, N.leaves ≠ []
-  | .leaf _ => by simp [Net.leaves]
-  | .tree _ N₁ _ _ => by simp [Net.leaves, ns_leaves_ne_nil N₁]
-  | .cycle _ _ _ _ N => by simp [Net.leaves, ns_leaves_ne_nil N]
-
 private theorem ns_pairwise_of_mem {β : Type*} {R : β → β → Prop} (hR : ∀ a b, R a b → R b a)
     {l : List β} (h : l.Pairwise R) {a b : β} (ha : a ∈ l) (hb : b ∈ l) (hab : a ≠ b) :
     R a b :=
@@ -313,7 +304,7 @@ private theorem ns_context_nodup {N C : Net X} {K : Net (Option X)} (hN : N.leav
   obtain ⟨hnd, hpw⟩ := hN
   refine ⟨hpw.imp fun {a b} hab heq => ?_, hnd none hK, fun x hx hxC => ?_⟩
   · subst heq
-    obtain ⟨y, hy⟩ := List.exists_mem_of_ne_nil _ (ns_leaves_ne_nil (a.elim C Net.leaf))
+    obtain ⟨y, hy⟩ := List.exists_mem_of_ne_nil _ (a.elim C Net.leaf).leaves_ne_nil
     exact hab hy hy
   · have := ns_pairwise_of_mem (fun a b h => List.Disjoint.symm h) hpw hK hx (by simp)
     exact this hxC (by simp [Net.leaves])
@@ -339,20 +330,20 @@ section Kernel
 variable {X : Type u} [DecidableEq X]
 
 private theorem ns_lineages_sampledAt (s : Fin 4 → X) (x : X) :
-    ADR11.lineages (sampledAt s x) = univ.filter fun l => s l = x :=
-  lineages_singletons _
+    Phylogenetics.lineages (sampledAt s x) = univ.filter fun l => s l = x :=
+  lineages_image_singleton _
 
 private theorem ns_single_relabel (σ : Equiv.Perm (Fin 4)) (F H : Finset (Finset (Fin 4))) :
-    (Pi.single F 1 : Finset (Finset (Fin 4)) → ℝ) (ADR11.relabelFamily σ.symm H) =
-      (Pi.single (ADR11.relabelFamily σ F) 1 : Finset (Finset (Fin 4)) → ℝ) H := by
-  have h : ADR11.relabelFamily σ.symm H = F ↔ H = ADR11.relabelFamily σ F := by
+    (Pi.single F 1 : Finset (Finset (Fin 4)) → ℝ) (Phylogenetics.relabelFamily σ.symm H) =
+      (Pi.single (Phylogenetics.relabelFamily σ F) 1 : Finset (Finset (Fin 4)) → ℝ) H := by
+  have h : Phylogenetics.relabelFamily σ.symm H = F ↔ H = Phylogenetics.relabelFamily σ F := by
     constructor
     · rintro rfl
-      have := ADR11.relabelFamily_symm σ.symm H
+      have := Phylogenetics.relabelFamily_symm σ.symm H
       rw [Equiv.symm_symm] at this
       exact this.symm
     · rintro rfl
-      exact ADR11.relabelFamily_symm σ F
+      exact Phylogenetics.relabelFamily_symm σ F
   simp only [Pi.single_apply, h]
 
 /-- The kernel of the context `K` (the forest `F` at the leaf `none`, the sampled lineages at the
@@ -369,15 +360,15 @@ private theorem ns_context_nice (K : Net (Option X)) (hKnd : K.leaves.Nodup)
     intro F
     funext o
     cases o <;> rfl
-  have hE : ∀ F, IsGood F → ∀ a ∈ K.leaves, IsGood (a.elim F (sampledAt s)) := by
+  have hE : ∀ F, IsGoodForest F → ∀ a ∈ K.leaves, IsGoodForest (a.elim F (sampledAt s)) := by
     intro F hF a _
     cases a with
     | none => exact hF
-    | some x => exact isGood_singletons _
-  have hdisj : ∀ F, Disjoint (ADR11.lineages F) S → ∀ a ∈ K.leaves, ∀ b ∈ K.leaves, a ≠ b →
-      Disjoint (ADR11.lineages (a.elim F (sampledAt s)))
-        (ADR11.lineages (b.elim F (sampledAt s))) := by
-    have hxS : ∀ x, some x ∈ K.leaves → ADR11.lineages (sampledAt s x) ⊆ S := by
+    | some x => exact isGoodForest_singletons _
+  have hdisj : ∀ F, Disjoint (Phylogenetics.lineages F) S → ∀ a ∈ K.leaves, ∀ b ∈ K.leaves, a ≠ b →
+      Disjoint (Phylogenetics.lineages (a.elim F (sampledAt s)))
+        (Phylogenetics.lineages (b.elim F (sampledAt s))) := by
+    have hxS : ∀ x, some x ∈ K.leaves → Phylogenetics.lineages (sampledAt s x) ⊆ S := by
       intro x hx l hl
       rw [ns_lineages_sampledAt, mem_filter] at hl
       rw [hS, mem_filter, hl.2]
@@ -403,7 +394,7 @@ private theorem ns_context_nice (K : Net (Option X)) (hKnd : K.leaves.Nodup)
     cases a with
     | none => exact (ns_single_relabel σ F H).symm
     | some x =>
-      have hfix : ADR11.relabelFamily σ (sampledAt s x) = sampledAt s x := by
+      have hfix : Phylogenetics.relabelFamily σ (sampledAt s x) = sampledAt s x := by
         refine relabel_eq_self fun l hl => hσ l ?_
         rw [ns_lineages_sampledAt, mem_filter] at hl
         rw [hS, mem_filter, hl.2]
@@ -493,15 +484,15 @@ theorem quartetCF_eq_sum_subnet {X : Type u} [DecidableEq X] (N : Net X) (hN : N
     funext o
     cases o <;> rfl
   -- the forests at the top of `C`: at least three lineages, the others are added by `M`
-  have hsupp : ∀ F, C.forestDist s F ≠ 0 → IsGood F ∧ Disjoint (ADR11.lineages F) S ∧
-      3 ≤ #(ADR11.lineages F) ∧ ADR11.lineages F ∪ S = univ := by
+  have hsupp : ∀ F, C.forestDist s F ≠ 0 → IsGoodForest F ∧ Disjoint (Phylogenetics.lineages F) S ∧
+      3 ≤ #(Phylogenetics.lineages F) ∧ Phylogenetics.lineages F ∪ S = univ := by
     intro F hF
     rw [Net.forestDist_eq] at hF
     obtain ⟨hFg, -, hFl⟩ := Net.forestDistOf_single_support C hCnd (sampledAt s)
-      (fun x _ => isGood_singletons _) (fun x _ y _ hxy => by
+      (fun x _ => isGoodForest_singletons _) (fun x _ y _ hxy => by
         rw [ns_lineages_sampledAt, ns_lineages_sampledAt]
         exact disjoint_filter.2 fun l _ h1 h2 => hxy (h1.symm.trans h2)) hF
-    have hlin : ADR11.lineages F = univ.filter fun l => s l ∈ C.taxa := by
+    have hlin : Phylogenetics.lineages F = univ.filter fun l => s l ∈ C.taxa := by
       rw [hFl]
       ext l
       simp [ns_lineages_sampledAt, Net.taxa]
@@ -514,22 +505,22 @@ theorem quartetCF_eq_sum_subnet {X : Type u} [DecidableEq X] (N : Net X) (hN : N
       simp only [Net.taxa, List.mem_toFinset] at hl ⊢
       exact ns_context_cover hNK hl
   -- the gene trees: complete good trees on the four lineages
-  have hfinal : ∀ F G, IsGood F → Disjoint (ADR11.lineages F) S →
-      ADR11.lineages F ∪ S = univ → P F G ≠ 0 →
-        IsGood G ∧ (univ : Finset (Fin 4)) ∈ G := by
+  have hfinal : ∀ F G, IsGoodForest F → Disjoint (Phylogenetics.lineages F) S →
+      Phylogenetics.lineages F ∪ S = univ → P F G ≠ 0 →
+        IsGoodForest G ∧ (univ : Finset (Fin 4)) ∈ G := by
     intro F G hFg hFS hFu hG
     rw [hP, Matrix.mul_apply] at hG
     obtain ⟨H, -, hH⟩ := Finset.exists_ne_zero_of_sum_ne_zero hG
     obtain ⟨hHg, -, hHl⟩ := hniceK.support F hFg hFS H (left_ne_zero_of_mul hH)
-    obtain ⟨hGg, -, hGl, hroot⟩ := kingmanAbsorption_support hHg (right_ne_zero_of_mul hH)
+    obtain ⟨hGg, -, hGl, hroot⟩ := kingmanAbsorption_support_good hHg (right_ne_zero_of_mul hH)
     rw [hFu] at hHl
     have hHne : H.Nonempty := by
       rw [ne_empty_iff_nonempty.symm]
       rintro rfl
-      rw [ADR11.lineages_empty] at hHl
+      rw [Phylogenetics.lineages_empty] at hHl
       exact Finset.univ_nonempty.ne_empty hHl.symm
     refine ⟨hGg, ?_⟩
-    have := ADR11.lineages_mem_of_card_roots_eq_one (hroot hHne)
+    have := Phylogenetics.lineages_mem_of_card_roots_eq_one (hroot hHne)
     rwa [hGl, hHl] at this
   -- the quartet CF
   have hvec : ![s 0, s 1, s 2, s 3] = s := by
@@ -557,13 +548,4 @@ theorem quartetCF_eq_sum_subnet {X : Type u} [DecidableEq X] (N : Net X) (hN : N
   obtain ⟨hGg, hGu⟩ := hfinal F G hFg hFS hFu hG
   rw [quartetScore_eq_of_univ_mem hGg hGu]
 
-/-- The quartet CF of four taxa of `N` (one lineage sampled from each), at least three of them below
-the top node of the cycle `Ω`, is the expected score of the forest arriving at the top node of
-`Ω`. -/
-theorem quartetCF_eq_sum_top {X : Type u} [DecidableEq X] (N : Net X) (hN : N.leaves.Nodup)
-    (Ω : N.Cycle) (s : Fin 4 → X) (hsN : ∀ l, s l ∈ N.taxa)
-    (h3 : 3 ≤ #(univ.filter fun l => s l ∈ Ω.top.taxa)) :
-    N.quartetCF (s 0) (s 1) (s 2) (s 3) = ∑ F, Ω.top.forestDist s F * quartetScore F :=
-  quartetCF_eq_sum_subnet N hN Ω.mem s hsN h3
-
-end Brooqs
+end External.NMSC

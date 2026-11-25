@@ -7,7 +7,7 @@ public import Camus.Pipelines.NMSC.GraphTrees
 
 CAMUS's Definition 1 defines the trees 𝒯 of a network, "formed by deleting one incoming edge into
 each reticulation node ... in each of the possible ways". The model describes them by their
-clusters (`Brooqs.Net.displayed`), and CAMUS works with the graph
+clusters (`External.NMSC.Net.displayed`), and CAMUS works with the graph
 `Realization.graph (baseTree N) (pairs N)` of `N`, built on its base tree. This file shows that the
 two give the same trees. Every displayed tree of `N` is, by its clades, a tree of the graph in the
 sense of Definition 1 (`NMSC.exists_builtOn_of_mem_displayed`), and every tree of the graph is a
@@ -313,7 +313,7 @@ theorem keptClades_cross (l r : PhyloTree) (F₁ F₂ : Finset Pair) (u w : Addr
 
 /-- The pairs `P` of the tree hanging from the hybrid edge of a side, moved to its address in the
 tree of the side with this tree attached. -/
-def liftHang : Brooqs.Side L → Finset Pair → Finset Pair
+def liftHang : Phylogenetics.Side L → Finset Pair → Finset Pair
   | .hyb _, P => P
   | .node _ _ _ S, P => liftPairs true (liftHang S P)
 
@@ -323,7 +323,7 @@ theorem liftPairs_union (b : Bool) (A B : Finset Pair) :
 
 /-- The pairs of the tree of a side with a tree attached: those of the pendant networks and
 those of the attached tree. -/
-theorem attachPairs_eq : ∀ (S : Brooqs.Side L) (P : Finset Pair),
+theorem attachPairs_eq : ∀ (S : Phylogenetics.Side L) (P : Finset Pair),
     attachPairs S P = attachPairs S ∅ ∪ liftHang S P
   | .hyb _, P => by simp [attachPairs, liftHang]
   | .node _ _ M S, P => by
@@ -331,18 +331,18 @@ theorem attachPairs_eq : ∀ (S : Brooqs.Side L) (P : Finset Pair),
       rw [attachPairs_eq S P, liftPairs_union, Finset.union_assoc]
 
 /-- Lifting the pairs of the attached tree is monotone. -/
-theorem liftHang_subset : ∀ (S : Brooqs.Side L) {P Q : Finset Pair}, P ⊆ Q →
+theorem liftHang_subset : ∀ (S : Phylogenetics.Side L) {P Q : Finset Pair}, P ⊆ Q →
     liftHang S P ⊆ liftHang S Q
   | .hyb _, _, _, h => h
   | .node _ _ _ S, _, _, h => Finset.image_subset_image (liftHang_subset S h)
 
 /-- No pair of the tree of a side with a tree attached crosses a strict ancestor of the address of
 the attached tree: the pairs lie in the pendant networks or in the attached tree. -/
-theorem attachPairs_noncross : ∀ (S : Brooqs.Side L) (P : Finset Pair), ∀ e ∈ attachPairs S P,
+theorem attachPairs_noncross : ∀ (S : Phylogenetics.Side L) (P : Finset Pair), ∀ e ∈ attachPairs S P,
     ∀ y, (y <+: hangAddr S ∧ y ≠ hangAddr S) →
       ((y <+: e.1 ∧ y ≠ e.1) ↔ (y <+: e.2 ∧ y ≠ e.2))
   | .hyb _, _, _, _, y, hy => by
-      simp only [hangAddr, Brooqs.Side.nodes, List.length_nil, List.replicate_zero,
+      simp only [hangAddr, Phylogenetics.Side.nodes, List.length_nil, List.replicate_zero,
         List.prefix_nil] at hy
       exact absurd hy.1 hy.2
   | .node _ _ M S, P, e, he, y, hy => by
@@ -358,10 +358,10 @@ theorem attachPairs_noncross : ∀ (S : Brooqs.Side L) (P : Finset Pair), ∀ e 
 
 /-- No pair of the tree of a side with a tree attached has its donor end strictly above the
 address of the attached tree. -/
-theorem attachPairs_donor : ∀ (S : Brooqs.Side L) (P : Finset Pair), ∀ e ∈ attachPairs S P,
+theorem attachPairs_donor : ∀ (S : Phylogenetics.Side L) (P : Finset Pair), ∀ e ∈ attachPairs S P,
     ¬(e.1 <+: hangAddr S ∧ e.1 ≠ hangAddr S)
   | .hyb _, _, _, _, h => by
-      simp only [hangAddr, Brooqs.Side.nodes, List.length_nil, List.replicate_zero,
+      simp only [hangAddr, Phylogenetics.Side.nodes, List.length_nil, List.replicate_zero,
         List.prefix_nil] at h
       exact h.2 h.1
   | .node _ _ M S, P, e, he, h => by
@@ -374,7 +374,7 @@ theorem attachPairs_donor : ∀ (S : Brooqs.Side L) (P : Finset Pair), ∀ e ∈
 
 /-- No pair of the tree of a side with its hybrid edge deleted has its donor end strictly above
 the address of the last pendant network. -/
-theorem detachPairs_donor : ∀ (S : Brooqs.Side L), ∀ e ∈ detachPairs S,
+theorem detachPairs_donor : ∀ (S : Phylogenetics.Side L), ∀ e ∈ detachPairs S,
     ¬(e.1 <+: lastAddr S ∧ e.1 ≠ lastAddr S)
   | .hyb _, _, he, _ => by simp [detachPairs] at he
   | .node _ _ M (.hyb _), e, _, h => by
@@ -397,7 +397,7 @@ theorem keptClades_fork (l r : PhyloTree) (F₁ F₂ : Finset Pair) :
   nodeClades_fork l r F₁ F₂ fun _ C => C
 
 /-- The ends of the pairs of `N` are not the root of its base tree. -/
-theorem pairs_ne_nil {N : Brooqs.Net L} {e : Pair} (he : e ∈ pairs N) : e.1 ≠ [] ∧ e.2 ≠ [] :=
+theorem pairs_ne_nil {N : Phylogenetics.Net L} {e : Pair} (he : e ∈ pairs N) : e.1 ≠ [] ∧ e.2 ≠ [] :=
   ⟨(admissible_of_mem (separated_pairs N) he).2.2.1,
     (admissible_of_mem (separated_pairs N) he).2.2.2.1⟩
 
@@ -422,9 +422,9 @@ theorem exists_liftPairs_union {b c : Bool} {F A B : Finset Pair}
   ⟨_, Finset.filter_subset _ _, _, Finset.filter_subset _ _, eq_liftPairs_union h⟩
 
 /-- The node step of the attach side. -/
-theorem attach_node_eq {ℓ b : ℝ} {M : Brooqs.Net L} {S : Brooqs.Side L}
-    (hS : (Brooqs.Side.node ℓ b M S).IsMetric) {X : PhyloTree} {Y : Finset ℕ} {T : Finset L}
-    (hY : Disjoint Y ((Brooqs.Side.node ℓ b M S).taxa.map (Coalescent.label L)))
+theorem attach_node_eq {ℓ b : ℝ} {M : Phylogenetics.Net L} {S : Phylogenetics.Side L}
+    (hS : (Phylogenetics.Side.node ℓ b M S).IsMetric) {X : PhyloTree} {Y : Finset ℕ} {T : Finset L}
+    (hY : Disjoint Y ((External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ b M S)).map (Coalescent.label L)))
     (hXY : X.taxa \ Y = T.map (Coalescent.label L)) {FM F' FX : Finset Pair}
     {KM K' : Finset (Finset L)}
     (eM : keptClades (baseTree M) FM = KM.image (Finset.map (Coalescent.label L)))
@@ -432,13 +432,13 @@ theorem attach_node_eq {ℓ b : ℝ} {M : Brooqs.Net L} {S : Brooqs.Side L}
       K'.image (Finset.map (Coalescent.label L)) ∪ keptClades X FX) :
     nodeClades (attachTree (.node ℓ b M S) X) (liftPairs false FM ∪ liftPairs true F')
         (dropOn (hangAddr (.node ℓ b M S)) Y) =
-      (insert (T ∪ S.taxa ∪ M.taxa) (K' ∪ KM)).image (Finset.map (Coalescent.label L)) ∪
+      (insert (T ∪ (External.NMSC.Side.taxa S) ∪ M.taxa) (K' ∪ KM)).image (Finset.map (Coalescent.label L)) ∪
         keptClades X FX := by
-  have hYS : Disjoint Y (S.taxa.map (Coalescent.label L)) := hY.mono_right (by
-    rw [Brooqs.Side.taxa_node, Finset.map_union]
+  have hYS : Disjoint Y ((External.NMSC.Side.taxa S).map (Coalescent.label L)) := hY.mono_right (by
+    rw [External.NMSC.Side.taxa_node, Finset.map_union]
     exact Finset.subset_union_right)
   have hYM : Disjoint Y (M.taxa.map (Coalescent.label L)) := hY.mono_right (by
-    rw [Brooqs.Side.taxa_node, Finset.map_union]
+    rw [External.NMSC.Side.taxa_node, Finset.map_union]
     exact Finset.subset_union_left)
   change nodeClades (.fork (baseTree M) (attachTree S X)) _
     (dropOn (hangAddr (.node ℓ b M S)) Y) = _
@@ -452,7 +452,7 @@ theorem attach_node_eq {ℓ b : ℝ} {M : Brooqs.Net L} {S : Brooqs.Side L}
     simp [dropOn, hangAddr_node]
   have h0 : dropOn (hangAddr (.node ℓ b M S)) Y []
       ((baseTree M).taxa ∪ (attachTree S X).taxa) =
-      (T ∪ S.taxa ∪ M.taxa).map (Coalescent.label L) := by
+      (T ∪ (External.NMSC.Side.taxa S) ∪ M.taxa).map (Coalescent.label L) := by
     rw [dropOn, ite_eq_left ⟨List.nil_prefix, by rw [hangAddr_node]; simp⟩,
       taxa_baseTree hS.2.2.1, taxa_attachTree hS.2.2.2, Finset.union_sdiff_distrib,
       Finset.union_sdiff_distrib, Finset.sdiff_eq_self_of_disjoint hYM.symm,
@@ -466,15 +466,15 @@ theorem attach_node_eq {ℓ b : ℝ} {M : Brooqs.Net L} {S : Brooqs.Side L}
   tauto
 
 /-- The step of the detach side at a side with one node. -/
-theorem detach_single_eq {ℓ b ℓ' : ℝ} {M : Brooqs.Net L}
-    (hS : (Brooqs.Side.node ℓ b M (.hyb ℓ')).IsMetric) {FM : Finset Pair} (hFM : FM ⊆ pairs M)
+theorem detach_single_eq {ℓ b ℓ' : ℝ} {M : Phylogenetics.Net L}
+    (hS : (Phylogenetics.Side.node ℓ b M (.hyb ℓ')).IsMetric) {FM : Finset Pair} (hFM : FM ⊆ pairs M)
     {KM : Finset (Finset L)} {T : Finset L}
     (eM : keptClades (baseTree M) FM = KM.image (Finset.map (Coalescent.label L)))
     {Y : Finset ℕ} (hY : Y = T.map (Coalescent.label L)) :
     nodeClades (detachTree (.node ℓ b M (.hyb ℓ'))) FM
         (addOn (lastAddr (.node ℓ b M (.hyb ℓ'))) Y) ∪
       {keptClade (detachTree (.node ℓ b M (.hyb ℓ'))) FM (lastAddr (.node ℓ b M (.hyb ℓ'))) ∪ Y} =
-      (insert (T ∪ (Brooqs.Side.hyb ℓ' : Brooqs.Side L).taxa ∪ M.taxa) (∅ ∪ KM)).image
+      (insert (T ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ' : Phylogenetics.Side L)) ∪ M.taxa) (∅ ∪ KM)).image
         (Finset.map (Coalescent.label L)) := by
   rw [detachTree_single, lastAddr_single]
   have hf : addOn [] Y = fun _ C => C := by
@@ -482,15 +482,15 @@ theorem detach_single_eq {ℓ b ℓ' : ℝ} {M : Brooqs.Net L}
     simp [addOn]
   rw [hf, ← keptClades_eq_nodeClades, eM,
     keptClade_nil _ fun e he => pairs_ne_nil (hFM he), taxa_baseTree hS.2.2.1, hY,
-    Brooqs.Side.taxa_hyb, Finset.union_empty, Finset.empty_union, Finset.image_insert]
+    External.NMSC.Side.taxa_hyb, Finset.union_empty, Finset.empty_union, Finset.image_insert]
   ext C
   simp only [Finset.mem_insert, Finset.mem_union, Finset.mem_singleton, Finset.map_union]
   rw [Finset.union_comm (M.taxa.map _)]
   tauto
 
 /-- The step of the detach side at a side with at least two nodes. -/
-theorem detach_node_eq {ℓ b ℓ' b' : ℝ} {M M' : Brooqs.Net L} {S : Brooqs.Side L}
-    (hS : (Brooqs.Side.node ℓ b M (.node ℓ' b' M' S)).IsMetric) {FM G' : Finset Pair}
+theorem detach_node_eq {ℓ b ℓ' b' : ℝ} {M M' : Phylogenetics.Net L} {S : Phylogenetics.Side L}
+    (hS : (Phylogenetics.Side.node ℓ b M (.node ℓ' b' M' S)).IsMetric) {FM G' : Finset Pair}
     {KM K' : Finset (Finset L)} {T : Finset L}
     (eM : keptClades (baseTree M) FM = KM.image (Finset.map (Coalescent.label L)))
     {Y : Finset ℕ} (hY : Y = T.map (Coalescent.label L))
@@ -503,7 +503,7 @@ theorem detach_node_eq {ℓ b ℓ' b' : ℝ} {M M' : Brooqs.Net L} {S : Brooqs.S
       {keptClade (detachTree (.node ℓ b M (.node ℓ' b' M' S)))
         (liftPairs false FM ∪ liftPairs true G')
         (lastAddr (.node ℓ b M (.node ℓ' b' M' S))) ∪ Y} =
-      (insert (T ∪ (Brooqs.Side.node ℓ' b' M' S).taxa ∪ M.taxa) (K' ∪ KM)).image
+      (insert (T ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ' b' M' S)) ∪ M.taxa) (K' ∪ KM)).image
         (Finset.map (Coalescent.label L)) := by
   have hr0 := nodeAt_fork_true (baseTree M) (detachTree (.node ℓ' b' M' S))
   have hlast : keptClade (.fork (baseTree M) (detachTree (.node ℓ' b' M' S)))
@@ -522,9 +522,9 @@ theorem detach_node_eq {ℓ b ℓ' b' : ℝ} {M M' : Brooqs.Net L} {S : Brooqs.S
     simp [addOn]
   have h0 : addOn (true :: lastAddr (.node ℓ' b' M' S)) Y []
       ((baseTree M).taxa ∪ (detachTree (.node ℓ' b' M' S)).taxa) =
-      (T ∪ (Brooqs.Side.node ℓ' b' M' S).taxa ∪ M.taxa).map (Coalescent.label L) := by
+      (T ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ' b' M' S)) ∪ M.taxa).map (Coalescent.label L) := by
     rw [addOn, ite_eq_left ⟨List.nil_prefix, by simp⟩, taxa_baseTree hS.2.2.1,
-      taxa_detachTree hS.2.2.2 (by simp [Brooqs.Side.nodes]), hY, Finset.map_union,
+      taxa_detachTree hS.2.2.2 (by simp [Phylogenetics.Side.nodes]), hY, Finset.map_union,
       Finset.map_union]
     ext a
     simp only [Finset.mem_union]
@@ -535,11 +535,11 @@ theorem detach_node_eq {ℓ b ℓ' b' : ℝ} {M M' : Brooqs.Net L} {S : Brooqs.S
   tauto
 
 /-- The cycle case, for any set `FA` of kept pairs of the attach side. -/
-theorem cycle_eq {Sa Sd : Brooqs.Side L} {H : Brooqs.Net L} (hSa : Sa.IsMetric)
-    (hSd : Sd.IsMetric) (hd : hasNode Sd) (hH : H.IsMetric) (hdisj : Disjoint Sa.taxa H.taxa)
+theorem cycle_eq {Sa Sd : Phylogenetics.Side L} {H : Phylogenetics.Net L} (hSa : Sa.IsMetric)
+    (hSd : Sd.IsMetric) (hd : hasNode Sd) (hH : H.IsMetric) (hdisj : Disjoint (External.NMSC.Side.taxa Sa) H.taxa)
     {KH Ka Kd : Finset (Finset L)} {Ta Td : Finset L}
     {FA : Finset Pair} (hFA : FA ⊆ attachPairs Sa (pairs H))
-    (hA : ∀ Y : Finset ℕ, Disjoint Y (Sa.taxa.map (Coalescent.label L)) →
+    (hA : ∀ Y : Finset ℕ, Disjoint Y ((External.NMSC.Side.taxa Sa).map (Coalescent.label L)) →
       (baseTree H).taxa \ Y = Ta.map (Coalescent.label L) →
       nodeClades (attachTree Sa (baseTree H)) FA (dropOn (hangAddr Sa) Y) =
         Ka.image (Finset.map (Coalescent.label L)) ∪ KH.image (Finset.map (Coalescent.label L)))
@@ -551,23 +551,23 @@ theorem cycle_eq {Sa Sd : Brooqs.Side L} {H : Brooqs.Net L} (hSa : Sa.IsMetric)
     ((Ta = H.taxa ∧ Td = ∅) →
       keptClades (.fork (attachTree Sa (baseTree H)) (detachTree Sd))
           (liftPairs false FA ∪ liftPairs true Gd) =
-        (insert (Sa.taxa ∪ Sd.taxa ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
+        (insert ((External.NMSC.Side.taxa Sa) ∪ (External.NMSC.Side.taxa Sd) ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
           (Finset.map (Coalescent.label L))) ∧
     ((Ta = ∅ ∧ Td = H.taxa) →
       keptClades (.fork (attachTree Sa (baseTree H)) (detachTree Sd))
           (insert (true :: lastAddr Sd, false :: hangAddr Sa)
             (liftPairs false FA ∪ liftPairs true Gd)) =
-        (insert (Sa.taxa ∪ Sd.taxa ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
+        (insert ((External.NMSC.Side.taxa Sa) ∪ (External.NMSC.Side.taxa Sd) ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
           (Finset.map (Coalescent.label L))) := by
   have hX : (baseTree H).taxa = H.taxa.map (Coalescent.label L) := taxa_baseTree hH
   have hne : Sd.nodes ≠ [] := by
     cases Sd with
     | hyb _ => simp at hd
-    | node _ _ _ _ => simp [Brooqs.Side.nodes]
+    | node _ _ _ _ => simp [Phylogenetics.Side.nodes]
   have hAt := taxa_attachTree hSa (baseTree H)
   have hDt := taxa_detachTree hSd hne
   have hu : lastAddr Sd ∈ (detachTree Sd).nodes := lastAddr_mem_nodes Sd
-  have htop : (insert (Sa.taxa ∪ Sd.taxa ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
+  have htop : (insert ((External.NMSC.Side.taxa Sa) ∪ (External.NMSC.Side.taxa Sd) ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
       (Finset.map (Coalescent.label L)) =
       insert ((attachTree Sa (baseTree H)).taxa ∪ (detachTree Sd).taxa)
         (Ka.image (Finset.map (Coalescent.label L)) ∪ KH.image (Finset.map (Coalescent.label L)) ∪
@@ -616,15 +616,15 @@ theorem cycle_eq {Sa Sd : Brooqs.Side L} {H : Brooqs.Net L} (hSa : Sa.IsMetric)
 has its hybrid edge deleted. The displayed tree that hangs it from `Sa` is the tree of the
 switching that keeps the added edges inside the pendant networks and the hybrid component, and
 the one that hangs it from `Sd` also keeps the added edge of the cycle. -/
-theorem cycle_kept {Sa Sd : Brooqs.Side L} {H : Brooqs.Net L} (hSa : Sa.IsMetric)
-    (hSd : Sd.IsMetric) (hd : hasNode Sd) (hH : H.IsMetric) (hdisj : Disjoint Sa.taxa H.taxa)
+theorem cycle_kept {Sa Sd : Phylogenetics.Side L} {H : Phylogenetics.Net L} (hSa : Sa.IsMetric)
+    (hSd : Sd.IsMetric) (hd : hasNode Sd) (hH : H.IsMetric) (hdisj : Disjoint (External.NMSC.Side.taxa Sa) H.taxa)
     {KH Ka Kd : Finset (Finset L)} {Ta Td : Finset L}
     (hT : (Ta = H.taxa ∧ Td = ∅) ∨ (Ta = ∅ ∧ Td = H.taxa))
     {FH : Finset Pair} (hFH : FH ⊆ pairs H)
     (hKH : keptClades (baseTree H) FH = KH.image (Finset.map (Coalescent.label L)))
     {Ga : Finset Pair} (hGa : Ga ⊆ attachPairs Sa ∅)
     (hA : ∀ (X : PhyloTree) (FX : Finset Pair) (Y : Finset ℕ),
-      Disjoint Y (Sa.taxa.map (Coalescent.label L)) → X.taxa \ Y = Ta.map (Coalescent.label L) →
+      Disjoint Y ((External.NMSC.Side.taxa Sa).map (Coalescent.label L)) → X.taxa \ Y = Ta.map (Coalescent.label L) →
       nodeClades (attachTree Sa X) (Ga ∪ liftHang Sa FX) (dropOn (hangAddr Sa) Y) =
         Ka.image (Finset.map (Coalescent.label L)) ∪ keptClades X FX)
     {Gd : Finset Pair} (hGd : Gd ⊆ detachPairs Sd)
@@ -635,12 +635,12 @@ theorem cycle_kept {Sa Sd : Brooqs.Side L} {H : Brooqs.Net L} (hSa : Sa.IsMetric
     ∃ F ⊆ insert (true :: lastAddr Sd, false :: hangAddr Sa)
         (liftPairs false (attachPairs Sa (pairs H)) ∪ liftPairs true (detachPairs Sd)),
       keptClades (.fork (attachTree Sa (baseTree H)) (detachTree Sd)) F =
-        (insert (Sa.taxa ∪ Sd.taxa ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
+        (insert ((External.NMSC.Side.taxa Sa) ∪ (External.NMSC.Side.taxa Sd) ∪ H.taxa) (KH ∪ Ka ∪ Kd)).image
           (Finset.map (Coalescent.label L)) := by
   have hFA : Ga ∪ liftHang Sa FH ⊆ attachPairs Sa (pairs H) := by
     rw [attachPairs_eq Sa (pairs H)]
     exact Finset.union_subset_union hGa (liftHang_subset Sa hFH)
-  have hA' : ∀ Y : Finset ℕ, Disjoint Y (Sa.taxa.map (Coalescent.label L)) →
+  have hA' : ∀ Y : Finset ℕ, Disjoint Y ((External.NMSC.Side.taxa Sa).map (Coalescent.label L)) →
       (baseTree H).taxa \ Y = Ta.map (Coalescent.label L) →
       nodeClades (attachTree Sa (baseTree H)) (Ga ∪ liftHang Sa FH) (dropOn (hangAddr Sa) Y) =
         Ka.image (Finset.map (Coalescent.label L)) ∪ KH.image (Finset.map (Coalescent.label L)) :=
@@ -661,10 +661,10 @@ mutual
 /-- **Every displayed tree of `N` is the tree of a switching of its graph.** For a metric network
 `N` with distinct leaf labels and a displayed tree `K` of `N`, the switching of the graph of `N`
 that keeps the added edges of a set `F` of pairs of `N` has the clusters of `K` as its clades. -/
-theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.displayed,
+theorem exists_kept_net : ∀ (N : Phylogenetics.Net L), N.WellFormed → ∀ K ∈ (External.NMSC.Net.displayed N),
     ∃ F ⊆ pairs N, keptClades (baseTree N) F = K.image (Finset.map (Coalescent.label L))
   | .leaf x, _, K, hK => by
-      simp only [Brooqs.Net.displayed, List.mem_singleton] at hK
+      simp only [External.NMSC.Net.displayed, List.mem_singleton] at hK
       subst hK
       refine ⟨∅, Finset.empty_subset _, ?_⟩
       ext C
@@ -673,7 +673,7 @@ theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.d
   | .tree _ N₁ _ N₂, h, K, hK => by
       have h₁ : N₁.WellFormed := ⟨h.1.2.2.1, (List.nodup_append.1 h.2).1⟩
       have h₂ : N₂.WellFormed := ⟨h.1.2.2.2, (List.nodup_append.1 h.2).2.1⟩
-      simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_map] at hK
+      simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_map] at hK
       obtain ⟨K₁, hK₁, K₂, hK₂, rfl⟩ := hK
       obtain ⟨F₁, hF₁, e₁⟩ := exists_kept_net N₁ h₁ K₁ hK₁
       obtain ⟨F₂, hF₂, e₂⟩ := exists_kept_net N₂ h₂ K₂ hK₂
@@ -687,15 +687,15 @@ theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.d
       have hS₂ : S₂.IsMetric := h.1.2.2.2.2.1
       have hH : H.IsMetric := h.1.2.2.2.2.2.1
       obtain ⟨hn₁, hn₂, hnH, hd₁, hd₂⟩ := nodup_cycle h.2
-      simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map] at hK
+      simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map] at hK
       obtain ⟨KH, hKH, hK⟩ := hK
       obtain ⟨FH, hFH, eH⟩ := exists_kept_net H ⟨hH, hnH⟩ KH hKH
       cases S₂ with
       | hyb ℓ' =>
-        have h1 : S₁.nodes ≠ [] := h.1.2.2.2.2.2.2.resolve_right (by simp [Brooqs.Side.nodes])
+        have h1 : S₁.nodes ≠ [] := h.1.2.2.2.2.2.2.resolve_right (by simp [Phylogenetics.Side.nodes])
         have hd : hasNode S₁ := by
           cases S₁ with
-          | hyb _ => simp [Brooqs.Side.nodes] at h1
+          | hyb _ => simp [Phylogenetics.Side.nodes] at h1
           | node _ _ _ _ => rfl
         rw [baseTree_cycle_hyb, pairs_cycle_hyb]
         rcases hK with ⟨K₁, hK₁, K₂, hK₂, rfl⟩ | ⟨K₁, hK₁, K₂, hK₂, rfl⟩
@@ -706,7 +706,7 @@ theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.d
             hGd eD
           refine ⟨F, hF, eF.trans ?_⟩
           congr 1
-          rw [Finset.union_comm (Brooqs.Side.hyb ℓ').taxa S₁.taxa, Finset.union_right_comm KH]
+          rw [Finset.union_comm (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ')) (External.NMSC.Side.taxa S₁), Finset.union_right_comm KH]
         -- the hybrid component hangs from `S₂`, the direct edge: no added edge of the cycle
         · obtain ⟨Gd, hGd, eD⟩ := exists_kept_detach S₁ hS₁ hn₁ hd ∅ K₁ hK₁
           obtain ⟨Ga, hGa, eA⟩ := exists_kept_attach (.hyb ℓ') hS₂ hn₂ H.taxa K₂ hK₂
@@ -714,7 +714,7 @@ theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.d
             hGd eD
           refine ⟨F, hF, eF.trans ?_⟩
           congr 1
-          rw [Finset.union_comm (Brooqs.Side.hyb ℓ').taxa S₁.taxa, Finset.union_right_comm KH]
+          rw [Finset.union_comm (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ')) (External.NMSC.Side.taxa S₁), Finset.union_right_comm KH]
       | node ℓ' b' M S =>
         rw [baseTree_cycle_node, pairs_cycle_node]
         rcases hK with ⟨K₁, hK₁, K₂, hK₂, rfl⟩ | ⟨K₁, hK₁, K₂, hK₂, rfl⟩
@@ -730,31 +730,31 @@ theorem exists_kept_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ K ∈ N.d
 /-- The attach side: the clusters along a side with the taxa `T` below its hybrid edge, in the
 tree of the side with a tree `X` attached, with the taxa `Y` removed from the strict ancestors of
 `X`, when `X` without `Y` has the taxa `T`. -/
-theorem exists_kept_attach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.Nodup →
-    ∀ (T : Finset L), ∀ K ∈ S.displayed T, ∃ G ⊆ attachPairs S ∅,
+theorem exists_kept_attach : ∀ (S : Phylogenetics.Side L), S.IsMetric → S.leaves.Nodup →
+    ∀ (T : Finset L), ∀ K ∈ (External.NMSC.Side.displayed S) T, ∃ G ⊆ attachPairs S ∅,
       ∀ (X : PhyloTree) (FX : Finset Pair) (Y : Finset ℕ),
-        Disjoint Y (S.taxa.map (Coalescent.label L)) → X.taxa \ Y = T.map (Coalescent.label L) →
+        Disjoint Y ((External.NMSC.Side.taxa S).map (Coalescent.label L)) → X.taxa \ Y = T.map (Coalescent.label L) →
         nodeClades (attachTree S X) (G ∪ liftHang S FX) (dropOn (hangAddr S) Y) =
           K.image (Finset.map (Coalescent.label L)) ∪ keptClades X FX
   | .hyb ℓ, _, _, T, K, hK => by
-      simp only [Brooqs.Side.displayed, List.mem_singleton] at hK
+      simp only [External.NMSC.Side.displayed, List.mem_singleton] at hK
       subst hK
       refine ⟨∅, Finset.empty_subset _, fun X FX Y _ _ => ?_⟩
-      have hf : dropOn (hangAddr (.hyb ℓ : Brooqs.Side L)) Y = fun _ C => C := by
+      have hf : dropOn (hangAddr (.hyb ℓ : Phylogenetics.Side L)) Y = fun _ C => C := by
         funext y C
-        simp [dropOn, hangAddr, Brooqs.Side.nodes]
+        simp [dropOn, hangAddr, Phylogenetics.Side.nodes]
       simp only [attachTree, liftHang, Finset.empty_union, hf, Finset.image_empty,
         keptClades_eq_nodeClades]
   | .node ℓ b M S, hS, hnd, T, K, hK => by
       obtain ⟨hnM, hnS⟩ := nodup_node hnd
-      simp only [Brooqs.Side.displayed, List.mem_flatMap, List.mem_map] at hK
+      simp only [External.NMSC.Side.displayed, List.mem_flatMap, List.mem_map] at hK
       obtain ⟨K', hK', KM, hKM, rfl⟩ := hK
       obtain ⟨FM, hFM, eM⟩ := exists_kept_net M ⟨hS.2.2.1, hnM⟩ KM hKM
       obtain ⟨G', hG', eS⟩ := exists_kept_attach S hS.2.2.2 hnS T K' hK'
       refine ⟨liftPairs false FM ∪ liftPairs true G', Finset.union_subset_union
         (Finset.image_subset_image hFM) (Finset.image_subset_image hG'), fun X FX Y hY hXY => ?_⟩
-      have hYS : Disjoint Y (S.taxa.map (Coalescent.label L)) := hY.mono_right (by
-        rw [Brooqs.Side.taxa_node, Finset.map_union]
+      have hYS : Disjoint Y ((External.NMSC.Side.taxa S).map (Coalescent.label L)) := hY.mono_right (by
+        rw [External.NMSC.Side.taxa_node, Finset.map_union]
         exact Finset.subset_union_right)
       have hF : liftPairs false FM ∪ liftPairs true G' ∪ liftHang (.node ℓ b M S) FX =
           liftPairs false FM ∪ liftPairs true (G' ∪ liftHang S FX) := by
@@ -765,8 +765,8 @@ theorem exists_kept_attach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.No
 /-- The detach side: the clusters along a side with a node and the taxa `T` below its hybrid edge,
 in the tree of the side with its hybrid edge deleted, with the taxa `Y = T` added to the strict
 ancestors of the last pendant network, and the cluster of the last node. -/
-theorem exists_kept_detach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.Nodup → hasNode S →
-    ∀ (T : Finset L), ∀ K ∈ S.displayed T, ∃ G ⊆ detachPairs S,
+theorem exists_kept_detach : ∀ (S : Phylogenetics.Side L), S.IsMetric → S.leaves.Nodup → hasNode S →
+    ∀ (T : Finset L), ∀ K ∈ (External.NMSC.Side.displayed S) T, ∃ G ⊆ detachPairs S,
       ∀ (Y : Finset ℕ), Y = T.map (Coalescent.label L) →
         nodeClades (detachTree S) G (addOn (lastAddr S) Y) ∪
           {keptClade (detachTree S) G (lastAddr S) ∪ Y} =
@@ -774,13 +774,13 @@ theorem exists_kept_detach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.No
   | .hyb _, _, _, h, _, _, _ => by simp at h
   | .node ℓ b M (.hyb ℓ'), hS, hnd, _, T, K, hK => by
       obtain ⟨hnM, -⟩ := nodup_node hnd
-      simp only [Brooqs.Side.displayed, List.mem_flatMap, List.mem_map, List.mem_singleton] at hK
+      simp only [External.NMSC.Side.displayed, List.mem_flatMap, List.mem_map, List.mem_singleton] at hK
       obtain ⟨K', rfl, KM, hKM, rfl⟩ := hK
       obtain ⟨FM, hFM, eM⟩ := exists_kept_net M ⟨hS.2.2.1, hnM⟩ KM hKM
       exact ⟨FM, by rw [detachPairs_single]; exact hFM, fun Y hY => detach_single_eq hS hFM eM hY⟩
   | .node ℓ b M (.node ℓ' b' M' S), hS, hnd, _, T, K, hK => by
       obtain ⟨hnM, hnS⟩ := nodup_node hnd
-      rw [Brooqs.Side.displayed, List.mem_flatMap] at hK
+      rw [External.NMSC.Side.displayed, List.mem_flatMap] at hK
       obtain ⟨K', hK', hK⟩ := hK
       rw [List.mem_map] at hK
       obtain ⟨KM, hKM, rfl⟩ := hK
@@ -804,7 +804,7 @@ theorem liftPairs_noGhost {b : Bool} {F : Finset Pair} (h : ∀ e ∈ F, ¬e.1 <
 mutual
 /-- The pairs of `N` have no ghost donor: the donor end of each is not an ancestor of its recipient
 end (the two ends lie on the two sides of the top node of a cycle). -/
-theorem pairs_noGhost : ∀ (N : Brooqs.Net L), ∀ e ∈ pairs N, ¬e.1 <+: e.2
+theorem pairs_noGhost : ∀ (N : Phylogenetics.Net L), ∀ e ∈ pairs N, ¬e.1 <+: e.2
   | .leaf _, e, he => by simp [pairs] at he
   | .tree _ N₁ _ N₂, e, he => by
       rcases Finset.mem_union.1 he with he | he
@@ -821,7 +821,7 @@ theorem pairs_noGhost : ∀ (N : Brooqs.Net L), ∀ e ∈ pairs N, ¬e.1 <+: e.2
         · exact liftPairs_noGhost (detachPairs_noGhost _) e he
 
 /-- The pairs of the tree of a side with a tree attached have no ghost donor. -/
-theorem attachPairs_noGhost : ∀ (S : Brooqs.Side L) (P : Finset Pair),
+theorem attachPairs_noGhost : ∀ (S : Phylogenetics.Side L) (P : Finset Pair),
     (∀ e ∈ P, ¬e.1 <+: e.2) → ∀ e ∈ attachPairs S P, ¬e.1 <+: e.2
   | .hyb _, _, hP, e, he => hP e he
   | .node _ _ M S, P, hP, e, he => by
@@ -830,7 +830,7 @@ theorem attachPairs_noGhost : ∀ (S : Brooqs.Side L) (P : Finset Pair),
       · exact liftPairs_noGhost (attachPairs_noGhost S P hP) e he
 
 /-- The pairs of the tree of a side with its hybrid edge deleted have no ghost donor. -/
-theorem detachPairs_noGhost : ∀ (S : Brooqs.Side L), ∀ e ∈ detachPairs S, ¬e.1 <+: e.2
+theorem detachPairs_noGhost : ∀ (S : Phylogenetics.Side L), ∀ e ∈ detachPairs S, ¬e.1 <+: e.2
   | .hyb _, e, he => by simp [detachPairs] at he
   | .node _ _ M S, e, he => by
       unfold detachPairs at he
@@ -845,12 +845,12 @@ end
 
 /-- **Every displayed tree of `N` is the tree of a switching of its graph.** For a metric
 level-1 network `N` with distinct leaf labels and a displayed tree `K` of `N` (CAMUS's
-Definition 1 in the model, `Brooqs.Net.displayed`), some switching `S` of the graph
+Definition 1 in the model, `External.NMSC.Net.displayed`), some switching `S` of the graph
 `Realization.graph (baseTree N) (pairs N)` of `N` has the clusters of `K` as the clades below its
 vertices: it keeps, at each cycle whose displayed tree hangs the hybrid component from the side
 whose hybrid edge the base tree deletes, the added edge of the cycle. -/
-theorem exists_switching_of_mem_displayed {N : Brooqs.Net L} (hN : N.WellFormed)
-    {K : Finset (Finset L)} (hK : K ∈ N.displayed) :
+theorem exists_switching_of_mem_displayed {N : Phylogenetics.Net L} (hN : N.WellFormed)
+    {K : Finset (Finset L)} (hK : K ∈ (External.NMSC.Net.displayed N)) :
     ∃ S, (Realization.graph (baseTree N) (pairs N)).Switching S ∧
       (Realization.graph (baseTree N) (pairs N)).vertices.image
           ((Realization.graph (baseTree N) (pairs N)).cladeBelow S) =
@@ -865,8 +865,8 @@ theorem exists_switching_of_mem_displayed {N : Brooqs.Net L} (hN : N.WellFormed)
 network `N` with distinct leaf labels and a displayed tree `K` of `N`, there is a tree `T` on which
 the graph `Realization.graph (baseTree N) (pairs N)` of `N` is built, in the sense of
 Definition 1, whose clades are the clusters of `K`. -/
-theorem exists_builtOn_of_mem_displayed {N : Brooqs.Net L} (hN : N.WellFormed)
-    {K : Finset (Finset L)} (hK : K ∈ N.displayed) :
+theorem exists_builtOn_of_mem_displayed {N : Phylogenetics.Net L} (hN : N.WellFormed)
+    {K : Finset (Finset L)} (hK : K ∈ (External.NMSC.Net.displayed N)) :
     ∃ T : PhyloTree, (Realization.graph (baseTree N) (pairs N)).BuiltOn T ∧
       T.clades.toFinset = K.image (Finset.map (Coalescent.label L)) := by
   obtain ⟨S, hS, hSK⟩ := exists_switching_of_mem_displayed hN hK
@@ -879,12 +879,12 @@ mutual
 /-- **Every tree of the graph is a displayed tree of `N`** (address level). For a metric network
 `N` with distinct leaf labels and every set `F` of pairs of `N`, the clades of the tree of the
 switching keeping the added edges of `F` are the clusters of a displayed tree of `N`. -/
-theorem exists_displayed_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ F ⊆ pairs N,
-    ∃ K ∈ N.displayed, keptClades (baseTree N) F = K.image (Finset.map (Coalescent.label L))
+theorem exists_displayed_net : ∀ (N : Phylogenetics.Net L), N.WellFormed → ∀ F ⊆ pairs N,
+    ∃ K ∈ (External.NMSC.Net.displayed N), keptClades (baseTree N) F = K.image (Finset.map (Coalescent.label L))
   | .leaf x, _, F, hF => by
       have hF0 : F = ∅ := Finset.subset_empty.1 (by simpa [pairs] using hF)
       subst hF0
-      refine ⟨{{x}}, by simp [Brooqs.Net.displayed], ?_⟩
+      refine ⟨{{x}}, by simp [External.NMSC.Net.displayed], ?_⟩
       ext C
       simp [keptClades, keptClade, movesOut, movesIn, baseTree, PhyloTree.nodes,
         PhyloTree.taxaAt, PhyloTree.nodeAt, PhyloTree.taxa, PhyloTree.labels, Coalescent.label]
@@ -907,14 +907,14 @@ theorem exists_displayed_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ F �
       obtain ⟨hn₁, hn₂, hnH, hd₁, hd₂⟩ := nodup_cycle h.2
       cases S₂ with
       | hyb ℓ' =>
-        have h1 : S₁.nodes ≠ [] := h.1.2.2.2.2.2.2.resolve_right (by simp [Brooqs.Side.nodes])
+        have h1 : S₁.nodes ≠ [] := h.1.2.2.2.2.2.2.resolve_right (by simp [Phylogenetics.Side.nodes])
         have hd : hasNode S₁ := by
           cases S₁ with
-          | hyb _ => simp [Brooqs.Side.nodes] at h1
+          | hyb _ => simp [Phylogenetics.Side.nodes] at h1
           | node _ _ _ _ => rfl
         rw [pairs_cycle_hyb] at hF
         rw [baseTree_cycle_hyb]
-        have hF' : F.erase (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Brooqs.Side L)) ⊆
+        have hF' : F.erase (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Phylogenetics.Side L)) ⊆
             liftPairs false (attachPairs (.hyb ℓ') (pairs H)) ∪
               liftPairs true (detachPairs S₁) := fun x hx => by
           obtain ⟨hne, hx⟩ := Finset.mem_erase.1 hx
@@ -930,25 +930,25 @@ theorem exists_displayed_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ F �
           (pairs H) FA hFA
         obtain ⟨KH₀, hKH₀, eH₀⟩ := exists_displayed_net H ⟨hH, hnH⟩ FH₀ hFH₀
         obtain ⟨KH₁, hKH₁, eH₁⟩ := exists_displayed_net H ⟨hH, hnH⟩ FH₁ hFH₁
-        by_cases h0 : (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Brooqs.Side L)) ∈ F
+        by_cases h0 : (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Phylogenetics.Side L)) ∈ F
         -- the added edge of the cycle is kept: the hybrid component hangs from `S₁`
-        · refine ⟨insert (S₁.taxa ∪ (Brooqs.Side.hyb ℓ' : Brooqs.Side L).taxa ∪ H.taxa)
+        · refine ⟨insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ' : Phylogenetics.Side L)) ∪ H.taxa)
             (KH₀ ∪ Kd₁ ∪ Ka₀), ?_, ?_⟩
-          · simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
+          · simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
             exact ⟨KH₀, hKH₀, Or.inl ⟨Kd₁, hKd₁, Ka₀, hKa₀, rfl⟩⟩
           · rw [← Finset.insert_erase h0, hdec, (cycle_eq hS₂ hS₁ hd hH hd₂ hFA
               (fun Y hY hXY => by rw [eA₀ (baseTree H) Y hY hXY, eH₀]) hFD eD₁).2 ⟨rfl, rfl⟩]
             congr 1
-            rw [Finset.union_comm (Brooqs.Side.hyb ℓ').taxa S₁.taxa, Finset.union_right_comm KH₀]
+            rw [Finset.union_comm (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ')) (External.NMSC.Side.taxa S₁), Finset.union_right_comm KH₀]
         -- the added edge of the cycle is not kept: the hybrid component hangs from `S₂`
-        · refine ⟨insert (S₁.taxa ∪ (Brooqs.Side.hyb ℓ' : Brooqs.Side L).taxa ∪ H.taxa)
+        · refine ⟨insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ' : Phylogenetics.Side L)) ∪ H.taxa)
             (KH₁ ∪ Kd₀ ∪ Ka₁), ?_, ?_⟩
-          · simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
+          · simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
             exact ⟨KH₁, hKH₁, Or.inr ⟨Kd₀, hKd₀, Ka₁, hKa₁, rfl⟩⟩
           · rw [← Finset.erase_eq_of_notMem h0, hdec, (cycle_eq hS₂ hS₁ hd hH hd₂ hFA
               (fun Y hY hXY => by rw [eA₁ (baseTree H) Y hY hXY, eH₁]) hFD eD₀).1 ⟨rfl, rfl⟩]
             congr 1
-            rw [Finset.union_comm (Brooqs.Side.hyb ℓ').taxa S₁.taxa, Finset.union_right_comm KH₁]
+            rw [Finset.union_comm (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ')) (External.NMSC.Side.taxa S₁), Finset.union_right_comm KH₁]
       | node ℓ' b' M S =>
         rw [pairs_cycle_node] at hF
         rw [baseTree_cycle_node]
@@ -970,34 +970,34 @@ theorem exists_displayed_net : ∀ (N : Brooqs.Net L), N.WellFormed → ∀ F �
         obtain ⟨KH₁, hKH₁, eH₁⟩ := exists_displayed_net H ⟨hH, hnH⟩ FH₁ hFH₁
         by_cases h0 : (true :: lastAddr (.node ℓ' b' M S), false :: hangAddr S₁) ∈ F
         -- the added edge of the cycle is kept: the hybrid component hangs from `S₂`
-        · refine ⟨insert (S₁.taxa ∪ (Brooqs.Side.node ℓ' b' M S).taxa ∪ H.taxa)
+        · refine ⟨insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ' b' M S)) ∪ H.taxa)
             (KH₀ ∪ Ka₀ ∪ Kd₁), ?_, ?_⟩
-          · simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
+          · simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
             exact ⟨KH₀, hKH₀, Or.inr ⟨Ka₀, hKa₀, Kd₁, hKd₁, rfl⟩⟩
           · rw [← Finset.insert_erase h0, hdec]
             exact (cycle_eq hS₁ hS₂ rfl hH hd₁ hFA
               (fun Y hY hXY => by rw [eA₀ (baseTree H) Y hY hXY, eH₀]) hFD eD₁).2 ⟨rfl, rfl⟩
         -- the added edge of the cycle is not kept: the hybrid component hangs from `S₁`
-        · refine ⟨insert (S₁.taxa ∪ (Brooqs.Side.node ℓ' b' M S).taxa ∪ H.taxa)
+        · refine ⟨insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ' b' M S)) ∪ H.taxa)
             (KH₁ ∪ Ka₁ ∪ Kd₀), ?_, ?_⟩
-          · simp only [Brooqs.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
+          · simp only [External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
             exact ⟨KH₁, hKH₁, Or.inl ⟨Ka₁, hKa₁, Kd₀, hKd₀, rfl⟩⟩
           · rw [← Finset.erase_eq_of_notMem h0, hdec]
             exact (cycle_eq hS₁ hS₂ rfl hH hd₁ hFA
               (fun Y hY hXY => by rw [eA₁ (baseTree H) Y hY hXY, eH₁]) hFD eD₀).1 ⟨rfl, rfl⟩
 
 /-- The attach side, for every set of kept pairs. -/
-theorem exists_displayed_attach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.Nodup →
-    ∀ (T : Finset L) (P F : Finset Pair), F ⊆ attachPairs S P → ∃ K ∈ S.displayed T, ∃ FX ⊆ P,
-      ∀ (X : PhyloTree) (Y : Finset ℕ), Disjoint Y (S.taxa.map (Coalescent.label L)) →
+theorem exists_displayed_attach : ∀ (S : Phylogenetics.Side L), S.IsMetric → S.leaves.Nodup →
+    ∀ (T : Finset L) (P F : Finset Pair), F ⊆ attachPairs S P → ∃ K ∈ (External.NMSC.Side.displayed S) T, ∃ FX ⊆ P,
+      ∀ (X : PhyloTree) (Y : Finset ℕ), Disjoint Y ((External.NMSC.Side.taxa S).map (Coalescent.label L)) →
         X.taxa \ Y = T.map (Coalescent.label L) →
         nodeClades (attachTree S X) F (dropOn (hangAddr S) Y) =
           K.image (Finset.map (Coalescent.label L)) ∪ keptClades X FX
   | .hyb ℓ, _, _, T, P, F, hF => by
-      refine ⟨∅, by simp [Brooqs.Side.displayed], F, hF, fun X Y _ _ => ?_⟩
-      have hf : dropOn (hangAddr (.hyb ℓ : Brooqs.Side L)) Y = fun _ C => C := by
+      refine ⟨∅, by simp [External.NMSC.Side.displayed], F, hF, fun X Y _ _ => ?_⟩
+      have hf : dropOn (hangAddr (.hyb ℓ : Phylogenetics.Side L)) Y = fun _ C => C := by
         funext y C
-        simp [dropOn, hangAddr, Brooqs.Side.nodes]
+        simp [dropOn, hangAddr, Phylogenetics.Side.nodes]
       simp only [attachTree, hf, Finset.image_empty, Finset.empty_union, keptClades_eq_nodeClades]
   | .node ℓ b M S, hS, hnd, T, P, F, hF => by
       obtain ⟨hnM, hnS⟩ := nodup_node hnd
@@ -1005,17 +1005,17 @@ theorem exists_displayed_attach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leav
         (A := pairs M) (B := attachPairs S P) hF
       obtain ⟨KM, hKM, eM⟩ := exists_displayed_net M ⟨hS.2.2.1, hnM⟩ FM hFM
       obtain ⟨K', hK', FX, hFX, eS⟩ := exists_displayed_attach S hS.2.2.2 hnS T P F' hF'
-      refine ⟨insert (T ∪ S.taxa ∪ M.taxa) (K' ∪ KM),
+      refine ⟨insert (T ∪ (External.NMSC.Side.taxa S) ∪ M.taxa) (K' ∪ KM),
         List.mem_flatMap.2 ⟨K', hK', List.mem_map.2 ⟨KM, hKM, rfl⟩⟩, FX, hFX,
         fun X Y hY hXY => ?_⟩
-      have hYS : Disjoint Y (S.taxa.map (Coalescent.label L)) := hY.mono_right (by
-        rw [Brooqs.Side.taxa_node, Finset.map_union]
+      have hYS : Disjoint Y ((External.NMSC.Side.taxa S).map (Coalescent.label L)) := hY.mono_right (by
+        rw [External.NMSC.Side.taxa_node, Finset.map_union]
         exact Finset.subset_union_right)
       exact attach_node_eq hS hY hXY eM (eS X Y hYS hXY)
 
 /-- The detach side, for every set of kept pairs. -/
-theorem exists_displayed_detach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leaves.Nodup →
-    hasNode S → ∀ (T : Finset L) (G : Finset Pair), G ⊆ detachPairs S → ∃ K ∈ S.displayed T,
+theorem exists_displayed_detach : ∀ (S : Phylogenetics.Side L), S.IsMetric → S.leaves.Nodup →
+    hasNode S → ∀ (T : Finset L) (G : Finset Pair), G ⊆ detachPairs S → ∃ K ∈ (External.NMSC.Side.displayed S) T,
       ∀ (Y : Finset ℕ), Y = T.map (Coalescent.label L) →
         nodeClades (detachTree S) G (addOn (lastAddr S) Y) ∪
           {keptClade (detachTree S) G (lastAddr S) ∪ Y} =
@@ -1025,9 +1025,9 @@ theorem exists_displayed_detach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leav
       obtain ⟨hnM, -⟩ := nodup_node hnd
       rw [detachPairs_single] at hG
       obtain ⟨KM, hKM, eM⟩ := exists_displayed_net M ⟨hS.2.2.1, hnM⟩ G hG
-      refine ⟨insert (T ∪ (Brooqs.Side.hyb ℓ' : Brooqs.Side L).taxa ∪ M.taxa) (∅ ∪ KM), ?_,
+      refine ⟨insert (T ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.hyb ℓ' : Phylogenetics.Side L)) ∪ M.taxa) (∅ ∪ KM), ?_,
         fun Y hY => detach_single_eq hS hG eM hY⟩
-      simp only [Brooqs.Side.displayed, List.mem_flatMap, List.mem_map, List.mem_singleton]
+      simp only [External.NMSC.Side.displayed, List.mem_flatMap, List.mem_map, List.mem_singleton]
       exact ⟨∅, rfl, KM, hKM, rfl⟩
   | .node ℓ b M (.node ℓ' b' M' S), hS, hnd, _, T, G, hG => by
       obtain ⟨hnM, hnS⟩ := nodup_node hnd
@@ -1035,17 +1035,17 @@ theorem exists_displayed_detach : ∀ (S : Brooqs.Side L), S.IsMetric → S.leav
       obtain ⟨GM, hGM, G', hG', rfl⟩ := exists_liftPairs_union hG
       obtain ⟨KM, hKM, eM⟩ := exists_displayed_net M ⟨hS.2.2.1, hnM⟩ GM hGM
       obtain ⟨K', hK', eS⟩ := exists_displayed_detach (.node ℓ' b' M' S) hS.2.2.2 hnS rfl T G' hG'
-      refine ⟨insert (T ∪ (Brooqs.Side.node ℓ' b' M' S).taxa ∪ M.taxa) (K' ∪ KM), ?_,
+      refine ⟨insert (T ∪ (External.NMSC.Side.taxa (Phylogenetics.Side.node ℓ' b' M' S)) ∪ M.taxa) (K' ∪ KM), ?_,
         fun Y hY => ?_⟩
-      · rw [Brooqs.Side.displayed, List.mem_flatMap]
+      · rw [External.NMSC.Side.displayed, List.mem_flatMap]
         exact ⟨K', hK', List.mem_map.2 ⟨KM, hKM, rfl⟩⟩
       · exact detach_node_eq hS eM hY (eS Y hY)
 end
 
 /-- **Every switching of the graph of `N` has the clusters of a displayed tree of `N`.** -/
-theorem exists_displayed_of_switching {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem exists_displayed_of_switching {N : Phylogenetics.Net L} (hN : N.WellFormed)
     {S : Finset (ℕ × ℕ)} (hS : (Realization.graph (baseTree N) (pairs N)).Switching S) :
-    ∃ K ∈ N.displayed, (Realization.graph (baseTree N) (pairs N)).vertices.image
+    ∃ K ∈ (External.NMSC.Net.displayed N), (Realization.graph (baseTree N) (pairs N)).vertices.image
         ((Realization.graph (baseTree N) (pairs N)).cladeBelow S) =
       K.image (Finset.map (Coalescent.label L)) := by
   rw [switching_eq_keptSwitching (wellLabelled_baseTree hN) (separated_pairs N) hS]
@@ -1059,9 +1059,9 @@ theorem exists_displayed_of_switching {N : Brooqs.Net L} (hN : N.WellFormed)
 with distinct leaf labels, every tree `T` on which the graph `Realization.graph (baseTree N)
 (pairs N)` of `N` is built, in the sense of Definition 1, has as its clades the clusters of a
 displayed tree of `N`. -/
-theorem exists_displayed_of_builtOn {N : Brooqs.Net L} (hN : N.WellFormed) {T : PhyloTree}
+theorem exists_displayed_of_builtOn {N : Phylogenetics.Net L} (hN : N.WellFormed) {T : PhyloTree}
     (hT : (Realization.graph (baseTree N) (pairs N)).BuiltOn T) :
-    ∃ K ∈ N.displayed, T.clades.toFinset = K.image (Finset.map (Coalescent.label L)) := by
+    ∃ K ∈ (External.NMSC.Net.displayed N), T.clades.toFinset = K.image (Finset.map (Coalescent.label L)) := by
   obtain ⟨S, hS, hc⟩ := hT.exists_switching_clades
   obtain ⟨K, hK, e⟩ := exists_displayed_of_switching hN hS
   exact ⟨K, hK, hc.trans e⟩
@@ -1070,10 +1070,10 @@ theorem exists_displayed_of_builtOn {N : Brooqs.Net L} (hN : N.WellFormed) {T : 
 level-1 network `N` with distinct leaf labels, a family `C` of sets of taxa is the family of the
 clades of a tree on which the graph `Realization.graph (baseTree N) (pairs N)` of `N` is built iff
 it is the family of the clusters of a displayed tree of `N`. -/
-theorem builtOn_clades_iff {N : Brooqs.Net L} (hN : N.WellFormed) (C : Finset (Finset ℕ)) :
+theorem builtOn_clades_iff {N : Phylogenetics.Net L} (hN : N.WellFormed) (C : Finset (Finset ℕ)) :
     (∃ T : PhyloTree, (Realization.graph (baseTree N) (pairs N)).BuiltOn T ∧
       T.clades.toFinset = C) ↔
-    ∃ K ∈ N.displayed, C = K.image (Finset.map (Coalescent.label L)) := by
+    ∃ K ∈ (External.NMSC.Net.displayed N), C = K.image (Finset.map (Coalescent.label L)) := by
   constructor
   · rintro ⟨T, hT, rfl⟩
     exact exists_displayed_of_builtOn hN hT
@@ -1101,7 +1101,7 @@ numbers `n` of genes, every network built on `T` that has the best score for the
 Quartet Filtering on the quartet trees of the first `n` gene trees, with the fewest reticulations
 among the networks with the best score, is isomorphic to `Nr`: "CAMUS will add the correct
 reticulations and return N" (Section 3.2). -/
-theorem nmsc_recovery_displayed {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_recovery_displayed {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
@@ -1109,7 +1109,7 @@ theorem nmsc_recovery_displayed {N : Brooqs.Net L} (hN : N.WellFormed)
     (hzr : ((Realization.graph (baseTree N) (pairs N)).root,
         (Realization.graph (baseTree N) (pairs N)).leaf z) ∈
       (Realization.graph (baseTree N) (pairs N)).edges)
-    {K : Finset (Finset L)} (hK : K ∈ N.displayed) :
+    {K : Finset (Finset L)} (hK : K ∈ (External.NMSC.Net.displayed N)) :
     ∃ T : PhyloTree, (Realization.graph (baseTree N) (pairs N)).BuiltOn T ∧
       T.clades.toFinset = K.image (Finset.map (Coalescent.label L)) ∧
       ((∀ R : RootedNetwork, R.AnchoredExtension T →

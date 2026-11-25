@@ -7,37 +7,39 @@ public import Camus.External.NMSC.Cycle
 
 CAMUS's Definition 1 defines the trees displayed by a rooted level-1 network (delete one of the two
 edges into each reticulation, in every possible way, and clean up) and the set Q(N_r) of their
-quartets. This file defines them for the networks `Brooqs.Net` of the network multispecies
-coalescent: `Brooqs.Net.displayed N` lists the displayed trees of `N`, each given by its clusters
-(a rooted tree is determined by its clusters), and `Brooqs.Net.Displays N a b c e` says that one of
-them displays the quartet `ab|ce` (`Brooqs.geneTreeDisplays`: some cluster contains `a` and `b` but
+quartets. This file defines them for the networks `Phylogenetics.Net` of the network multispecies
+coalescent: `External.NMSC.Net.displayed N` lists the displayed trees of `N`, each given by its clusters
+(a rooted tree is determined by its clusters), and `External.NMSC.Net.Displays N a b c e` says that one of
+them displays the quartet `ab|ce` (`Phylogenetics.geneTreeDisplays`: some cluster contains `a` and `b` but
 neither `c` nor `e`, or contains `c` and `e` but neither `a` nor `b`).
 
 At a cycle, the network below the hybrid node (the hybrid component) hangs from the bottom of the
 side `S₁` or from the bottom of the side `S₂`. Along a side, the node of each pendant network has
 the cluster of the taxa of that network, of the networks hanging below it on the side, and of the
-hybrid component when it hangs from this side (`Brooqs.Side.displayed`).
+hybrid component when it hangs from this side (`External.NMSC.Side.displayed`).
 
 ## Main results
 
-* `Brooqs.Net.displayed`, `Brooqs.Side.displayed`, `Brooqs.Net.Displays`: the displayed trees and
+* `External.NMSC.Net.displayed`, `External.NMSC.Side.displayed`, `External.NMSC.Net.Displays`: the displayed trees and
   the displayed quartets.
-* `Brooqs.Net.taxa_mem_of_mem_subnets`: the taxa of a subnetwork form a cluster of every displayed
+* `External.NMSC.Net.taxa_mem_of_mem_subnets`: the taxa of a subnetwork form a cluster of every displayed
   tree.
-* `Brooqs.Net.compatible_of_mem_subnets`: every cluster of a displayed tree is nested with the taxa
+* `External.NMSC.Net.compatible_of_mem_subnets`: every cluster of a displayed tree is nested with the taxa
   of a subnetwork or disjoint from them.
-* `Brooqs.Net.displays_of_subnet`: if a subnetwork contains exactly two of four taxa, `x` and `y`,
+* `External.NMSC.Net.displays_of_subnet`: if a subnetwork contains exactly two of four taxa, `x` and `y`,
   the network displays `xy|zw` and neither `xz|yw` nor `xw|yz`.
-* `Brooqs.Net.restrict_displayed`, `Brooqs.Net.extend_displayed`: the displayed trees of `N` and of
+* `External.NMSC.Net.restrict_displayed`, `External.NMSC.Net.extend_displayed`: the displayed trees of `N` and of
   a subnetwork.
-* `Brooqs.Side.cluster_of_mem_displayed`, `Brooqs.Side.tail_mem_displayed`: the clusters along a
+* `External.NMSC.Side.cluster_of_mem_displayed`, `External.NMSC.Side.tail_mem_displayed`: the clusters along a
   side are those of its pendant networks and those of the top nodes of its lower parts
-  (`Brooqs.Side.tails`).
+  (`External.NMSC.Side.tails`).
 -/
 
 @[expose] public section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset
 
@@ -58,14 +60,14 @@ mutual
 def Net.displayed : Net X → List (Finset (Finset X))
   | .leaf x => [{{x}}]
   | .tree _ N₁ _ N₂ =>
-      N₁.displayed.flatMap fun K₁ => N₂.displayed.map fun K₂ =>
+      (Net.displayed N₁).flatMap fun K₁ => (Net.displayed N₂).map fun K₂ =>
         insert (N₁.taxa ∪ N₂.taxa) (K₁ ∪ K₂)
   | .cycle _ S₁ S₂ _ N =>
-      N.displayed.flatMap fun K =>
-        ((S₁.displayed N.taxa).flatMap fun K₁ => (S₂.displayed ∅).map fun K₂ =>
-            insert (S₁.taxa ∪ S₂.taxa ∪ N.taxa) (K ∪ K₁ ∪ K₂)) ++
-        ((S₁.displayed ∅).flatMap fun K₁ => (S₂.displayed N.taxa).map fun K₂ =>
-            insert (S₁.taxa ∪ S₂.taxa ∪ N.taxa) (K ∪ K₁ ∪ K₂))
+      (Net.displayed N).flatMap fun K =>
+        (((Side.displayed S₁) N.taxa).flatMap fun K₁ => ((Side.displayed S₂) ∅).map fun K₂ =>
+            insert ((Side.taxa S₁) ∪ (Side.taxa S₂) ∪ N.taxa) (K ∪ K₁ ∪ K₂)) ++
+        (((Side.displayed S₁) ∅).flatMap fun K₁ => ((Side.displayed S₂) N.taxa).map fun K₂ =>
+            insert ((Side.taxa S₁) ∪ (Side.taxa S₂) ∪ N.taxa) (K ∪ K₁ ∪ K₂))
 
 /-- The clusters of the displayed trees along a side, when the taxa `T` hang below its hybrid edge
 (`T = ∅` when the hybrid edge of the side is deleted): each node of the side has the cluster of the
@@ -73,8 +75,8 @@ taxa of its pendant network, of the networks hanging below it on the side, and o
 of a displayed tree of each pendant network are added. -/
 def Side.displayed : Side X → Finset X → List (Finset (Finset X))
   | .hyb _, _ => [∅]
-  | .node _ _ M S, T => (S.displayed T).flatMap fun K => M.displayed.map fun K' =>
-        insert (T ∪ S.taxa ∪ M.taxa) (K ∪ K')
+  | .node _ _ M S, T => ((Side.displayed S) T).flatMap fun K => (Net.displayed M).map fun K' =>
+        insert (T ∪ (Side.taxa S) ∪ M.taxa) (K ∪ K')
 end
 
 theorem Net.taxa_leaf (x : X) : (Net.leaf x).taxa = {x} := by
@@ -85,20 +87,20 @@ theorem Net.taxa_tree (ℓ₁ ℓ₂ : ℝ) (N₁ N₂ : Net X) :
   simp [Net.taxa, Net.leaves, List.toFinset_append]
 
 theorem Net.taxa_cycle (γ ℓ : ℝ) (S₁ S₂ : Side X) (N : Net X) :
-    (Net.cycle γ S₁ S₂ ℓ N).taxa = S₁.taxa ∪ S₂.taxa ∪ N.taxa := by
+    (Net.cycle γ S₁ S₂ ℓ N).taxa = (Side.taxa S₁) ∪ (Side.taxa S₂) ∪ N.taxa := by
   simp [Net.taxa, Side.taxa, Net.leaves, List.toFinset_append]
 
-theorem Side.taxa_hyb (ℓ : ℝ) : (Side.hyb ℓ : Side X).taxa = ∅ := by
+theorem Side.taxa_hyb (ℓ : ℝ) : (Side.taxa (Side.hyb ℓ : Side X)) = ∅ := by
   simp [Side.taxa, Side.leaves]
 
 theorem Side.taxa_node (ℓ b : ℝ) (M : Net X) (S : Side X) :
-    (Side.node ℓ b M S).taxa = M.taxa ∪ S.taxa := by
+    (Side.taxa (Side.node ℓ b M S)) = M.taxa ∪ (Side.taxa S) := by
   simp [Side.taxa, Net.taxa, Side.leaves, List.toFinset_append]
 
 mutual
 /-- The clusters of a displayed tree are sets of taxa of the network. -/
 theorem Net.subset_taxa_of_mem_displayed :
-    ∀ {N : Net X} {K : Finset (Finset X)}, K ∈ N.displayed → ∀ A ∈ K, A ⊆ N.taxa
+    ∀ {N : Net X} {K : Finset (Finset X)}, K ∈ (Net.displayed N) → ∀ A ∈ K, A ⊆ N.taxa
   | .leaf x, K, hK, A, hA => by
       simp only [Net.displayed, List.mem_singleton] at hK
       subst hK
@@ -140,8 +142,8 @@ theorem Net.subset_taxa_of_mem_displayed :
 /-- A cluster along a side lies below the pendant networks, or contains the taxa `T` hanging
 below the hybrid edge and lies below the side. -/
 theorem Side.cluster_cases :
-    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ S.displayed T → ∀ A ∈ K,
-      A ⊆ S.taxa ∨ (T ⊆ A ∧ A ⊆ T ∪ S.taxa)
+    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ (Side.displayed S) T → ∀ A ∈ K,
+      A ⊆ (Side.taxa S) ∨ (T ⊆ A ∧ A ⊆ T ∪ (Side.taxa S))
   | .hyb _, T, K, hK, A, hA => by
       simp only [Side.displayed, List.mem_singleton] at hK
       subst hK
@@ -167,7 +169,7 @@ end
 
 mutual
 /-- A network displays at least one tree. -/
-theorem Net.displayed_ne_nil : ∀ N : Net X, N.displayed ≠ []
+theorem Net.displayed_ne_nil : ∀ N : Net X, (Net.displayed N) ≠ []
   | .leaf _ => by simp [Net.displayed]
   | .tree ℓ₁ N₁ ℓ₂ N₂ => by
       obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil N₁)
@@ -180,16 +182,16 @@ theorem Net.displayed_ne_nil : ∀ N : Net X, N.displayed ≠ []
       obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil S₁ N.taxa)
       obtain ⟨K₂, hK₂⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil S₂ ∅)
       refine List.ne_nil_of_mem
-        (a := insert (S₁.taxa ∪ S₂.taxa ∪ N.taxa) (K₀ ∪ K₁ ∪ K₂)) ?_
+        (a := insert ((Side.taxa S₁) ∪ (Side.taxa S₂) ∪ N.taxa) (K₀ ∪ K₁ ∪ K₂)) ?_
       simp only [Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
       exact ⟨K₀, hK₀, Or.inl ⟨K₁, hK₁, K₂, hK₂, rfl⟩⟩
 
-theorem Side.displayed_ne_nil : ∀ (S : Side X) (T : Finset X), S.displayed T ≠ []
+theorem Side.displayed_ne_nil : ∀ (S : Side X) (T : Finset X), (Side.displayed S) T ≠ []
   | .hyb _, _ => by simp [Side.displayed]
   | .node ℓ b M S, T => by
       obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil S T)
       obtain ⟨K₂, hK₂⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil M)
-      refine List.ne_nil_of_mem (a := insert (T ∪ S.taxa ∪ M.taxa) (K₁ ∪ K₂)) ?_
+      refine List.ne_nil_of_mem (a := insert (T ∪ (Side.taxa S) ∪ M.taxa) (K₁ ∪ K₂)) ?_
       simp only [Side.displayed, List.mem_flatMap, List.mem_map]
       exact ⟨K₁, hK₁, K₂, hK₂, rfl⟩
 end
@@ -198,7 +200,7 @@ mutual
 /-- The taxa of a subnetwork form a cluster of every displayed tree: the subnetwork hangs from a
 cut edge. -/
 theorem Net.taxa_mem_of_mem_subnets :
-    ∀ {N M : Net X}, M ∈ N.subnets → ∀ K ∈ N.displayed, M.taxa ∈ K
+    ∀ {N M : Net X}, M ∈ N.subnets → ∀ K ∈ (Net.displayed N), M.taxa ∈ K
   | .leaf x, M, hM, K, hK => by
       simp only [Net.subnets, List.mem_singleton] at hM
       subst hM
@@ -231,7 +233,7 @@ theorem Net.taxa_mem_of_mem_subnets :
 
 /-- The same for the networks hanging from a side. -/
 theorem Side.taxa_mem_of_mem_subnets :
-    ∀ {S : Side X} {M : Net X}, M ∈ S.subnets → ∀ T, ∀ K ∈ S.displayed T, M.taxa ∈ K
+    ∀ {S : Side X} {M : Net X}, M ∈ S.subnets → ∀ T, ∀ K ∈ (Side.displayed S) T, M.taxa ∈ K
   | .hyb _, M, hM, _, _, _ => by simp [Side.subnets] at hM
   | .node ℓ b P S, M, hM, T, K, hK => by
       simp only [Side.displayed, List.mem_flatMap, List.mem_map] at hK
@@ -261,7 +263,7 @@ theorem Net.taxa_subset_of_mem_subnets {N M : Net X} (h : M ∈ N.subnets) : M.t
     ((Net.leaves_sublist_of_mem_subnets h).subset (List.mem_toFinset.1 hx))
 
 theorem Side.taxa_subset_of_mem_subnets {S : Side X} {M : Net X} (h : M ∈ S.subnets) :
-    M.taxa ⊆ S.taxa :=
+    M.taxa ⊆ (Side.taxa S) :=
   fun _ hx => List.mem_toFinset.2
     ((Side.leaves_sublist_of_mem_subnets h).subset (List.mem_toFinset.1 hx))
 
@@ -269,7 +271,7 @@ mutual
 /-- Every cluster of a displayed tree is compatible with the taxa of a subnetwork: nested or
 disjoint. -/
 theorem Net.compatible_of_mem_subnets :
-    ∀ {N M : Net X}, N.leaves.Nodup → M ∈ N.subnets → ∀ K ∈ N.displayed, ∀ A ∈ K,
+    ∀ {N M : Net X}, N.leaves.Nodup → M ∈ N.subnets → ∀ K ∈ (Net.displayed N), ∀ A ∈ K,
       A ⊆ M.taxa ∨ M.taxa ⊆ A ∨ Disjoint A M.taxa
   | .leaf _, M, _, hM, K, hK, A, hA => by
       simp only [Net.subnets, List.mem_singleton] at hM
@@ -303,12 +305,12 @@ theorem Net.compatible_of_mem_subnets :
       have hS₁ : S₁.leaves.Nodup := dd_nodup_left h12
       have hS₂ : S₂.leaves.Nodup := dd_nodup_right h12
       have hN₀ : N.leaves.Nodup := dd_nodup_right hN'
-      have d12 : Disjoint S₁.taxa S₂.taxa := dd_disjoint h12
-      have d3 : Disjoint (S₁.taxa ∪ S₂.taxa) N.taxa := by
+      have d12 : Disjoint (Side.taxa S₁) (Side.taxa S₂) := dd_disjoint h12
+      have d3 : Disjoint ((Side.taxa S₁) ∪ (Side.taxa S₂)) N.taxa := by
         have := dd_disjoint hN'
         rwa [List.toFinset_append] at this
-      have d13 : Disjoint S₁.taxa N.taxa := d3.mono_left subset_union_left
-      have d23 : Disjoint S₂.taxa N.taxa := d3.mono_left subset_union_right
+      have d13 : Disjoint (Side.taxa S₁) N.taxa := d3.mono_left subset_union_left
+      have d23 : Disjoint (Side.taxa S₂) N.taxa := d3.mono_left subset_union_right
       simp only [Net.subnets, List.mem_cons, List.mem_append] at hM
       rcases hM with rfl | (hM | hM) | hM
       · exact Or.inl (Net.subset_taxa_of_mem_displayed hK A hA)
@@ -374,15 +376,15 @@ theorem Net.compatible_of_mem_subnets :
 /-- The same for the networks hanging from a side, when the taxa `T` below its hybrid edge are
 not below the side. -/
 theorem Side.compatible_of_mem_subnets :
-    ∀ {S : Side X} {M : Net X}, S.leaves.Nodup → M ∈ S.subnets → ∀ T, Disjoint T S.taxa →
-      ∀ K ∈ S.displayed T, ∀ A ∈ K, A ⊆ M.taxa ∨ M.taxa ⊆ A ∨ Disjoint A M.taxa
+    ∀ {S : Side X} {M : Net X}, S.leaves.Nodup → M ∈ S.subnets → ∀ T, Disjoint T (Side.taxa S) →
+      ∀ K ∈ (Side.displayed S) T, ∀ A ∈ K, A ⊆ M.taxa ∨ M.taxa ⊆ A ∨ Disjoint A M.taxa
   | .hyb _, M, _, hM, _, _, _, _, _, _ => by simp [Side.subnets] at hM
   | .node ℓ b P S, M, hS, hM, T, hT, K, hK, A, hA => by
       have hS' : (P.leaves ++ S.leaves).Nodup := hS
-      have hd : Disjoint P.taxa S.taxa := dd_disjoint hS'
+      have hd : Disjoint P.taxa (Side.taxa S) := dd_disjoint hS'
       rw [Side.taxa_node] at hT
       have hTP : Disjoint T P.taxa := hT.mono_right subset_union_left
-      have hTS : Disjoint T S.taxa := hT.mono_right subset_union_right
+      have hTS : Disjoint T (Side.taxa S) := hT.mono_right subset_union_right
       simp only [Side.displayed, List.mem_flatMap, List.mem_map] at hK
       obtain ⟨K₁, hK₁, K₂, hK₂, rfl⟩ := hK
       simp only [Side.subnets, List.mem_append] at hM
@@ -411,8 +413,8 @@ mutual
 /-- The clusters of a displayed tree of `N` are the clusters of a displayed tree of a subnetwork
 `C`, or contain the taxa of `C`, or avoid them. -/
 theorem Net.restrict_displayed :
-    ∀ {N C : Net X}, N.leaves.Nodup → C ∈ N.subnets → ∀ K ∈ N.displayed,
-      ∃ K' ∈ C.displayed, ∀ A ∈ K, A ∈ K' ∨ C.taxa ⊆ A ∨ Disjoint A C.taxa
+    ∀ {N C : Net X}, N.leaves.Nodup → C ∈ N.subnets → ∀ K ∈ (Net.displayed N),
+      ∃ K' ∈ (Net.displayed C), ∀ A ∈ K, A ∈ K' ∨ C.taxa ⊆ A ∨ Disjoint A C.taxa
   | .leaf _, C, _, hC, K, hK => by
       simp only [Net.subnets, List.mem_singleton] at hC
       subst hC
@@ -449,12 +451,12 @@ theorem Net.restrict_displayed :
       have hS₁ : S₁.leaves.Nodup := dd_nodup_left h12
       have hS₂ : S₂.leaves.Nodup := dd_nodup_right h12
       have hN₀ : N.leaves.Nodup := dd_nodup_right hN'
-      have d12 : Disjoint S₁.taxa S₂.taxa := dd_disjoint h12
-      have d3 : Disjoint (S₁.taxa ∪ S₂.taxa) N.taxa := by
+      have d12 : Disjoint (Side.taxa S₁) (Side.taxa S₂) := dd_disjoint h12
+      have d3 : Disjoint ((Side.taxa S₁) ∪ (Side.taxa S₂)) N.taxa := by
         have := dd_disjoint hN'
         rwa [List.toFinset_append] at this
-      have d13 : Disjoint S₁.taxa N.taxa := d3.mono_left subset_union_left
-      have d23 : Disjoint S₂.taxa N.taxa := d3.mono_left subset_union_right
+      have d13 : Disjoint (Side.taxa S₁) N.taxa := d3.mono_left subset_union_left
+      have d23 : Disjoint (Side.taxa S₂) N.taxa := d3.mono_left subset_union_right
       simp only [Net.subnets, List.mem_cons, List.mem_append] at hC
       rcases hC with rfl | (hC | hC) | hC
       · exact ⟨K, hK, fun A hA => Or.inl hA⟩
@@ -526,15 +528,15 @@ theorem Net.restrict_displayed :
 /-- The same for the networks hanging from a side, when the taxa `T` below its hybrid edge are
 not below the side. -/
 theorem Side.restrict_displayed :
-    ∀ {S : Side X} {C : Net X}, S.leaves.Nodup → C ∈ S.subnets → ∀ T, Disjoint T S.taxa →
-      ∀ K ∈ S.displayed T, ∃ K' ∈ C.displayed, ∀ A ∈ K, A ∈ K' ∨ C.taxa ⊆ A ∨ Disjoint A C.taxa
+    ∀ {S : Side X} {C : Net X}, S.leaves.Nodup → C ∈ S.subnets → ∀ T, Disjoint T (Side.taxa S) →
+      ∀ K ∈ (Side.displayed S) T, ∃ K' ∈ (Net.displayed C), ∀ A ∈ K, A ∈ K' ∨ C.taxa ⊆ A ∨ Disjoint A C.taxa
   | .hyb _, C, _, hC, _, _, _, _ => by simp [Side.subnets] at hC
   | .node ℓ b P S, C, hS, hC, T, hT, K, hK => by
       have hS' : (P.leaves ++ S.leaves).Nodup := hS
-      have hd : Disjoint P.taxa S.taxa := dd_disjoint hS'
+      have hd : Disjoint P.taxa (Side.taxa S) := dd_disjoint hS'
       rw [Side.taxa_node] at hT
       have hTP : Disjoint T P.taxa := hT.mono_right subset_union_left
-      have hTS : Disjoint T S.taxa := hT.mono_right subset_union_right
+      have hTS : Disjoint T (Side.taxa S) := hT.mono_right subset_union_right
       simp only [Side.displayed, List.mem_flatMap, List.mem_map] at hK
       obtain ⟨K₁, hK₁, K₂, hK₂, rfl⟩ := hK
       simp only [Side.subnets, List.mem_append] at hC
@@ -564,7 +566,7 @@ end
 mutual
 /-- Every displayed tree of a subnetwork `C` of `N` extends to a displayed tree of `N`. -/
 theorem Net.extend_displayed :
-    ∀ {N C : Net X}, C ∈ N.subnets → ∀ K' ∈ C.displayed, ∃ K ∈ N.displayed, K' ⊆ K
+    ∀ {N C : Net X}, C ∈ N.subnets → ∀ K' ∈ (Net.displayed C), ∃ K ∈ (Net.displayed N), K' ⊆ K
   | .leaf _, C, hC, K', hK' => by
       simp only [Net.subnets, List.mem_singleton] at hC
       subst hC
@@ -590,9 +592,9 @@ theorem Net.extend_displayed :
       obtain ⟨K₀, hK₀⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil N)
       obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil S₁ N.taxa)
       obtain ⟨K₂, hK₂⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil S₂ ∅)
-      have hmem : ∀ {K₀ K₁ K₂}, K₀ ∈ N.displayed → K₁ ∈ S₁.displayed N.taxa →
-          K₂ ∈ S₂.displayed ∅ → insert (S₁.taxa ∪ S₂.taxa ∪ N.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
-            (Net.cycle γ S₁ S₂ ℓ N).displayed := fun hK₀ hK₁ hK₂ => by
+      have hmem : ∀ {K₀ K₁ K₂}, K₀ ∈ (Net.displayed N) → K₁ ∈ (Side.displayed S₁) N.taxa →
+          K₂ ∈ (Side.displayed S₂) ∅ → insert ((Side.taxa S₁) ∪ (Side.taxa S₂) ∪ N.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
+            (Net.displayed (Net.cycle γ S₁ S₂ ℓ N)) := fun hK₀ hK₁ hK₂ => by
         simp only [Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
         exact ⟨_, hK₀, Or.inl ⟨_, hK₁, _, hK₂, rfl⟩⟩
       rcases hC with rfl | (hC | hC) | hC
@@ -608,13 +610,13 @@ theorem Net.extend_displayed :
 
 /-- The same for the networks hanging from a side. -/
 theorem Side.extend_displayed :
-    ∀ {S : Side X} {C : Net X}, C ∈ S.subnets → ∀ T, ∀ K' ∈ C.displayed,
-      ∃ K ∈ S.displayed T, K' ⊆ K
+    ∀ {S : Side X} {C : Net X}, C ∈ S.subnets → ∀ T, ∀ K' ∈ (Net.displayed C),
+      ∃ K ∈ (Side.displayed S) T, K' ⊆ K
   | .hyb _, C, hC, _, _, _ => by simp [Side.subnets] at hC
   | .node ℓ b P S, C, hC, T, K', hK' => by
       simp only [Side.subnets, List.mem_append] at hC
-      have hmem : ∀ {K₁ K₂}, K₁ ∈ S.displayed T → K₂ ∈ P.displayed →
-          insert (T ∪ S.taxa ∪ P.taxa) (K₁ ∪ K₂) ∈ (Side.node ℓ b P S).displayed T :=
+      have hmem : ∀ {K₁ K₂}, K₁ ∈ (Side.displayed S) T → K₂ ∈ (Net.displayed P) →
+          insert (T ∪ (Side.taxa S) ∪ P.taxa) (K₁ ∪ K₂) ∈ (Side.displayed (Side.node ℓ b P S)) T :=
         fun hK₁ hK₂ => by
           simp only [Side.displayed, List.mem_flatMap, List.mem_map]
           exact ⟨_, hK₁, _, hK₂, rfl⟩
@@ -633,13 +635,13 @@ end
 networks of its nodes above the lower part `S'` in `node ℓ b M S'`. -/
 def Side.tails : Side X → List (Side X)
   | .hyb ℓ => [.hyb ℓ]
-  | .node ℓ b M S => .node ℓ b M S :: S.tails
+  | .node ℓ b M S => .node ℓ b M S :: (Side.tails S)
 
 /-- A cluster along a side lies in a pendant network, or is the cluster `T ∪ U.taxa` of the top
 node of a lower part `U` of the side. -/
 theorem Side.cluster_of_mem_displayed :
-    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ S.displayed T → ∀ A ∈ K,
-      (∃ n ∈ S.nodes, ∃ K' ∈ n.2.2.displayed, A ∈ K') ∨ ∃ U ∈ S.tails, A = T ∪ U.taxa
+    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ (Side.displayed S) T → ∀ A ∈ K,
+      (∃ n ∈ S.nodes, ∃ K' ∈ (Net.displayed n.2.2), A ∈ K') ∨ ∃ U ∈ (Side.tails S), A = T ∪ (Side.taxa U)
   | .hyb _, T, K, hK, A, hA => by
       simp only [Side.displayed, List.mem_singleton] at hK
       subst hK
@@ -662,8 +664,8 @@ theorem Side.cluster_of_mem_displayed :
 /-- The cluster of the top node of every lower part of a side with a node is a cluster of every
 displayed tree along the side. -/
 theorem Side.tail_mem_displayed :
-    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ S.displayed T → ∀ U ∈ S.tails,
-      U.nodes ≠ [] → T ∪ U.taxa ∈ K
+    ∀ {S : Side X} {T : Finset X} {K : Finset (Finset X)}, K ∈ (Side.displayed S) T → ∀ U ∈ (Side.tails S),
+      U.nodes ≠ [] → T ∪ (Side.taxa U) ∈ K
   | .hyb _, T, K, _, U, hU, hne => by
       simp only [Side.tails, List.mem_singleton] at hU
       subst hU
@@ -683,7 +685,7 @@ theorem Side.tail_mem_displayed :
 omit [DecidableEq X] in
 /-- The lower parts of a side are its suffixes: their nodes are the last nodes of the side. -/
 theorem Side.nodes_of_mem_tails :
-    ∀ {S U : Side X}, U ∈ S.tails → U.nodes = S.nodes.drop (S.nodes.length - U.nodes.length)
+    ∀ {S U : Side X}, U ∈ (Side.tails S) → U.nodes = S.nodes.drop (S.nodes.length - U.nodes.length)
   | .hyb _, U, hU => by
       simp only [Side.tails, List.mem_singleton] at hU
       subst hU
@@ -703,7 +705,7 @@ theorem Side.nodes_of_mem_tails :
 omit [DecidableEq X] in
 /-- A side has a lower part with each number of nodes up to its own. -/
 theorem Side.exists_tail : ∀ (S : Side X) (k : ℕ), k ≤ S.nodes.length →
-    ∃ U ∈ S.tails, U.nodes.length = k
+    ∃ U ∈ (Side.tails S), U.nodes.length = k
   | .hyb ℓ, k, hk => ⟨.hyb ℓ, by simp [Side.tails], by simp [Side.nodes] at hk ⊢; omega⟩
   | .node ℓ b M S, k, hk => by
       simp only [Side.nodes, List.length_cons] at hk
@@ -713,7 +715,7 @@ theorem Side.exists_tail : ∀ (S : Side X) (k : ℕ), k ≤ S.nodes.length →
       · exact ⟨.node ℓ b M S, by simp [Side.tails], by simp [Side.nodes]; omega⟩
 
 /-- The taxa below a side are those of its pendant networks. -/
-theorem Side.mem_taxa_iff {S : Side X} {x : X} : x ∈ S.taxa ↔ ∃ n ∈ S.nodes, x ∈ n.2.2.taxa := by
+theorem Side.mem_taxa_iff {S : Side X} {x : X} : x ∈ (Side.taxa S) ↔ ∃ n ∈ S.nodes, x ∈ n.2.2.taxa := by
   simp only [Side.taxa, List.mem_toFinset, Side.leaves_eq_flatten, List.mem_flatten, List.mem_map,
     Net.taxa]
   constructor
@@ -727,7 +729,7 @@ theorem Side.mem_taxa_iff {S : Side X} {x : X} : x ∈ S.taxa ↔ ∃ n ∈ S.no
 /-- `N` displays the quartet `ab|ce`: some displayed tree of `N` has a cluster that contains `a`
 and `b` but neither `c` nor `e`, or contains `c` and `e` but neither `a` nor `b`. -/
 def Net.Displays (N : Net X) (a b c e : X) : Prop :=
-  ∃ K ∈ N.displayed, geneTreeDisplays K a b c e = true
+  ∃ K ∈ (Net.displayed N), geneTreeDisplays K a b c e = true
 
 theorem geneTreeDisplays_swap_left (K : Finset (Finset X)) (a b c e : X) :
     geneTreeDisplays K b a c e = geneTreeDisplays K a b c e := by
@@ -751,15 +753,15 @@ theorem geneTreeDisplays_swap_pairs (K : Finset (Finset X)) (a b c e : X) :
   constructor <;> rintro ⟨C, hC, h⟩ <;> exact ⟨C, hC, by tauto⟩
 
 theorem Net.displays_swap_left (N : Net X) (a b c e : X) :
-    N.Displays b a c e ↔ N.Displays a b c e := by
+    (Net.Displays N) b a c e ↔ (Net.Displays N) a b c e := by
   simp only [Net.Displays, geneTreeDisplays_swap_left]
 
 theorem Net.displays_swap_right (N : Net X) (a b c e : X) :
-    N.Displays a b e c ↔ N.Displays a b c e := by
+    (Net.Displays N) a b e c ↔ (Net.Displays N) a b c e := by
   simp only [Net.Displays, geneTreeDisplays_swap_right]
 
 theorem Net.displays_swap_pairs (N : Net X) (a b c e : X) :
-    N.Displays c e a b ↔ N.Displays a b c e := by
+    (Net.Displays N) c e a b ↔ (Net.Displays N) a b c e := by
   simp only [Net.Displays, geneTreeDisplays_swap_pairs]
 
 /-- **A pair below a cut edge.** If a subnetwork `M` of `N` contains exactly the taxa `x` and `y`
@@ -768,7 +770,7 @@ cluster), and none displays `xz|yw` or `xw|yz` (every cluster is nested with the
 disjoint from them). -/
 theorem Net.displays_of_subnet {N M : Net X} (hN : N.leaves.Nodup) (hM : M ∈ N.subnets)
     {x y z w : X} (hx : x ∈ M.taxa) (hy : y ∈ M.taxa) (hz : z ∉ M.taxa) (hw : w ∉ M.taxa) :
-    N.Displays x y z w ∧ ¬ N.Displays x z y w ∧ ¬ N.Displays x w y z := by
+    (Net.Displays N) x y z w ∧ ¬ (Net.Displays N) x z y w ∧ ¬ (Net.Displays N) x w y z := by
   obtain ⟨K, hK⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil N)
   refine ⟨⟨K, hK, ?_⟩, ?_, ?_⟩
   · unfold geneTreeDisplays
@@ -788,4 +790,4 @@ theorem Net.displays_of_subnet {N M : Net X} (hN : N.leaves.Nodup) (hM : M ∈ N
       have h2 : y ∉ A := fun h' => disjoint_left.1 hdis h' hy
       tauto
 
-end Brooqs
+end External.NMSC

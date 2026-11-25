@@ -5,7 +5,7 @@ public import Camus.Pipelines.Coalescent.Quartets
 /-!
 # Section 3.3: the species tree as a tree of CAMUS
 
-A species tree of lean4-adr11 (`ADR11.SpeciesTree L`) carries a rooted topology, its clusters,
+A species tree of lean4-phylogenetics (`Phylogenetics.SpeciesTree L`) carries a rooted topology, its clusters,
 and edge lengths. A rooted binary tree of CAMUS (`PhyloTree`) carries a rooted topology, its
 clades. This file relates the two: when the clades of `tree` are the clusters of `σ` as sets of
 labels (`HasTopology σ tree`), the quartet trees induced by the unrooted topology of `σ`
@@ -27,7 +27,7 @@ namespace Camus
 
 namespace Coalescent
 
-open Finset ADR11
+open Finset Phylogenetics
 
 variable {L : Finset ℕ}
 

@@ -8,23 +8,23 @@ public import Camus.External.NMSC.FourComponents
 Section 3.3 of CAMUS expects, for four taxa on which the network displays one quartet `xy|zw`, that
 `xy|zw` is strictly the most probable quartet. This file proves the lower bound behind it when the
 pair `x, y` hangs below a cut edge and stays together until it meets a third lineage: below a child
-of a tree node (`Brooqs.Net.tree_pair_bound`) or from a node of a side of a cycle
-(`Brooqs.Net.cycle_pair_bound`). With the four lineages relabelled so that the pair is `0, 1`, the
-expected score `Brooqs.expectedScore` of the forest at the tree node or at the top node of the cycle
+of a tree node (`External.NMSC.Net.tree_pair_bound`) or from a node of a side of a cycle
+(`External.NMSC.Net.cycle_pair_bound`). With the four lineages relabelled so that the pair is `0, 1`, the
+expected score `External.NMSC.expectedScore` of the forest at the tree node or at the top node of the cycle
 is at least `1/3 + (2/3) (1 - e^{-b})`, `b` the length of the edge above the pair; so the quartet CF
 of `xy|zw` exceeds `1/3`.
 
 ## Main results
 
-* `Brooqs.IsForestDist`, `Brooqs.Net.isForestDist`, `Brooqs.Side.isForestDist`: probability
+* `External.NMSC.IsForestDist`, `External.NMSC.Net.isForestDist`, `External.NMSC.Side.isForestDist`: probability
   distributions on good forests with given lineages.
-* `Brooqs.expectedScore_vecMul_nice`, `Brooqs.expectedScore_forestUnion`,
-  `Brooqs.quartetScore_union_ge`, `Brooqs.expectedScore_union_ge`: expected scores.
-* `Brooqs.pairProb_ge`: the pair has coalesced along the edge above it with probability at least
+* `External.NMSC.expectedScore_vecMul_nice`, `External.NMSC.expectedScore_forestUnion`,
+  `External.NMSC.quartetScore_union_ge`, `External.NMSC.expectedScore_union_ge`: expected scores.
+* `External.NMSC.pairProb_ge`: the pair has coalesced along the edge above it with probability at least
   `1 - e^{-b}`.
-* `Brooqs.steps_bound`, `Brooqs.arm_bound`, `Brooqs.Side.pair_bound`: the bound along a side, after
+* `External.NMSC.steps_bound`, `External.NMSC.arm_bound`, `External.NMSC.Side.pair_bound`: the bound along a side, after
   the pair has entered it.
-* `Brooqs.Net.cycle_pair_bound`, `Brooqs.Net.tree_pair_bound`, `Brooqs.Net.tree_pair_bound'`: the
+* `External.NMSC.Net.cycle_pair_bound`, `External.NMSC.Net.tree_pair_bound`, `External.NMSC.Net.tree_pair_bound'`: the
   bound at the top of a cycle and at a tree node.
 
 ## Proof
@@ -32,10 +32,10 @@ of `xy|zw` exceeds `1/3`.
 Until a third lineage joins the pair, only the two lineages of the pair can coalesce: a cluster of
 two lineages is then `{0, 1}`, or `{2, 3}` among the other lineages, both on the side of the split
 `{0, 1} | {2, 3}`, so the score is at least `1/3`, and `1` once the pair has coalesced
-(`Brooqs.quartetScore_union_ge`). Once a third lineage has joined, the rest of the process is a
-nice kernel and the expected score stays (`Brooqs.NiceKernel.score`). Along a side, the pair enters
-at its node, possibly joining lineages that arrived from below (`Brooqs.arm_bound`); then the
-forests of the networks hanging above it join one by one (`Brooqs.steps_bound`), and at the top node
+(`External.NMSC.quartetScore_union_ge`). Once a third lineage has joined, the rest of the process is a
+nice kernel and the expected score stays (`Phylogenetics.NiceKernel.score`). Along a side, the pair enters
+at its node, possibly joining lineages that arrived from below (`External.NMSC.arm_bound`); then the
+forests of the networks hanging above it join one by one (`External.NMSC.steps_bound`), and at the top node
 of the cycle the forest of the other side joins. At a cycle, the bound holds for each choice of
 sides at the hybrid node, whose lineages are not those of the pair, and the choices are weighted by
 probabilities adding up to `1`.
@@ -43,7 +43,9 @@ probabilities adding up to `1`.
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset Matrix
 
@@ -55,14 +57,14 @@ universe u
 structure IsForestDist (μ : Finset (Finset (Fin 4)) → ℝ) (T : Finset (Fin 4)) : Prop where
   nonneg : ∀ F, 0 ≤ μ F
   sum_eq_one : ∑ F, μ F = 1
-  support : ∀ F, μ F ≠ 0 → IsGood F ∧ ADR11.lineages F = T
+  support : ∀ F, μ F ≠ 0 → IsGoodForest F ∧ Phylogenetics.lineages F = T
 
 namespace IsForestDist
 
 variable {μ ν : Finset (Finset (Fin 4)) → ℝ} {T T' : Finset (Fin 4)}
 
-theorem single {F : Finset (Finset (Fin 4))} (hF : IsGood F) :
-    IsForestDist (Pi.single F 1) (ADR11.lineages F) := by
+theorem single {F : Finset (Finset (Fin 4))} (hF : IsGoodForest F) :
+    IsForestDist (Pi.single F 1) (Phylogenetics.lineages F) := by
   refine ⟨fun G => ?_, by simp, fun G hG => ?_⟩
   · rw [Pi.single_apply]
     split_ifs <;> norm_num
@@ -75,7 +77,7 @@ theorem single {F : Finset (Finset (Fin 4))} (hF : IsGood F) :
 lineages `S` to a distribution on good forests on `T ∪ S`. -/
 theorem vecMul_nice {S : Finset (Fin 4)}
     {Φ : Matrix (Finset (Finset (Fin 4))) (Finset (Finset (Fin 4))) ℝ} (h : IsForestDist μ T)
-    (hΦ : NiceKernel S Φ) (hΦ0 : ∀ F G, IsGood F → 0 ≤ Φ F G) (hd : Disjoint T S) :
+    (hΦ : NiceKernel S Φ) (hΦ0 : ∀ F G, IsGoodForest F → 0 ≤ Φ F G) (hd : Disjoint T S) :
     IsForestDist (μ ᵥ* Φ) (T ∪ S) := by
   refine ⟨fun G => ?_, ?_, fun G hG => ?_⟩
   · simp only [vecMul, dotProduct]
@@ -100,8 +102,7 @@ theorem vecMul_nice {S : Finset (Fin 4)}
 theorem kT (h : IsForestDist μ T) {t : ℝ} (ht : 0 ≤ t) :
     IsForestDist (μ ᵥ* kingmanTransition t) T := by
   have := h.vecMul_nice (niceKernel_kingmanTransition t) (fun F G _ => by
-    rw [kingmanTransition_eq_adr11]
-    exact ADR11.kingmanTransition_nonneg ht F G) (disjoint_empty_right _)
+    exact Phylogenetics.kingmanTransition_nonneg ht F G) (disjoint_empty_right _)
   rwa [union_empty] at this
 
 /-- Adding an independent forest is a nice kernel. -/
@@ -128,7 +129,7 @@ theorem eq_single_empty (h : IsForestDist μ ∅) : μ = Pi.single ∅ 1 := by
     rw [eq_empty_iff_forall_notMem]
     intro A hA
     obtain ⟨l, hl⟩ := hFg.1.1 A hA
-    have := ADR11.subset_lineages hA hl
+    have := Phylogenetics.subset_lineages hA hl
     rw [hFl] at this
     exact notMem_empty l this
   have h0 : μ ∅ = 1 := by
@@ -154,7 +155,7 @@ none added by the kernel, is its expected score. -/
 theorem expectedScore_vecMul_nice {S : Finset (Fin 4)}
     {Φ : Matrix (Finset (Finset (Fin 4))) (Finset (Finset (Fin 4))) ℝ} (hΦ : NiceKernel S Φ)
     {ρ : Finset (Finset (Fin 4)) → ℝ}
-    (hρ : ∀ F, ρ F ≠ 0 → IsGood F ∧ Disjoint (ADR11.lineages F) S ∧ 3 ≤ #(ADR11.lineages F)) :
+    (hρ : ∀ F, ρ F ≠ 0 → IsGoodForest F ∧ Disjoint (Phylogenetics.lineages F) S ∧ 3 ≤ #(Phylogenetics.lineages F)) :
     expectedScore (ρ ᵥ* Φ) = expectedScore ρ := by
   unfold expectedScore
   simp only [vecMul, dotProduct, sum_mul]
@@ -217,40 +218,40 @@ variable {X : Type u} [DecidableEq X]
 def Net.lin (s : Fin 4 → X) (M : Net X) : Finset (Fin 4) := univ.filter fun l => s l ∈ M.taxa
 
 /-- The lineages sampled from the taxa below a side. -/
-def Side.lin (s : Fin 4 → X) (S : Side X) : Finset (Fin 4) := univ.filter fun l => s l ∈ S.taxa
+def Side.lin (s : Fin 4 → X) (S : Side X) : Finset (Fin 4) := univ.filter fun l => s l ∈ (Side.taxa S)
 
 /-- The forest at the root of a metric network with distinct leaf labels. -/
 theorem Net.isForestDist {M : Net X} (hM : M.IsMetric) (hMn : M.leaves.Nodup) (s : Fin 4 → X) :
-    IsForestDist (M.forestDist s) (M.lin s) := by
-  refine ⟨Net.forestDist_nonneg hM s, ?_, fun F hF => ?_⟩
+    IsForestDist (M.forestDist s) ((Net.lin s M)) := by
+  refine ⟨Net.forestDist_nonneg s _ hM, ?_, fun F hF => ?_⟩
   · rw [Net.forestDist_eq]
-    exact Net.forestDistOf_single_sum M hMn (sampledAt s) (fun _ _ => isGood_singletons _)
+    exact Net.forestDistOf_single_sum M hMn (sampledAt s) (fun _ _ => isGoodForest_singletons _)
       (fun _ _ _ _ hab => disjoint_lineages_sampledAt s hab)
   · obtain ⟨h1, -, h3⟩ := Net.forestDist_support hMn s hF
     exact ⟨h1, h3⟩
 
 private theorem pr_lineages_sampledAt (s : Fin 4 → X) (x : X) :
-    ADR11.lineages (sampledAt s x) = univ.filter fun l => s l = x :=
-  lineages_singletons _
+    Phylogenetics.lineages (sampledAt s x) = univ.filter fun l => s l = x :=
+  lineages_image_singleton _
 
 /-- The forest at the top of a metric side with distinct leaf labels, when a good forest `E` on
 other lineages takes its hybrid edge. -/
 theorem Side.isForestDist {S : Side X} (hS : S.IsMetric) (hSn : S.leaves.Nodup) (s : Fin 4 → X)
-    {E : Finset (Finset (Fin 4))} (hE : IsGood E) (hEd : Disjoint (ADR11.lineages E) (S.lin s)) :
-    IsForestDist (S.forestDist s E) (ADR11.lineages E ∪ S.lin s) := by
-  have hdisj : ∀ a ∈ S.leaves, Disjoint (ADR11.lineages E) (ADR11.lineages (sampledAt s a)) := by
+    {E : Finset (Finset (Fin 4))} (hE : IsGoodForest E) (hEd : Disjoint (Phylogenetics.lineages E) ((Side.lin s S))) :
+    IsForestDist (S.forestDist s E) (Phylogenetics.lineages E ∪ (Side.lin s S)) := by
+  have hdisj : ∀ a ∈ S.leaves, Disjoint (Phylogenetics.lineages E) (Phylogenetics.lineages (sampledAt s a)) := by
     intro a ha
     refine hEd.mono_right fun l hl => ?_
     rw [pr_lineages_sampledAt, mem_filter] at hl
     simp only [Side.lin, mem_filter, mem_univ, true_and, Side.taxa, List.mem_toFinset, hl.2]
     exact ha
-  refine ⟨Side.forestDist_nonneg hS s E, ?_, fun F hF => ?_⟩
+  refine ⟨Side.forestDist_nonneg s _ hS E, ?_, fun F hF => ?_⟩
   · rw [Side.forestDist_eq]
-    exact Side.forestDistOf_single_sum S hSn (sampledAt s) (fun _ _ => isGood_singletons _)
+    exact Side.forestDistOf_single_sum S hSn (sampledAt s) (fun _ _ => isGoodForest_singletons _)
       (fun _ _ _ _ hab => disjoint_lineages_sampledAt s hab) hE hdisj
   · rw [Side.forestDist_eq] at hF
     obtain ⟨h1, -, -, h4⟩ := Side.forestDistOf_single_support S hSn (sampledAt s)
-      (fun _ _ => isGood_singletons _) (fun _ _ _ _ hab => disjoint_lineages_sampledAt s hab) hE
+      (fun _ _ => isGoodForest_singletons _) (fun _ _ _ _ hab => disjoint_lineages_sampledAt s hab) hE
       hdisj hF
     refine ⟨h1, ?_⟩
     rw [h4]
@@ -270,7 +271,7 @@ def pairProb (μ : Finset (Finset (Fin 4)) → ℝ) : ℝ :=
 decrease. -/
 theorem pairProb_vecMul_nice {μ : Finset (Finset (Fin 4)) → ℝ} {T S : Finset (Fin 4)}
     (hμ : IsForestDist μ T) {Φ : Matrix (Finset (Finset (Fin 4))) (Finset (Finset (Fin 4))) ℝ}
-    (hΦ : NiceKernel S Φ) (hΦ0 : ∀ F G, IsGood F → 0 ≤ Φ F G) (hd : Disjoint T S) :
+    (hΦ : NiceKernel S Φ) (hΦ0 : ∀ F G, IsGoodForest F → 0 ≤ Φ F G) (hd : Disjoint T S) :
     pairProb μ ≤ pairProb (μ ᵥ* Φ) := by
   unfold pairProb
   simp only [vecMul, dotProduct, sum_mul]
@@ -301,7 +302,7 @@ private theorem pr_pair_forest : ∀ A : Finset (Fin 4), A ⊆ {0, 1} → A.None
 and `1`, after the edge of length `t ≥ 0` above `M` they have coalesced with probability at least
 `1 - e^{-t}`. -/
 theorem pairProb_ge {X : Type u} [DecidableEq X] {M : Net X} (hM : M.IsMetric)
-    (hMn : M.leaves.Nodup) {s : Fin 4 → X} (hlin : M.lin s = {0, 1}) (t : ℝ) :
+    (hMn : M.leaves.Nodup) {s : Fin 4 → X} (hlin : (Net.lin s M) = {0, 1}) (t : ℝ) :
     1 - Real.exp (-t) ≤ pairProb (M.forestDist s ᵥ* kingmanTransition t) := by
   have hμ := Net.isForestDist hM hMn s
   rw [hlin] at hμ
@@ -311,12 +312,12 @@ theorem pairProb_ge {X : Type u} [DecidableEq X] {M : Net X} (hM : M.IsMetric)
     intro E hE
     obtain ⟨hEg, hsing, hEl⟩ := Net.forestDist_support hMn s hE
     have h0 : ({0} : Finset (Fin 4)) ∈ E := hsing 0 (by
-      have : (0 : Fin 4) ∈ M.lin s := by rw [hlin]; simp
+      have : (0 : Fin 4) ∈ (Net.lin s M) := by rw [hlin]; simp
       simpa [Net.lin] using this)
     have h1 : ({1} : Finset (Fin 4)) ∈ E := hsing 1 (by
-      have : (1 : Fin 4) ∈ M.lin s := by rw [hlin]; simp
+      have : (1 : Fin 4) ∈ (Net.lin s M) := by rw [hlin]; simp
       simpa [Net.lin] using this)
-    have hEl' : ADR11.lineages E = {0, 1} := by rw [hEl]; exact hlin
+    have hEl' : Phylogenetics.lineages E = {0, 1} := by rw [hEl]; exact hlin
     by_cases h01 : ({0, 1} : Finset (Fin 4)) ∈ E
     · -- the lineages have coalesced below: they stay coalesced
       have hsum : ∑ G, kingmanTransition t E G *
@@ -324,8 +325,8 @@ theorem pairProb_ge {X : Type u} [DecidableEq X] {M : Net X} (hM : M.IsMetric)
         refine sum_congr rfl fun G _ => ?_
         by_cases hG : kingmanTransition t E G = 0
         · simp [hG]
-        · rw [ite_eq_left ((kingmanTransition_support hEg hG).2.1 h01), mul_one]
-      rw [hsum, kingmanTransition_row_sum hEg.1 t]
+        · rw [ite_eq_left ((kingmanTransition_support_good hEg hG).2.1 h01), mul_one]
+      rw [hsum, kingmanTransition_sum hEg.1 t]
       linarith [Real.exp_pos (-t)]
     · -- the lineages arrive apart: `E = {{0}, {1}}`
       have hE01 : E = {{0}, {1}} := by
@@ -333,7 +334,7 @@ theorem pairProb_ge {X : Type u} [DecidableEq X] {M : Net X} (hM : M.IsMetric)
         simp only [mem_insert, mem_singleton]
         constructor
         · intro hA
-          exact pr_pair_forest A (fun l hl => hEl' ▸ ADR11.subset_lineages hA hl)
+          exact pr_pair_forest A (fun l hl => hEl' ▸ Phylogenetics.subset_lineages hA hl)
             (hEg.1.1 A hA) (fun h => h01 (h ▸ hA))
         · rintro (rfl | rfl)
           · exact h0
@@ -400,8 +401,7 @@ theorem Steps.mono {ν : Finset (Finset (Fin 4)) → ℝ} :
 
 private theorem pr_kT_nonneg {t : ℝ} (ht : 0 ≤ t) (F G : Finset (Finset (Fin 4))) :
     0 ≤ kingmanTransition t F G := by
-  rw [kingmanTransition_eq_adr11]
-  exact ADR11.kingmanTransition_nonneg ht F G
+  exact Phylogenetics.kingmanTransition_nonneg ht F G
 
 private theorem pr_mul_nonneg {A B : Matrix (Finset (Finset (Fin 4))) (Finset (Finset (Fin 4))) ℝ}
     (hA : ∀ F G, 0 ≤ A F G) (hB : ∀ F G, 0 ≤ B F G) (F G : Finset (Finset (Fin 4))) :
@@ -462,9 +462,9 @@ theorem expectedScore_union_ge {α ν : Finset (Finset (Fin 4)) → ℝ} {T : Fi
           (fun C hC => ?_)) (mul_nonneg (hα.nonneg F) (hν.nonneg F'))
         · intro l hl
           rw [← hFl]
-          exact ADR11.subset_lineages hC hl
+          exact Phylogenetics.subset_lineages hC hl
         · intro l hl
-          exact hT (hF'l ▸ ADR11.subset_lineages hC hl)
+          exact hT (hF'l ▸ Phylogenetics.subset_lineages hC hl)
 
 private theorem pr_disj01 {T : Finset (Fin 4)} (hT : T ⊆ {2, 3}) :
     Disjoint ({0, 1} : Finset (Fin 4)) T :=
@@ -482,7 +482,7 @@ private theorem pr_card3 {U : Finset (Fin 4)} (hU : U.Nonempty)
 lineages among `2, 3` join them), and a forest `ν` on lineages among `2, 3` joins at the end: the
 expected score is at least `1/3`, more by `2/3` of the probability that `0` and `1` have already
 coalesced. Until a third lineage joins, only `0` and `1` can coalesce; once it has joined, the
-expected score stays (`Brooqs.NiceKernel.score`). -/
+expected score stays (`Phylogenetics.NiceKernel.score`). -/
 theorem steps_bound : ∀ (L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)) {T : Finset (Fin 4)}
     {α ν : Finset (Finset (Fin 4)) → ℝ}, T ⊆ {2, 3} → IsForestDist α {0, 1} → Steps ν T L →
       1 / 3 + 2 / 3 * pairProb α ≤ expectedScore (forestUnion (α ᵥ* stepsKernel L) ν)
@@ -524,7 +524,7 @@ theorem steps_bound : ∀ (L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)) 
 (on lineages among `2, 3`) and the forest `P` of the pair `0, 1` join; then the lineages travel
 along an edge of length `e ≥ 0` and the steps `L`, and a forest `ν` joins at the end. If `β` has a
 lineage, three lineages are together at the node and the expected score stays; otherwise the pair
-travels on alone (`Brooqs.steps_bound`). -/
+travels on alone (`External.NMSC.steps_bound`). -/
 theorem arm_bound {β P ν : Finset (Finset (Fin 4)) → ℝ} {Tβ T : Finset (Fin 4)} {e : ℝ}
     {L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)} (hβ : IsForestDist β Tβ)
     (hTβ : Tβ ⊆ {2, 3}) (hP : IsForestDist P {0, 1}) (he : 0 ≤ e) (hT : T ⊆ {2, 3})
@@ -565,7 +565,7 @@ private theorem pr_sub23 : ∀ T : Finset (Fin 4), Disjoint ({0, 1} : Finset (Fi
   decide
 
 private theorem pr_lin_node (s : Fin 4 → X) (ℓ b : ℝ) (M : Net X) (S : Side X) :
-    (Side.node ℓ b M S).lin s = M.lin s ∪ S.lin s := by
+    (Side.lin s (Side.node ℓ b M S)) = (Net.lin s M) ∪ (Side.lin s S) := by
   ext l
   simp [Side.lin, Net.lin, Side.taxa_node]
 
@@ -589,11 +589,11 @@ exactly `0` and `1`, then for a forest `E` on lineages among `2, 3` taking the h
 followed by steps `L` and a forest `ν`, the expected score is at least
 `1/3 + (2/3) (1 - e^{-b})`, where `b` is the length of the pendant edge of `n₀`. -/
 theorem Side.pair_bound (s : Fin 4 → X) : ∀ (S : Side X), S.IsMetric → S.leaves.Nodup →
-    ∀ (n₀ : ℝ × ℝ × Net X), n₀ ∈ S.nodes → n₀.2.2.lin s = {0, 1} →
+    ∀ (n₀ : ℝ × ℝ × Net X), n₀ ∈ S.nodes → (Net.lin s n₀.2.2) = {0, 1} →
     ∀ {E : Finset (Finset (Fin 4))} {T : Finset (Fin 4)} {ν : Finset (Finset (Fin 4)) → ℝ}
-      {L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)}, IsGood E →
-      ADR11.lineages E ⊆ {2, 3} → Disjoint (ADR11.lineages E) (S.lin s) → T ⊆ {2, 3} →
-      Disjoint T (ADR11.lineages E ∪ S.lin s) → Steps ν T L →
+      {L : List ((Finset (Finset (Fin 4)) → ℝ) × ℝ)}, IsGoodForest E →
+      Phylogenetics.lineages E ⊆ {2, 3} → Disjoint (Phylogenetics.lineages E) ((Side.lin s S)) → T ⊆ {2, 3} →
+      Disjoint T (Phylogenetics.lineages E ∪ (Side.lin s S)) → Steps ν T L →
       1 / 3 + 2 / 3 * (1 - Real.exp (-n₀.2.1)) ≤
         expectedScore (forestUnion (S.forestDist s E ᵥ* stepsKernel L) ν)
   | .hyb _, _, _, n₀, hn₀, _, _, _, _, _, _, _, _, _, _, _ => by
@@ -603,7 +603,7 @@ theorem Side.pair_bound (s : Fin 4 → X) : ∀ (S : Side X), S.IsMetric → S.l
       have hSn' : (M.leaves ++ S.leaves).Nodup := hSn
       have hMn : M.leaves.Nodup := (List.nodup_append.1 hSn').1
       have hS'n : S.leaves.Nodup := (List.nodup_append.1 hSn').2.1
-      have hMS : Disjoint (M.lin s) (S.lin s) :=
+      have hMS : Disjoint ((Net.lin s M)) ((Side.lin s S)) :=
         pr_lin_disjoint (pr_disjoint_toFinset hSn')
       rw [pr_lin_node] at hEd hTd
       have hdef : (Side.node ℓ b M S).forestDist s E =
@@ -612,7 +612,7 @@ theorem Side.pair_bound (s : Fin 4 → X) : ∀ (S : Side X), S.IsMetric → S.l
       simp only [Side.nodes, List.mem_cons] at hn₀
       rcases hn₀ with rfl | hn₀
       · -- the pair hangs from this node
-        have hSlin : S.lin s ⊆ {2, 3} := pr_sub23 _ (by rw [← hlin]; exact hMS)
+        have hSlin : (Side.lin s S) ⊆ {2, 3} := pr_sub23 _ (by rw [← hlin]; exact hMS)
         have hβ := Side.isForestDist hS' hS'n s hE (hEd.mono_right subset_union_right)
         have hP : IsForestDist (M.forestDist s ᵥ* kingmanTransition b) {0, 1} := by
           have := (Net.isForestDist hM hMn s).kT hb.le
@@ -623,9 +623,9 @@ theorem Side.pair_bound (s : Fin 4 → X) : ∀ (S : Side X), S.IsMetric → S.l
         have hpp := pairProb_ge hM hMn hlin b
         exact le_trans (by linarith) h
       · -- the pair hangs below: this node is one more step after the pair
-        have hn₀S : n₀.2.2.lin s ⊆ S.lin s := pr_lin_mono fun x hx =>
+        have hn₀S : (Net.lin s n₀.2.2) ⊆ (Side.lin s S) := pr_lin_mono fun x hx =>
           Side.mem_taxa_iff.2 ⟨n₀, hn₀, hx⟩
-        have hMlin : M.lin s ⊆ {2, 3} := pr_sub23 _ (by
+        have hMlin : (Net.lin s M) ⊆ {2, 3} := pr_sub23 _ (by
           rw [← hlin]
           exact (hMS.mono_right hn₀S).symm)
         have hQ := (Net.isForestDist hM hMn s).kT hb.le
@@ -636,7 +636,7 @@ theorem Side.pair_bound (s : Fin 4 → X) : ∀ (S : Side X), S.IsMetric → S.l
         rw [hdef, hstep]
         refine Side.pair_bound s S hS' hS'n n₀ hn₀ hlin hE hE23
           (hEd.mono_right subset_union_right) (union_subset hT hMlin) ?_
-          ⟨hℓ.le, M.lin s, subset_union_right, hQ, Steps.mono hL ?_⟩
+          ⟨hℓ.le, (Net.lin s M), subset_union_right, hQ, Steps.mono hL ?_⟩
         · refine disjoint_union_left.2 ⟨hTd.mono_right (union_subset_union subset_rfl
             subset_union_right), disjoint_union_right.2 ⟨?_, hMS⟩⟩
           exact (hEd.mono_right subset_union_left).symm
@@ -673,7 +673,7 @@ of the pendant edge of `n₀`: whatever the lineages below the hybrid node do, t
 side and meets a third lineage, or reaches the top node, without separating. -/
 theorem Net.cycle_pair_bound (s : Fin 4 → X) {γ ℓ : ℝ} {S₁ S₂ : Side X} {H : Net X}
     (hC : (Net.cycle γ S₁ S₂ ℓ H).IsMetric) (hCn : (Net.cycle γ S₁ S₂ ℓ H).leaves.Nodup)
-    (n₀ : ℝ × ℝ × Net X) (hn₀ : n₀ ∈ S₁.nodes ∨ n₀ ∈ S₂.nodes) (hlin : n₀.2.2.lin s = {0, 1}) :
+    (n₀ : ℝ × ℝ × Net X) (hn₀ : n₀ ∈ S₁.nodes ∨ n₀ ∈ S₂.nodes) (hlin : (Net.lin s n₀.2.2) = {0, 1}) :
     1 / 3 + 2 / 3 * (1 - Real.exp (-n₀.2.1)) ≤
       expectedScore ((Net.cycle γ S₁ S₂ ℓ H).forestDist s) := by
   obtain ⟨hγ0, hγ1, hℓ, hS₁, hS₂, hH, -⟩ := hC
@@ -682,19 +682,19 @@ theorem Net.cycle_pair_bound (s : Fin 4 → X) {γ ℓ : ℝ} {S₁ S₂ : Side 
   have hS₁n : S₁.leaves.Nodup := (List.nodup_append.1 h12).1
   have hS₂n : S₂.leaves.Nodup := (List.nodup_append.1 h12).2.1
   have hHn : H.leaves.Nodup := (List.nodup_append.1 hCn').2.1
-  have d12 : Disjoint (S₁.lin s) (S₂.lin s) := pr_lin_disjoint (pr_disjoint_toFinset h12)
+  have d12 : Disjoint ((Side.lin s S₁)) ((Side.lin s S₂)) := pr_lin_disjoint (pr_disjoint_toFinset h12)
   have dT : Disjoint (S₁.leaves ++ S₂.leaves).toFinset H.leaves.toFinset :=
     pr_disjoint_toFinset hCn'
-  have d1H : Disjoint (S₁.lin s) (H.lin s) := pr_lin_disjoint (dT.mono_left fun x hx => by
+  have d1H : Disjoint ((Side.lin s S₁)) ((Net.lin s H)) := pr_lin_disjoint (dT.mono_left fun x hx => by
     simp only [Side.taxa, List.mem_toFinset, List.toFinset_append, mem_union] at hx ⊢
     exact Or.inl hx)
-  have d2H : Disjoint (S₂.lin s) (H.lin s) := pr_lin_disjoint (dT.mono_left fun x hx => by
+  have d2H : Disjoint ((Side.lin s S₂)) ((Net.lin s H)) := pr_lin_disjoint (dT.mono_left fun x hx => by
     simp only [Side.taxa, List.mem_toFinset, List.toFinset_append, mem_union] at hx ⊢
     exact Or.inr hx)
   -- the lineages of the pair lie below the side of `n₀`
-  have hn₀S : ∀ {S : Side X}, n₀ ∈ S.nodes → n₀.2.2.lin s ⊆ S.lin s := fun hn =>
+  have hn₀S : ∀ {S : Side X}, n₀ ∈ S.nodes → (Net.lin s n₀.2.2) ⊆ (Side.lin s S) := fun hn =>
     pr_lin_mono fun x hx => Side.mem_taxa_iff.2 ⟨n₀, hn, hx⟩
-  have hH23 : H.lin s ⊆ {2, 3} := pr_sub23 _ (by
+  have hH23 : (Net.lin s H) ⊆ {2, 3} := pr_sub23 _ (by
     rw [← hlin]
     rcases hn₀ with hn | hn
     · exact d1H.mono_left (hn₀S hn)
@@ -708,19 +708,19 @@ theorem Net.cycle_pair_bound (s : Fin 4 → X) {γ ℓ : ℝ} {S₁ S₂ : Side 
     intro F hF A hA
     obtain ⟨hFg, hFl⟩ := hμ.support F hF
     obtain ⟨-, hFd⟩ := forestBelow_union hFg (mem_powerset.1 hA)
-    have hE₁ := isGood_forestBelow (A := A) hFg
-    have hE₂ := isGood_forestBelow (A := roots F \ A) hFg
-    have hl₁ : ADR11.lineages (forestBelow F A) ⊆ H.lin s :=
-      hFl ▸ ADR11.lineages_mono (filter_subset _ _)
-    have hl₂ : ADR11.lineages (forestBelow F (roots F \ A)) ⊆ H.lin s :=
-      hFl ▸ ADR11.lineages_mono (filter_subset _ _)
+    have hE₁ := isGoodForest_forestBelow (A := A) hFg
+    have hE₂ := isGoodForest_forestBelow (A := roots F \ A) hFg
+    have hl₁ : Phylogenetics.lineages (forestBelow F A) ⊆ (Net.lin s H) :=
+      hFl ▸ Phylogenetics.lineages_mono (filter_subset _ _)
+    have hl₂ : Phylogenetics.lineages (forestBelow F (roots F \ A)) ⊆ (Net.lin s H) :=
+      hFl ▸ Phylogenetics.lineages_mono (filter_subset _ _)
     rcases hn₀ with hn | hn
     · -- the pair hangs from `S₁`; `S₂` brings the forest `ν`
-      have hS₂23 : S₂.lin s ⊆ {2, 3} := pr_sub23 _ (by
+      have hS₂23 : (Side.lin s S₂) ⊆ {2, 3} := pr_sub23 _ (by
         rw [← hlin]
         exact (d12.mono_left (hn₀S hn)))
       have h := Side.pair_bound s S₁ hS₁ hS₁n n₀ hn hlin (L := [])
-        (T := ADR11.lineages (forestBelow F (roots F \ A)) ∪ S₂.lin s)
+        (T := Phylogenetics.lineages (forestBelow F (roots F \ A)) ∪ (Side.lin s S₂))
         (ν := S₂.forestDist s (forestBelow F (roots F \ A))) hE₁ (hl₁.trans hH23)
         (d1H.symm.mono_left hl₁) (union_subset (hl₂.trans hH23) hS₂23)
         (disjoint_union_left.2 ⟨disjoint_union_right.2 ⟨hFd.symm, d1H.symm.mono_left hl₂⟩,
@@ -728,11 +728,11 @@ theorem Net.cycle_pair_bound (s : Fin 4 → X) {γ ℓ : ℝ} {S₁ S₂ : Side 
         ⟨_, subset_rfl, Side.isForestDist hS₂ hS₂n s hE₂ (d2H.symm.mono_left hl₂)⟩
       rwa [stepsKernel, vecMul_one] at h
     · -- the pair hangs from `S₂`; `S₁` brings the forest `ν`
-      have hS₁23 : S₁.lin s ⊆ {2, 3} := pr_sub23 _ (by
+      have hS₁23 : (Side.lin s S₁) ⊆ {2, 3} := pr_sub23 _ (by
         rw [← hlin]
         exact (d12.symm.mono_left (hn₀S hn)))
       have h := Side.pair_bound s S₂ hS₂ hS₂n n₀ hn hlin (L := [])
-        (T := ADR11.lineages (forestBelow F A) ∪ S₁.lin s)
+        (T := Phylogenetics.lineages (forestBelow F A) ∪ (Side.lin s S₁))
         (ν := S₁.forestDist s (forestBelow F A)) hE₂ (hl₂.trans hH23)
         (d2H.symm.mono_left hl₂) (union_subset (hl₁.trans hH23) hS₁23)
         (disjoint_union_left.2 ⟨disjoint_union_right.2 ⟨hFd, d2H.symm.mono_left hl₁⟩,
@@ -758,14 +758,14 @@ tree node are exactly `0` and `1`, the expected score of the forest at the tree 
 as two lineages that meet the others there. -/
 theorem Net.tree_pair_bound (s : Fin 4 → X) {ℓ₁ ℓ₂ : ℝ} {C₁ C₂ : Net X}
     (hC : (Net.tree ℓ₁ C₁ ℓ₂ C₂).IsMetric) (hCn : (Net.tree ℓ₁ C₁ ℓ₂ C₂).leaves.Nodup)
-    (hlin : C₁.lin s = {0, 1}) :
+    (hlin : (Net.lin s C₁) = {0, 1}) :
     1 / 3 + 2 / 3 * (1 - Real.exp (-ℓ₁)) ≤
       expectedScore ((Net.tree ℓ₁ C₁ ℓ₂ C₂).forestDist s) := by
   obtain ⟨hℓ₁, hℓ₂, hC₁, hC₂⟩ := hC
   have hCn' : (C₁.leaves ++ C₂.leaves).Nodup := hCn
   have hC₁n : C₁.leaves.Nodup := (List.nodup_append.1 hCn').1
   have hC₂n : C₂.leaves.Nodup := (List.nodup_append.1 hCn').2.1
-  have hd : Disjoint (C₁.lin s) (C₂.lin s) := pr_lin_disjoint (pr_disjoint_toFinset hCn')
+  have hd : Disjoint ((Net.lin s C₁)) ((Net.lin s C₂)) := pr_lin_disjoint (pr_disjoint_toFinset hCn')
   have hα := (Net.isForestDist hC₁ hC₁n s).kT hℓ₁.le
   rw [hlin] at hα
   have h := expectedScore_union_ge hα ((Net.isForestDist hC₂ hC₂n s).kT hℓ₂.le)
@@ -776,7 +776,7 @@ theorem Net.tree_pair_bound (s : Fin 4 → X) {ℓ₁ ℓ₂ : ℝ} {C₁ C₂ :
 /-- The same when the pair hangs below the right child of the tree node. -/
 theorem Net.tree_pair_bound' (s : Fin 4 → X) {ℓ₁ ℓ₂ : ℝ} {C₁ C₂ : Net X}
     (hC : (Net.tree ℓ₁ C₁ ℓ₂ C₂).IsMetric) (hCn : (Net.tree ℓ₁ C₁ ℓ₂ C₂).leaves.Nodup)
-    (hlin : C₂.lin s = {0, 1}) :
+    (hlin : (Net.lin s C₂) = {0, 1}) :
     1 / 3 + 2 / 3 * (1 - Real.exp (-ℓ₂)) ≤
       expectedScore ((Net.tree ℓ₁ C₁ ℓ₂ C₂).forestDist s) := by
   obtain ⟨hℓ₁, hℓ₂, hC₁, hC₂⟩ := hC
@@ -790,4 +790,4 @@ theorem Net.tree_pair_bound' (s : Fin 4 → X) {ℓ₁ ℓ₂ : ℝ} {C₁ C₂ 
 
 end Sides
 
-end Brooqs
+end External.NMSC

@@ -24,14 +24,14 @@ multiplicities (`NMSC.nmsc_filterQuartets`).
 
 The pattern holds on every set of four taxa outside one configuration: a cycle with two of the
 four taxa below its hybrid node and the two others in two other components
-(`Brooqs.Net.Anomalous`, `Brooqs.Net.regularOn_of_not_anomalous`). So Quartet Filtering is
+(`External.NMSC.Net.Anomalous`, `External.NMSC.Net.regularOn_of_not_anomalous`). So Quartet Filtering is
 consistent for Q(N_r) on networks without this configuration (`NMSC.NoAnomaly`,
 `NMSC.nmsc_filterQuartets_of_noAnomaly`), for instance networks whose hybrid nodes each have a
 single leaf below them (`NMSC.noAnomaly_of_below`). It is not in general:
 `Camus/Pipelines/NMSC/Anomaly.lean` shows a network in this configuration on which the only quartet
 tree in Q(N_r) on four taxa is strictly the least probable, and Quartet Filtering then fails for
 every threshold; with other edge lengths the pattern holds in the same configuration
-(`Brooqs.net32_long`).
+(`External.NMSC.net32_long`).
 
 ## Main results
 
@@ -65,21 +65,21 @@ open Finset Filter Topology MeasureTheory ProbabilityTheory Coalescent Algorithm
 variable {L : Finset ℕ}
 
 /-- The quartet CFs of the four taxa of `k` under the NMSC on `N` have the pattern that the design
-of Quartet Filtering presumes (Section 3.3, `Brooqs.RegularPattern`):
+of Quartet Filtering presumes (Section 3.3, `External.NMSC.RegularPattern`):
 * `N` displays exactly one of the three quartet trees on them, `s₁`; it is strictly the most
   probable, and the two others are equally probable, with positive probability; or
 * `N` displays exactly two of them; the third, `s₃`, is strictly the least probable. -/
-def RegularOn (N : Brooqs.Net L) (k : QuartetKey) : Prop :=
-  Brooqs.RegularPattern (fun s => DisplaysQuartet N (k.quartet s))
+def RegularOn (N : Phylogenetics.Net L) (k : QuartetKey) : Prop :=
+  External.NMSC.RegularPattern (fun s => DisplaysQuartet N (k.quartet s))
     (fun s => quartetProb N (k.quartet s))
 
 /-- Every set of four taxa of `L` has the pattern `RegularOn`. -/
-def Regular (N : Brooqs.Net L) : Prop := ∀ k ∈ keysOn L, RegularOn N k
+def Regular (N : Phylogenetics.Net L) : Prop := ∀ k ∈ keysOn L, RegularOn N k
 
 /-- The ratios `(p₂ − p₃)/(p₂ + p₃)` of the sets of four taxa of `L` on which `N` displays two
 quartet trees: `p₂` is the probability of one of the two displayed quartet trees, `p₃` that of the
 third. -/
-def ratios (N : Brooqs.Net L) : Finset ℝ :=
+def ratios (N : Phylogenetics.Net L) : Finset ℝ :=
   ((keysOn L ×ˢ (univ : Finset (Fin 3)) ×ˢ (univ : Finset (Fin 3))).filter fun x =>
       x.2.1 ≠ x.2.2 ∧ ¬ DisplaysQuartet N (x.1.quartet x.2.2) ∧
         ∀ s, s ≠ x.2.2 → DisplaysQuartet N (x.1.quartet s)).image fun x =>
@@ -89,17 +89,17 @@ def ratios (N : Brooqs.Net L) : Finset ℝ :=
 /-- The bound `t₀(N)` on the threshold, the population form of Section 3.4's condition
 "t < (f2−f3)/(f2+f3)": the least of the ratios `(p₂ − p₃)/(p₂ + p₃)` of the sets of four taxa on
 which `N` displays two quartet trees, and `1` if there are none (each ratio is at most `1`). -/
-def threshold (N : Brooqs.Net L) : ℝ := (insert 1 (ratios N)).min' (insert_nonempty _ _)
+def threshold (N : Phylogenetics.Net L) : ℝ := (insert 1 (ratios N)).min' (insert_nonempty _ _)
 
 /-- `t < t₀(N)` iff `t < 1` and `t` is below every ratio. -/
-theorem lt_threshold_iff (N : Brooqs.Net L) (t : ℝ) :
+theorem lt_threshold_iff (N : Phylogenetics.Net L) (t : ℝ) :
     t < threshold N ↔ t < 1 ∧ ∀ r ∈ ratios N, t < r := by
   rw [threshold, Finset.lt_min'_iff]
   simp
 
 /-- On a set of four taxa on which `N` displays two quartet trees, a threshold below `t₀(N)` keeps
 the second most probable one in the limit. -/
-theorem retainSecond_of_lt_threshold {N : Brooqs.Net L} {t : ℝ} (ht : t < threshold N)
+theorem retainSecond_of_lt_threshold {N : Phylogenetics.Net L} {t : ℝ} (ht : t < threshold N)
     {k : QuartetKey} (hk : k ∈ keysOn L) {s₃ s : Fin 3} (hs : s ≠ s₃)
     (h₃ : ¬ DisplaysQuartet N (k.quartet s₃)) (h : ∀ s, s ≠ s₃ → DisplaysQuartet N (k.quartet s))
     (hlt : quartetProb N (k.quartet s₃) < quartetProb N (k.quartet s))
@@ -111,18 +111,18 @@ theorem retainSecond_of_lt_threshold {N : Brooqs.Net L} {t : ℝ} (ht : t < thre
   simp [hk]
 
 /-- The probability that a gene tree induces a quartet tree is nonnegative. -/
-theorem quartetProb_nonneg {N : Brooqs.Net L} (hN : N.WellFormed) (q : Quartet) :
+theorem quartetProb_nonneg {N : Phylogenetics.Net L} (hN : N.WellFormed) (q : Quartet) :
     0 ≤ quartetProb N q :=
   sum_nonneg fun G _ => by
     split_ifs
-    · exact Brooqs.Net.geneTreeDist_nonneg hN id G
+    · exact Phylogenetics.Net.geneTreeDist_nonneg _ hN id G
     · exact le_rfl
 
 private theorem fl_exists_other : ∀ a b : Fin 3, ∃ u : Fin 3, u ≠ a ∧ u ≠ b := by
   decide
 
 /-- If every set of four taxa has the pattern `RegularOn`, the threshold `t₀(N)` is positive. -/
-theorem threshold_pos {N : Brooqs.Net L} (hN : N.WellFormed) (hreg : Regular N) :
+theorem threshold_pos {N : Phylogenetics.Net L} (hN : N.WellFormed) (hreg : Regular N) :
     0 < threshold N := by
   have h := (lt_threshold_iff N 0).2 ⟨one_pos, fun r hr => ?_⟩
   · exact h
@@ -153,7 +153,7 @@ let the four taxa of `k` have the pattern `RegularOn`. For every threshold `0 < 
 surely, for all large numbers `n` of genes, Algorithm 1 applied to the quartet trees of the first
 `n` gene trees keeps on these four taxa every copy of the quartet trees in Q(N_r) and no copy of the
 others. -/
-theorem nmsc_filterBlock {N : Brooqs.Net L} (hN : N.WellFormed) (G : ℕ → Ω → Finset (Finset L))
+theorem nmsc_filterBlock {N : Phylogenetics.Net L} (hN : N.WellFormed) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
     (ht₀ : t < threshold N) {k : QuartetKey} (hk : k ∈ keysOn L) (hreg : RegularOn N k) :
@@ -200,7 +200,7 @@ surely, for all large numbers `n` of genes, Algorithm 1 applied to the multiset 
 trees of the first `n` gene trees returns exactly the quartet trees of `Q` in Q(N_r), with their
 multiplicities: "we do not want to include quartet trees that are not in Q(Nr). On the other hand,
 we do not want to eliminate these quartet trees." -/
-theorem nmsc_filterQuartets {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_filterQuartets {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) (hreg : Regular N) {t : ℝ}
@@ -236,55 +236,55 @@ end Genes
 
 /-! ### Networks without the anomalous configuration -/
 
-/-- No four taxa of `N` are in the anomalous configuration of `Brooqs.Net.Anomalous`: no cycle has
+/-- No four taxa of `N` are in the anomalous configuration of `External.NMSC.Net.Anomalous`: no cycle has
 two of them below its hybrid node and the two others in two other components. -/
-def NoAnomaly (N : Brooqs.Net L) : Prop :=
-  ∀ s : Fin 4 → L, Function.Injective s → ¬ N.Anomalous s
+def NoAnomaly (N : Phylogenetics.Net L) : Prop :=
+  ∀ s : Fin 4 → L, Function.Injective s → ¬ (External.NMSC.Net.Anomalous N) s
 
 /-- A network whose hybrid nodes each have a single leaf below them has no anomalous set of four
 taxa. -/
-theorem noAnomaly_of_below {N : Brooqs.Net L} (h : ∀ Ω : N.Cycle, Ω.below.leaves.length ≤ 1) :
+theorem noAnomaly_of_below {N : Phylogenetics.Net L} (h : ∀ Ω : N.Cycle, Ω.below.leaves.length ≤ 1) :
     NoAnomaly N := by
   rintro s hs ⟨Ω, h2, -, -⟩
-  have hle : #(Ω.below.lin s) ≤ 1 := by
+  have hle : #((External.NMSC.Net.lin s Ω.below)) ≤ 1 := by
     refine (card_le_card_of_injOn (t := Ω.below.taxa) s (fun l hl => ?_) hs.injOn).trans ?_
-    · simp only [Brooqs.Net.lin, coe_filter, Set.mem_ofPred_eq, mem_univ, true_and] at hl
+    · simp only [External.NMSC.Net.lin, coe_filter, Set.mem_ofPred_eq, mem_univ, true_and] at hl
       exact hl
     · exact (List.toFinset_card_le _).trans (h Ω)
   omega
 
-/-- The pattern of `Brooqs.Net.RegularOn` for the four taxa of `k` is the pattern `RegularOn` of the
+/-- The pattern of `External.NMSC.Net.RegularOn` for the four taxa of `k` is the pattern `RegularOn` of the
 quartet trees of CAMUS on them. -/
-theorem regularOn_iff (N : Brooqs.Net L) (hN : N.leaves.Nodup) (k : QuartetKey)
+theorem regularOn_iff (N : Phylogenetics.Net L) (hN : N.leaves.Nodup) (k : QuartetKey)
     (hk : keyTaxa k ⊆ L) :
-    RegularOn N k ↔ N.RegularOn (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2)
+    RegularOn N k ↔ (External.NMSC.Net.RegularOn N) (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2)
       (keyTaxon k hk 3) := by
   obtain ⟨d0, d1, d2⟩ := displaysQuartet_iff N k hk
   obtain ⟨p0, p1, p2⟩ := quartetProb_eq_quartetCF N hN k hk
   have hd : (fun s => DisplaysQuartet N (k.quartet s)) =
-      N.disp3 (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2) (keyTaxon k hk 3) := by
+      (External.NMSC.Net.disp3 N) (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2) (keyTaxon k hk 3) := by
     funext s
     fin_cases s
     · exact propext d0
     · exact propext d1
     · exact propext d2
   have hc : (fun s => quartetProb N (k.quartet s)) =
-      N.cf3 (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2) (keyTaxon k hk 3) := by
+      (External.NMSC.Net.cf3 N) (keyTaxon k hk 0) (keyTaxon k hk 1) (keyTaxon k hk 2) (keyTaxon k hk 3) := by
     funext s
     fin_cases s
     · exact p0
     · exact p1
     · exact p2
-  rw [RegularOn, Brooqs.Net.RegularOn, hd, hc]
+  rw [RegularOn, External.NMSC.Net.RegularOn, hd, hc]
 
 /-- A metric network with distinct leaf labels on the taxa `L`, without the anomalous configuration,
 has the pattern `RegularOn` on every set of four taxa. -/
-theorem regular_of_noAnomaly {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem regular_of_noAnomaly {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) : Regular N := by
   intro k hk
   have hk' : keyTaxa k ⊆ L := mem_keysOn.1 hk
   rw [regularOn_iff N hN.2 k hk']
-  exact Brooqs.Net.regularOn_of_not_anomalous hN (keyTaxon k hk').injective (fun l => htaxa _)
+  exact External.NMSC.Net.regularOn_of_not_anomalous hN (keyTaxon k hk').injective (fun l => htaxa _)
     (hna _ (keyTaxon k hk').injective)
 
 section Unconditional
@@ -298,7 +298,7 @@ let no four taxa of `N` be in the anomalous configuration (`NoAnomaly`). For eve
 `0 < t < t₀(N)`, almost surely, for all large numbers `n` of genes, Algorithm 1 applied to the
 multiset `Q` of the quartet trees of the first `n` gene trees returns exactly the quartet trees of
 `Q` in Q(N_r), with their multiplicities. -/
-theorem nmsc_filterQuartets_of_noAnomaly {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_filterQuartets_of_noAnomaly {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)

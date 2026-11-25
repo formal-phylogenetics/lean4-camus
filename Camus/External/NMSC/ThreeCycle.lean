@@ -8,39 +8,41 @@ public import Camus.External.NMSC.Displayed
 Section 3.3 of CAMUS motivates Quartet Filtering (Algorithm 1) by the distribution of quartet trees
 under the NMSC: "The motivation for this approach is that we do not want to include quartet trees
 that are not in Q(Nr). On the other hand, we do not want to eliminate these quartet trees." This
-file computes the quartet CFs of the network `N₃₂` (`Brooqs.net32`): a 3-cycle whose hybrid
+file computes the quartet CFs of the network `N₃₂` (`External.NMSC.net32`): a 3-cycle whose hybrid
 component holds two taxa `x` and `y`, with a third taxon `z` hanging from one side of the cycle and
 a fourth taxon `w` outside it, a 3₂-cycle in the terms of Ané, Fogg, Allman, Baños and Rhodes
 (2024), whom Section 3.3 cites. `N₃₂` displays only `xy|zw` of the three quartets on these taxa,
 but for some edge lengths the CF of `xy|zw` is strictly smaller than the CFs of `xz|yw` and `xw|yz`
-(`Brooqs.net32_anomaly`): a quartet in Q(N_r) is less probable than the quartets on the same taxa
+(`External.NMSC.net32_anomaly`): a quartet in Q(N_r) is less probable than the quartets on the same taxa
 that are not.
 
 ## Main results
 
-* `Brooqs.net32`, `Brooqs.net32_wellFormed`: the network.
-* `Brooqs.net32_quartetCF`: its quartet CFs on `x, y, z, w`, for all edge lengths and `γ`.
-* `Brooqs.net32_displays`: it displays `xy|zw` and neither `xz|yw` nor `xw|yz`.
-* `Brooqs.net32_anomaly`: for `γ = 1/2`, `ℓ = h₁ = h₂ = 1/20` and `L = 3`,
+* `External.NMSC.net32`, `External.NMSC.net32_wellFormed`: the network.
+* `External.NMSC.net32_quartetCF`: its quartet CFs on `x, y, z, w`, for all edge lengths and `γ`.
+* `External.NMSC.net32_displays`: it displays `xy|zw` and neither `xz|yw` nor `xw|yz`.
+* `External.NMSC.net32_anomaly`: for `γ = 1/2`, `ℓ = h₁ = h₂ = 1/20` and `L = 3`,
   `CF(xy|zw) < CF(xz|yw) = CF(xw|yz)`.
-* `Brooqs.net32_long`: with `ℓ = 3` instead, `CF(xz|yw) = CF(xw|yz) < CF(xy|zw)`: the anomaly
+* `External.NMSC.net32_long`: with `ℓ = 3` instead, `CF(xz|yw) = CF(xw|yz) < CF(xy|zw)`: the anomaly
   depends on the edge lengths.
 
 ## Proof
 
 A quartet CF is the expected score of the forest at the top node of the cycle
-(`Brooqs.quartetCF_eq_sum_top`). The lineages of `x` and `y` reach the hybrid node apart with
+(`Phylogenetics.quartetCF_eq_sum_top`). The lineages of `x` and `y` reach the hybrid node apart with
 probability `e^{-ℓ}`, and then each takes the side `S₁` with probability `γ`, independently; this
 gives six placements, whose expected scores are computed one by one (`tc_ES_both₁` and the lemmas
 after it). Once three lineages are together without a cluster of two, the score is `1/3`
-(`Brooqs.NiceKernel.score`). When the lineages of `x` and `y` take different sides, the one on `S₁`
+(`Phylogenetics.NiceKernel.score`). When the lineages of `x` and `y` take different sides, the one on `S₁`
 meets the lineage of `z`, and the two coalesce along the edge of length `L` with probability
 `1 - e^{-L}`, which gives `xz|yw` or `xw|yz`.
 -/
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset Matrix
 
@@ -79,8 +81,8 @@ private theorem tc_ES_single (F : Finset (Finset (Fin 4))) :
 score. -/
 private theorem tc_ES_nice {S : Finset (Fin 4)}
     {Φ : Matrix (Finset (Finset (Fin 4))) (Finset (Finset (Fin 4))) ℝ} (hΦ : NiceKernel S Φ)
-    {F : Finset (Finset (Fin 4))} (hF : IsGood F) (hFS : Disjoint (ADR11.lineages F) S)
-    (h3 : 3 ≤ #(ADR11.lineages F)) : tc_ES (Pi.single F 1 ᵥ* Φ) = quartetScore F := by
+    {F : Finset (Finset (Fin 4))} (hF : IsGoodForest F) (hFS : Disjoint (Phylogenetics.lineages F) S)
+    (h3 : 3 ≤ #(Phylogenetics.lineages F)) : tc_ES (Pi.single F 1 ᵥ* Φ) = quartetScore F := by
   simp only [tc_ES, tc_vecMul_single_apply]
   exact hΦ.score hF hFS h3
 
@@ -93,16 +95,16 @@ private theorem tc_forestUnion_smul_right (c : ℝ) (μ ν : Finset (Finset (Fin
   rw [forestUnion_comm, forestUnion_smul_left, forestUnion_comm]
 
 /-- A forest with at most one cluster does not change. -/
-private theorem tc_kT_le_one {F : Finset (Finset (Fin 4))} (hF : ADR11.IsForest F)
+private theorem tc_kT_le_one {F : Finset (Finset (Fin 4))} (hF : Phylogenetics.IsForest F)
     (h : #F ≤ 1) (t : ℝ) : Pi.single F 1 ᵥ* kingmanTransition t = Pi.single F 1 :=
-  single_vecMul_kingmanTransition hF ((card_le_card (ADR11.roots_subset F)).trans h) t
+  single_vecMul_kingmanTransition hF ((card_le_card (Phylogenetics.roots_subset F)).trans h) t
 
-private theorem tc_isForest_single (i : Fin 4) : ADR11.IsForest ({{i}} : Finset (Finset (Fin 4))) :=
-  by simpa using (isGood_singletons ({i} : Finset (Fin 4))).1
+private theorem tc_isForest_single (i : Fin 4) : Phylogenetics.IsForest ({{i}} : Finset (Finset (Fin 4))) :=
+  by simpa using (isGoodForest_singletons ({i} : Finset (Fin 4))).1
 
 private theorem tc_isGood_pair (i j : Fin 4) :
-    IsGood ({{i}, {j}} : Finset (Finset (Fin 4))) := by
-  have := isGood_singletons ({i, j} : Finset (Fin 4))
+    IsGoodForest ({{i}, {j}} : Finset (Finset (Fin 4))) := by
+  have := isGoodForest_singletons ({i, j} : Finset (Fin 4))
   simpa [image_insert] using this
 
 /-- Two lineages `i ≠ j` that have not coalesced: after a time `t` they are still apart with
@@ -210,16 +212,16 @@ private theorem tc_side₂ (s : Fin 4 → X) (h₂ : ℝ) (E : Finset (Finset (F
 
 private theorem tc_isGood_of {F : Finset (Finset (Fin 4))} (h1 : ∀ A ∈ F, A.Nonempty)
     (h2 : ∀ A ∈ F, ∀ B ∈ F, A ⊆ B ∨ B ⊆ A ∨ Disjoint A B)
-    (h3 : ∀ A ∈ F, 2 ≤ #A → ∃ B ∈ F, ∃ C ∈ F, Disjoint B C ∧ B ∪ C = A) : IsGood F :=
+    (h3 : ∀ A ∈ F, 2 ≤ #A → ∃ B ∈ F, ∃ C ∈ F, Disjoint B C ∧ B ∪ C = A) : IsGoodForest F :=
   ⟨⟨h1, h2⟩, h3⟩
 
 /-- The forests of three lineages `a, b, c` with or without the cluster `{a, b}` are good, on the
 three lineages. -/
 private theorem tc_three_good {a b c : Fin 4} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
-    IsGood ({{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4))) ∧
-      #(ADR11.lineages ({{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4)))) = 3 ∧
-      IsGood (insert ({a} ∪ {b}) {{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4))) ∧
-      #(ADR11.lineages (insert ({a} ∪ {b}) {{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4)))) = 3 := by
+    IsGoodForest ({{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4))) ∧
+      #(Phylogenetics.lineages ({{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4)))) = 3 ∧
+      IsGoodForest (insert ({a} ∪ {b}) {{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4))) ∧
+      #(Phylogenetics.lineages (insert ({a} ∪ {b}) {{a}, {b}} ∪ {{c}} : Finset (Finset (Fin 4)))) = 3 := by
   refine ⟨tc_isGood_of ?_ ?_ ?_, ?_, tc_isGood_of ?_ ?_ ?_, ?_⟩
   all_goals
     revert a b c
@@ -227,7 +229,7 @@ private theorem tc_three_good {a b c : Fin 4} (hab : a ≠ b) (hac : a ≠ c) (h
 
 /-- The cluster `{a, b}` is the only root of the forest of `a` and `b` that have coalesced. -/
 private theorem tc_merged_le_one {a b : Fin 4} (hab : a ≠ b) :
-    ADR11.IsForest (insert ({a} ∪ {b}) {{a}, {b}} : Finset (Finset (Fin 4))) ∧
+    Phylogenetics.IsForest (insert ({a} ∪ {b}) {{a}, {b}} : Finset (Finset (Fin 4))) ∧
       #(roots (insert ({a} ∪ {b}) {{a}, {b}} : Finset (Finset (Fin 4)))) ≤ 1 := by
   refine ⟨⟨?_, ?_⟩, ?_⟩
   all_goals
@@ -242,7 +244,7 @@ private theorem tc_kT_merged {a b : Fin 4} (hab : a ≠ b) (t : ℝ) :
 
 private theorem tc_kT_empty (t : ℝ) :
     Pi.single (∅ : Finset (Finset (Fin 4))) 1 ᵥ* kingmanTransition t = Pi.single ∅ 1 :=
-  tc_kT_le_one ADR11.isForest_empty (by simp) t
+  tc_kT_le_one Phylogenetics.isForest_empty (by simp) t
 
 private theorem tc_kT_single (i : Fin 4) (t : ℝ) :
     Pi.single ({{i}} : Finset (Finset (Fin 4))) 1 ᵥ* kingmanTransition t = Pi.single {{i}} 1 :=
@@ -554,9 +556,9 @@ theorem net32_quartetCF {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (hxw : x �
 hybrid node, in every displayed tree. -/
 theorem net32_displays {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (hxw : x ≠ w) (hyz : y ≠ z)
     (hyw : y ≠ w) (hzw : z ≠ w) (γ ℓ h₁ h₂ L : ℝ) :
-    (net32 γ ℓ h₁ h₂ L x y z w).Displays x y z w ∧
-      ¬ (net32 γ ℓ h₁ h₂ L x y z w).Displays x z y w ∧
-      ¬ (net32 γ ℓ h₁ h₂ L x y z w).Displays x w y z := by
+    (Net.Displays (net32 γ ℓ h₁ h₂ L x y z w)) x y z w ∧
+      ¬ (Net.Displays (net32 γ ℓ h₁ h₂ L x y z w)) x z y w ∧
+      ¬ (Net.Displays (net32 γ ℓ h₁ h₂ L x y z w)) x w y z := by
   have hN : (net32 γ ℓ h₁ h₂ L x y z w).leaves.Nodup := by
     rw [net32_leaves]
     simp [hxy, hxw, hyw, hzw, Ne.symm hxz, Ne.symm hyz]
@@ -632,4 +634,4 @@ theorem net32_long {x y z w : X} (hxy : x ≠ y) (hxz : x ≠ z) (hxw : x ≠ w)
   have eh1 : Real.exp (-(1 / 20 : ℝ)) ≤ 1 := Real.exp_le_one_iff.2 (by norm_num)
   nlinarith [mul_pos e3p ehp, mul_le_mul_of_nonneg_left eh1 e3p.le]
 
-end Brooqs
+end External.NMSC

@@ -12,15 +12,15 @@ eliminate these quartet trees." `Camus/Pipelines/NMSC/AnomalyRegion.lean` shows 
 above two taxa `N₃₂` the filter is defeated exactly in the anomaly zone. This file extends the
 result to four taxa in the anomalous configuration in an arbitrary metric network `N` with distinct
 leaf labels on the taxa `L`: a cycle `C` of `N` with two of the four taxa below its hybrid node
-and the two others in two other components. By `Brooqs.Net.Cycle.splitCF_of_anomalous`, `N`
+and the two others in two other components. By `External.NMSC.Net.Cycle.splitCF_of_anomalous`, `N`
 displays one quartet tree on the four taxa, the one that groups the two taxa below the hybrid node
 (`NMSC.pairIndex`), and the probabilities of the three quartet trees are those of `N₃₂` with the
 probability `p` that the lineages of the two taxa reach the hybrid node apart in place of `e^{-ℓ}`,
 and with the positive lengths `h₁`, `h₂`, `L` added up along the sides of `C`
-(`Brooqs.Net.Cycle.anomalyH₁`, `Brooqs.Net.Cycle.anomalyH₂`, `Brooqs.Net.Cycle.anomalyL`;
+(`External.NMSC.Net.Cycle.anomalyH₁`, `External.NMSC.Net.Cycle.anomalyH₂`, `External.NMSC.Net.Cycle.anomalyL`;
 `NMSC.anomalous_quartetProb`). With
 `D = γ(1 - γ)(1 - e^{-L}) - γ²(1 - e^{-h₁}) - (1 - γ)²(1 - e^{-h₂})`
-(`Brooqs.Net.Cycle.anomalyExcess`; `NMSC.anomalous_filterQuartets`):
+(`External.NMSC.Net.Cycle.anomalyExcess`; `NMSC.anomalous_filterQuartets`):
 
 * if `1 - p < p D`, for every threshold, almost surely, for all large numbers of genes, Algorithm 1
   returns no copy of the quartet tree of Q(N_r) on the four taxa and returns a quartet tree on them
@@ -68,7 +68,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasur
 
 /-- By the strong law of large numbers, the relative frequencies of the three quartet trees on the
 four taxa `k` converge almost surely to their probabilities. -/
-theorem ae_tendsto_block {N : Brooqs.Net L} (k : QuartetKey) (G : ℕ → Ω → Finset (Finset L))
+theorem ae_tendsto_block {N : Phylogenetics.Net L} (k : QuartetKey) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
     ∀ᵐ ω ∂P, ∀ u, Tendsto (fun n : ℕ =>
@@ -86,7 +86,7 @@ least probable. For every threshold `t`, almost surely, for all large numbers `n
 Algorithm 1 applied to the quartet trees of the first `n` gene trees returns no copy of
 `k.quartet d`, the only quartet tree on these taxa in Q(N_r), and returns a quartet tree on these
 taxa that is not in Q(N_r). The argument of `NMSC.anomaly_filterQuartets`. -/
-theorem filterQuartets_block_of_least {N : Brooqs.Net L} {k : QuartetKey} {d : Fin 3}
+theorem filterQuartets_block_of_least {N : Phylogenetics.Net L} {k : QuartetKey} {d : Fin 3}
     (hdisp : ∀ u, DisplaysQuartet N (k.quartet u) ↔ u = d)
     (hlt : ∀ u, u ≠ d → quartetProb N (k.quartet d) < quartetProb N (k.quartet u))
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
@@ -144,7 +144,7 @@ labels on the taxa `L`, and let `N` display exactly one of the three quartet tre
 `k` of `L`, strictly the most probable, the two others being equally probable. For every threshold
 `0 < t < t₀(N)`, almost surely, for all large numbers `n` of genes, Algorithm 1 returns on these
 taxa exactly the copies of the quartet tree in Q(N_r) (`NMSC.nmsc_filterBlock`). -/
-theorem filterQuartets_block_of_most {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem filterQuartets_block_of_most {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : k ∈ keysOn L) {d : Fin 3}
     (hdisp : ∀ u, DisplaysQuartet N (k.quartet u) ↔ u = d)
     (hgt : ∀ u, u ≠ d → quartetProb N (k.quartet u) < quartetProb N (k.quartet d))
@@ -172,7 +172,7 @@ quartet trees on the four taxa `k` have the same positive probability. For every
 almost surely, for all large numbers `n` of genes, Algorithm 1 returns on these taxa the copies of a
 single quartet tree, the most frequent: the test `f₂ - f₃ > t (f₂ + f₃)` fails, since `f₂ - f₃`
 grows more slowly than `n` while `f₂ + f₃` grows like `n`. -/
-theorem filterQuartets_block_of_equal {N : Brooqs.Net L} {k : QuartetKey}
+theorem filterQuartets_block_of_equal {N : Phylogenetics.Net L} {k : QuartetKey}
     (hpos : 0 < quartetProb N (k.quartet 0))
     (heq : ∀ u, quartetProb N (k.quartet u) = quartetProb N (k.quartet 0))
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
@@ -242,7 +242,7 @@ def pairIndex (i j : Fin 4) : Fin 3 :=
   else if ({i, j} : Finset (Fin 4)) = {0, 2} ∨ ({i, j} : Finset (Fin 4)) = {1, 3} then 1 else 2
 
 private theorem pi_pair : ∀ i j : Fin 4, i ≠ j → ∀ u : Fin 3,
-    (Brooqs.splitOf3 u = {i, j} ∨ Brooqs.splitOf3 u = {i, j}ᶜ) ↔ u = pairIndex i j := by
+    (External.NMSC.splitOf3 u = {i, j} ∨ External.NMSC.splitOf3 u = {i, j}ᶜ) ↔ u = pairIndex i j := by
   decide
 
 private theorem pi_third (d u : Fin 3) (hu : u ≠ d) : ∃ u' : Fin 3, u' ≠ d ∧ u' ≠ u ∧
@@ -256,7 +256,7 @@ private theorem pi_third (d u : Fin 3) (hu : u ≠ d) : ∃ u' : Fin 3, u' ≠ d
     sum_insert (by simp [h2.symm]), sum_singleton]
   ring
 
-private theorem pi_card : ∀ u : Fin 3, #(Brooqs.splitOf3 u) = 2 := by decide
+private theorem pi_card : ∀ u : Fin 3, #(External.NMSC.splitOf3 u) = 2 := by decide
 
 /-- The four taxa of `k` listed as `t i, t j, t a, t b`, where `t = keyTaxon k hk` lists them in
 increasing order: the two below the hybrid node of the cycle first. -/
@@ -267,34 +267,34 @@ def blockSample (k : QuartetKey) (hk : keyTaxa k ⊆ L) (i j a b : Fin 4) : Fin 
 with distinct leaf labels on the taxa `L`, `k` four taxa of `L` (`t = keyTaxon k hk` lists them in
 increasing order), and `C` a cycle of `N` with exactly `t i` and `t j` below its hybrid node, at
 least three of the four taxa below its top node and at most one in each network hanging from its
-sides (`Brooqs.Net.Anomalous`); `a` and `b` are the two other labels. Then `N` displays exactly one
+sides (`External.NMSC.Net.Anomalous`); `a` and `b` are the two other labels. Then `N` displays exactly one
 of the three quartet trees on `k`, the one of index `pairIndex i j`, which groups `t i` and `t j`;
 and, with `p` the probability that the lineages of `t i` and `t j` reach the hybrid node apart and
 `γ` the inheritance probability of `C`, and the positive lengths `h₁`, `h₂`, `L₀` added up along the
-sides of `C` (`Brooqs.Net.Cycle.anomalyH₁`, `Brooqs.Net.Cycle.anomalyH₂`,
-`Brooqs.Net.Cycle.anomalyL`, for the taxa listed by `NMSC.blockSample`), the displayed quartet tree
+sides of `C` (`External.NMSC.Net.Cycle.anomalyH₁`, `External.NMSC.Net.Cycle.anomalyH₂`,
+`External.NMSC.Net.Cycle.anomalyL`, for the taxa listed by `NMSC.blockSample`), the displayed quartet tree
 has probability
 `1 - p + p (γ²(1 - 2/3 e^{-h₁}) + (1 - γ)²(1 - 2/3 e^{-h₂}) + 2γ(1 - γ) e^{-L₀}/3)` and each of the
 two others `p (γ² e^{-h₁}/3 + (1 - γ)² e^{-h₂}/3 + γ(1 - γ)(1 - e^{-L₀}/3))`
-(`Brooqs.Net.Cycle.splitCF_of_anomalous`). -/
-theorem anomalous_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
+(`External.NMSC.Net.Cycle.splitCF_of_anomalous`). -/
+theorem anomalous_quartetProb {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1) :
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1) :
     (∀ u, DisplaysQuartet N (k.quartet u) ↔ u = pairIndex i j) ∧
-    0 < C.anomalyH₁ (blockSample k hk i j a b) ∧ 0 < C.anomalyH₂ (blockSample k hk i j a b) ∧
-      0 < C.anomalyL (blockSample k hk i j a b) ∧
-      quartetProb N (k.quartet (pairIndex i j)) = 1 - C.apartProb (blockSample k hk i j a b) +
-        C.apartProb (blockSample k hk i j a b) *
-          (C.γ ^ 2 * (1 - 2 / 3 * Real.exp (-C.anomalyH₁ (blockSample k hk i j a b))) +
-            (1 - C.γ) ^ 2 * (1 - 2 / 3 * Real.exp (-C.anomalyH₂ (blockSample k hk i j a b))) +
-              2 * C.γ * (1 - C.γ) * (Real.exp (-C.anomalyL (blockSample k hk i j a b)) / 3)) ∧
+    0 < (External.NMSC.Net.Cycle.anomalyH₁ C) (blockSample k hk i j a b) ∧ 0 < (External.NMSC.Net.Cycle.anomalyH₂ C) (blockSample k hk i j a b) ∧
+      0 < (External.NMSC.Net.Cycle.anomalyL C) (blockSample k hk i j a b) ∧
+      quartetProb N (k.quartet (pairIndex i j)) = 1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) +
+        (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) *
+          (C.γ ^ 2 * (1 - 2 / 3 * Real.exp (-(External.NMSC.Net.Cycle.anomalyH₁ C) (blockSample k hk i j a b))) +
+            (1 - C.γ) ^ 2 * (1 - 2 / 3 * Real.exp (-(External.NMSC.Net.Cycle.anomalyH₂ C) (blockSample k hk i j a b))) +
+              2 * C.γ * (1 - C.γ) * (Real.exp (-(External.NMSC.Net.Cycle.anomalyL C) (blockSample k hk i j a b)) / 3)) ∧
       ∀ u, u ≠ pairIndex i j → quartetProb N (k.quartet u) =
-        C.apartProb (blockSample k hk i j a b) *
-          (C.γ ^ 2 * (Real.exp (-C.anomalyH₁ (blockSample k hk i j a b)) / 3) +
-            (1 - C.γ) ^ 2 * (Real.exp (-C.anomalyH₂ (blockSample k hk i j a b)) / 3) +
-              C.γ * (1 - C.γ) * (1 - Real.exp (-C.anomalyL (blockSample k hk i j a b)) / 3)) := by
+        (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) *
+          (C.γ ^ 2 * (Real.exp (-(External.NMSC.Net.Cycle.anomalyH₁ C) (blockSample k hk i j a b)) / 3) +
+            (1 - C.γ) ^ 2 * (Real.exp (-(External.NMSC.Net.Cycle.anomalyH₂ C) (blockSample k hk i j a b)) / 3) +
+              C.γ * (1 - C.γ) * (1 - Real.exp (-(External.NMSC.Net.Cycle.anomalyL C) (blockSample k hk i j a b)) / 3)) := by
   unfold blockSample
   set s : Fin 4 → L := ⇑(keyTaxon k hk) with hsdef
   have hs : Function.Injective s := (keyTaxon k hk).injective
@@ -302,7 +302,7 @@ theorem anomalous_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
   have hij : i ≠ j := fun h => absurd (hinj (a₁ := 0) (a₂ := 1) h) (by decide)
   have hpair := pi_pair i j hij
   -- the probabilities of the quartet trees are split CFs
-  have hprob : ∀ u, quartetProb N (k.quartet u) = N.splitCF s (Brooqs.splitOf3 u) := by
+  have hprob : ∀ u, quartetProb N (k.quartet u) = (External.NMSC.Net.splitCF N) s (External.NMSC.splitOf3 u) := by
     obtain ⟨p0, p1, p2⟩ := quartetProb_eq_quartetCF N hN.2 k hk
     intro u
     have hu3 : u = 0 ∨ u = 1 ∨ u = 2 := by
@@ -310,15 +310,15 @@ theorem anomalous_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
       decide
     rcases hu3 with rfl | rfl | rfl
     · rw [p0]
-      exact N.quartetCF_eq_splitCF_of s (i := 0) (j := 1) (k := 2) (l := 3) (by decide)
+      exact (External.NMSC.Net.quartetCF_eq_splitCF_of N) s (i := 0) (j := 1) (k := 2) (l := 3) (by decide)
     · rw [p1]
-      exact N.quartetCF_eq_splitCF_of s (i := 0) (j := 2) (k := 1) (l := 3) (by decide)
+      exact (External.NMSC.Net.quartetCF_eq_splitCF_of N) s (i := 0) (j := 2) (k := 1) (l := 3) (by decide)
     · rw [p2]
-      exact N.quartetCF_eq_splitCF_of s (i := 0) (j := 3) (k := 1) (l := 2) (by decide)
+      exact (External.NMSC.Net.quartetCF_eq_splitCF_of N) s (i := 0) (j := 3) (k := 1) (l := 2) (by decide)
   -- the displayed quartet trees are the displayed splits
-  have hB : C.below ∈ N.subnets := Brooqs.Net.mem_subnets_trans C.mem (by
-    simp [Brooqs.Net.subnets, Brooqs.Net.self_mem_subnets])
-  have hd3 : ∀ u, DisplaysQuartet N (k.quartet u) ↔ N.disp3 (s 0) (s 1) (s 2) (s 3) u := by
+  have hB : C.below ∈ N.subnets := External.NMSC.Net.mem_subnets_trans C.mem (by
+    simp [Phylogenetics.Net.subnets, External.NMSC.Net.self_mem_subnets])
+  have hd3 : ∀ u, DisplaysQuartet N (k.quartet u) ↔ (External.NMSC.Net.disp3 N) (s 0) (s 1) (s 2) (s 3) u := by
     obtain ⟨d0, d1, d2⟩ := displaysQuartet_iff N k hk
     intro u
     fin_cases u
@@ -327,24 +327,24 @@ theorem anomalous_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
     · exact d2
   have hdisp : ∀ u, DisplaysQuartet N (k.quartet u) ↔ u = pairIndex i j := by
     intro u
-    rw [hd3, Brooqs.Net.disp3_iff_split, Brooqs.Net.displaysSplit_iff_of_subnet hN.2 hB
+    rw [hd3, External.NMSC.Net.disp3_iff_split, External.NMSC.Net.displaysSplit_iff_of_subnet hN.2 hB
       (card_pair hij) hbelow (pi_card u), hpair u]
   refine ⟨hdisp, ?_⟩
-  obtain ⟨p1, p2, p3, e0, -, -⟩ := C.splitCF_of_anomalous hN hs hsN hinj hbelow h3 h1
+  obtain ⟨p1, p2, p3, e0, -, -⟩ := (External.NMSC.Net.Cycle.splitCF_of_anomalous (Ω := C)) hN hs hsN hinj hbelow h3 h1
   -- the displayed quartet tree
-  have hd : quartetProb N (k.quartet (pairIndex i j)) = N.splitCF s {i, j} := by
+  have hd : quartetProb N (k.quartet (pairIndex i j)) = (External.NMSC.Net.splitCF N) s {i, j} := by
     rw [hprob]
     rcases (hpair (pairIndex i j)).2 rfl with h | h
     · rw [h]
-    · rw [h, Brooqs.Net.splitCF_compl]
+    · rw [h, External.NMSC.Net.splitCF_compl]
   -- the two others are equally probable, and the three add up to `1`
-  have hweak := Brooqs.Net.weakPattern hN hs hsN
+  have hweak := External.NMSC.Net.weakPattern hN hs hsN
   have heq : ∀ u u', u ≠ pairIndex i j → u' ≠ pairIndex i j →
       quartetProb N (k.quartet u) = quartetProb N (k.quartet u') := by
     rcases hweak with ⟨s₁, h₁', -, hsame, -⟩ | ⟨s₃, -, hdd, -⟩
     · have hs₁ : s₁ = pairIndex i j := (hdisp s₁).1 ((hd3 s₁).2 h₁')
       intro u u' hu hu'
-      rw [hprob, hprob, ← Brooqs.Net.cf3_eq_splitCF, ← Brooqs.Net.cf3_eq_splitCF]
+      rw [hprob, hprob, ← External.NMSC.Net.cf3_eq_splitCF, ← External.NMSC.Net.cf3_eq_splitCF]
       exact hsame u u' (hs₁ ▸ hu) (hs₁ ▸ hu')
     · -- two displayed quartet trees: impossible
       exfalso
@@ -358,7 +358,7 @@ theorem anomalous_quartetProb {N : Brooqs.Net L} (hN : N.WellFormed)
   have hsum : quartetProb N (k.quartet 0) + quartetProb N (k.quartet 1) +
       quartetProb N (k.quartet 2) = 1 := by
     rw [hprob, hprob, hprob]
-    exact Brooqs.Net.splitCF_sum hN.2 hsN
+    exact External.NMSC.Net.splitCF_sum hN.2 hsN
   refine ⟨p1, p2, p3, by rw [hd, e0], fun u hu => ?_⟩
   obtain ⟨u', hu'd, hu'u, hf⟩ := pi_third (pairIndex i j) u hu
   have h3' : quartetProb N (k.quartet 0) + quartetProb N (k.quartet 1) +
@@ -378,29 +378,29 @@ assumptions of `NMSC.anomalous_quartetProb`, let the gene trees be independent, 
 of the NMSC on `N`. With `p`, `γ`, and the positive lengths `h₁`, `h₂`, `L₀` of
 `NMSC.anomalous_quartetProb`, and
 `D = γ(1 - γ)(1 - e^{-L₀}) - γ²(1 - e^{-h₁}) - (1 - γ)²(1 - e^{-h₂})`
-(`Brooqs.Net.Cycle.anomalyExcess`):
+(`External.NMSC.Net.Cycle.anomalyExcess`):
 * if `1 - p < p D` (the anomaly zone), for every threshold `t`, almost surely, for all large
   numbers `n` of genes, Algorithm 1 returns no copy of the quartet tree of Q(N_r) on the four taxa
   `k` and returns a quartet tree on `k` that is not in Q(N_r);
 * if `p D < 1 - p`, for every threshold `0 < t < t₀(N)`, almost surely, for all large numbers `n`
   of genes, Algorithm 1 returns on `k` exactly the copies of the quartet tree of Q(N_r). -/
-theorem anomalous_filterQuartets {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem anomalous_filterQuartets {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1)
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
-    (1 - C.apartProb (blockSample k hk i j a b) <
-      C.apartProb (blockSample k hk i j a b) * C.anomalyExcess (blockSample k hk i j a b) →
+    (1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) <
+      (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) * (External.NMSC.Net.Cycle.anomalyExcess C) (blockSample k hk i j a b) →
         ∀ t, ∀ᵐ ω ∂P, ∀ᶠ n in atTop,
           (filterQuartets t (geneQuartets (fun i => G i ω) n)).count
               (k.quartet (pairIndex i j)) = 0 ∧
             ∃ q ∈ filterQuartets t (geneQuartets (fun i => G i ω) n), q.key = k ∧
               ¬ DisplaysQuartet N q) ∧
-      (C.apartProb (blockSample k hk i j a b) * C.anomalyExcess (blockSample k hk i j a b) <
-        1 - C.apartProb (blockSample k hk i j a b) →
+      ((External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) * (External.NMSC.Net.Cycle.anomalyExcess C) (blockSample k hk i j a b) <
+        1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) →
         ∀ t, 0 < t → t < threshold N → ∀ᵐ ω ∂P, ∀ᶠ n in atTop, ∀ u,
           (filterQuartets t (geneQuartets (fun i => G i ω) n)).count (k.quartet u) =
             if DisplaysQuartet N (k.quartet u) then
@@ -409,12 +409,12 @@ theorem anomalous_filterQuartets {N : Brooqs.Net L} (hN : N.WellFormed)
   refine ⟨fun hzone t => ?_, fun hzone t ht ht₀ => ?_⟩
   · refine filterQuartets_block_of_least hdisp (fun u hu => ?_) G hind hid hlaw t
     rw [e0, e1 u hu]
-    unfold Brooqs.Net.Cycle.anomalyExcess at hzone
+    unfold External.NMSC.Net.Cycle.anomalyExcess at hzone
     linarith
   · refine filterQuartets_block_of_most hN htaxa (mem_keysOn.2 hk) hdisp (fun u hu => ?_)
       (fun u u' hu hu' => by rw [e1 u hu, e1 u' hu']) G hind hid hlaw ht ht₀
     rw [e0, e1 u hu]
-    unfold Brooqs.Net.Cycle.anomalyExcess at hzone
+    unfold External.NMSC.Net.Cycle.anomalyExcess at hzone
     linarith
 
 /-- **Quartet Filtering on the boundary of the anomaly zone.** Under the assumptions of
@@ -422,23 +422,23 @@ theorem anomalous_filterQuartets {N : Brooqs.Net L} (hN : N.WellFormed)
 probability `1/3`, and for every threshold `t > 0`, almost surely, for all large numbers `n` of
 genes, Algorithm 1 returns on `k` the copies of a single quartet tree
 (`NMSC.filterQuartets_block_of_equal`). -/
-theorem anomalous_filterQuartets_boundary {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem anomalous_filterQuartets_boundary {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) {k : QuartetKey} (hk : keyTaxa k ⊆ L) (C : N.Cycle)
     {i j a b : Fin 4} (hinj : Function.Injective ![i, j, a, b])
-    (hbelow : C.below.lin (keyTaxon k hk) = {i, j}) (h3 : 3 ≤ #(C.top.lin (keyTaxon k hk)))
-    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #(n.2.2.lin (keyTaxon k hk)) ≤ 1)
+    (hbelow : (External.NMSC.Net.lin (keyTaxon k hk) C.below) = {i, j}) (h3 : 3 ≤ #((External.NMSC.Net.lin (keyTaxon k hk) C.top)))
+    (h1 : ∀ n ∈ C.side₁.nodes ++ C.side₂.nodes, #((External.NMSC.Net.lin (keyTaxon k hk) n.2.2)) ≤ 1)
     (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
-    C.apartProb (blockSample k hk i j a b) * C.anomalyExcess (blockSample k hk i j a b) =
-      1 - C.apartProb (blockSample k hk i j a b) →
+    (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) * (External.NMSC.Net.Cycle.anomalyExcess C) (blockSample k hk i j a b) =
+      1 - (External.NMSC.Net.Cycle.apartProb C) (blockSample k hk i j a b) →
         (∀ u, quartetProb N (k.quartet u) = 1 / 3) ∧
         ∀ t, 0 < t → ∀ᵐ ω ∂P, ∀ᶠ n in atTop, ∃ u, ∀ u',
           (filterQuartets t (geneQuartets (fun i => G i ω) n)).count (k.quartet u') =
             if u' = u then (geneQuartets (fun i => G i ω) n).count (k.quartet u) else 0 := by
   intro hzone
   obtain ⟨-, -, -, -, e0, e1⟩ := anomalous_quartetProb hN htaxa hk C hinj hbelow h3 h1
-  unfold Brooqs.Net.Cycle.anomalyExcess at hzone
+  unfold External.NMSC.Net.Cycle.anomalyExcess at hzone
   -- the three probabilities are equal; they add up to `1`
   have hall : ∀ u, quartetProb N (k.quartet u) =
       quartetProb N (k.quartet (pairIndex i j)) := fun u => by
@@ -451,10 +451,10 @@ theorem anomalous_filterQuartets_boundary {N : Brooqs.Net L} (hN : N.WellFormed)
     obtain ⟨q0, q1, q2⟩ := quartetProb_eq_quartetCF N hN.2 k hk
     rw [q0, q1, q2]
     have hsN : ∀ l, keyTaxon k hk l ∈ N.taxa := fun l => htaxa _
-    have := Brooqs.Net.splitCF_sum hN.2 hsN
-    rw [N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 1) (k := 2) (l := 3) (by decide),
-      N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 2) (k := 1) (l := 3) (by decide),
-      N.quartetCF_eq_splitCF_of (keyTaxon k hk) (i := 0) (j := 3) (k := 1) (l := 2) (by decide)]
+    have := External.NMSC.Net.splitCF_sum hN.2 hsN
+    rw [(External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 1) (k := 2) (l := 3) (by decide),
+      (External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 2) (k := 1) (l := 3) (by decide),
+      (External.NMSC.Net.quartetCF_eq_splitCF_of N) (keyTaxon k hk) (i := 0) (j := 3) (k := 1) (l := 2) (by decide)]
     exact this
   have hthird : ∀ u, quartetProb N (k.quartet u) = 1 / 3 := fun u => by
     rw [hall u]

@@ -9,7 +9,7 @@ public import Camus.DP.Packing
 Section 3.2 takes the true network `N` to be a rooted binary level-1 network built on the
 constraint tree `T`: `N` is `T` with an edge added above a pair `(u, w)` of vertices of `T` for each
 of its cycles (Definition 3, `Realization.graph`). This file gives this description for the
-networks `Brooqs.Net` of the network multispecies coalescent. The tree `NMSC.baseTree N` is a
+networks `Phylogenetics.Net` of the network multispecies coalescent. The tree `NMSC.baseTree N` is a
 displayed tree of `N` with the root of `N`: at each cycle, the hybrid edge of one side is deleted
 (of the side `S₂` if it has a node, and of `S₁` otherwise, so that the top node of the cycle keeps
 two children), and the vertices left with one child are suppressed. Adding back the deleted hybrid
@@ -45,29 +45,29 @@ def liftPairs (b : Bool) (E : Finset (Address × Address)) : Finset (Address × 
   E.image fun e => (b :: e.1, b :: e.2)
 
 /-- The side has a node: it is not a single hybrid edge. -/
-def hasNode : Brooqs.Side L → Bool
+def hasNode : Phylogenetics.Side L → Bool
   | .hyb _ => false
   | .node .. => true
 
-@[simp] theorem hasNode_hyb (ℓ : ℝ) : hasNode (.hyb ℓ : Brooqs.Side L) = false := rfl
+@[simp] theorem hasNode_hyb (ℓ : ℝ) : hasNode (.hyb ℓ : Phylogenetics.Side L) = false := rfl
 
-@[simp] theorem hasNode_node (ℓ b : ℝ) (M : Brooqs.Net L) (S : Brooqs.Side L) :
+@[simp] theorem hasNode_node (ℓ b : ℝ) (M : Phylogenetics.Net L) (S : Phylogenetics.Side L) :
     hasNode (.node ℓ b M S) = true := rfl
 
 /-- The address of the root of the hybrid component in the tree of a side with the hybrid
 component attached (`NMSC.attachTree`): one step right for each node of the side. -/
-def hangAddr (S : Brooqs.Side L) : Address := List.replicate S.nodes.length true
+def hangAddr (S : Phylogenetics.Side L) : Address := List.replicate S.nodes.length true
 
 /-- The address of the root of the network hanging from the last node of a side in the tree of the
 side with its hybrid edge deleted (`NMSC.detachTree`). -/
-def lastAddr (S : Brooqs.Side L) : Address := List.replicate (S.nodes.length - 1) true
+def lastAddr (S : Phylogenetics.Side L) : Address := List.replicate (S.nodes.length - 1) true
 
 mutual
 /-- The base tree of `N`: the displayed tree of `N` that, at each cycle, deletes the hybrid edge
 of the side `S₂` if `S₂` has a node, and the hybrid edge of `S₁` otherwise; the vertices left with
 one child are suppressed. Its root is the root of `N`, and its leaves are labelled by the taxa of
 `N`, as natural numbers. -/
-def baseTree : Brooqs.Net L → PhyloTree
+def baseTree : Phylogenetics.Net L → PhyloTree
   | .leaf x => .leaf x.1
   | .tree _ N₁ _ N₂ => .fork (baseTree N₁) (baseTree N₂)
   | .cycle _ S₁ S₂ _ H =>
@@ -77,14 +77,14 @@ def baseTree : Brooqs.Net L → PhyloTree
 /-- The tree of a side with the tree `X` hanging from its hybrid edge: a caterpillar with the
 base trees of the networks hanging from the nodes of the side, from the top, and `X` at the
 bottom. -/
-def attachTree : Brooqs.Side L → PhyloTree → PhyloTree
+def attachTree : Phylogenetics.Side L → PhyloTree → PhyloTree
   | .hyb _, X => X
   | .node _ _ M S, X => .fork (baseTree M) (attachTree S X)
 
 /-- The tree of a side whose hybrid edge is deleted: a caterpillar with the base trees of the
 networks hanging from the nodes of the side, from the top; the last node, left with one child, is
 suppressed. A side without a node gives no tree (the value is then a single leaf). -/
-def detachTree : Brooqs.Side L → PhyloTree
+def detachTree : Phylogenetics.Side L → PhyloTree
   | .hyb _ => .leaf 0
   | .node _ _ M S => if hasNode S then .fork (baseTree M) (detachTree S) else baseTree M
 end
@@ -93,7 +93,7 @@ mutual
 /-- The pairs `(u, w)` of the edges added to `baseTree N` to obtain `N`, one for each cycle: the
 donor `u` is the root of the network hanging from the last node of the side whose hybrid edge is
 deleted in the base tree, and the recipient `w` is the root of the hybrid component. -/
-def pairs : Brooqs.Net L → Finset (Address × Address)
+def pairs : Phylogenetics.Net L → Finset (Address × Address)
   | .leaf _ => ∅
   | .tree _ N₁ _ N₂ => liftPairs false (pairs N₁) ∪ liftPairs true (pairs N₂)
   | .cycle _ S₁ S₂ _ H =>
@@ -106,50 +106,50 @@ def pairs : Brooqs.Net L → Finset (Address × Address)
 
 /-- The pairs of the cycles below a side, in `NMSC.attachTree`, given the pairs `P` of the tree
 hanging from its hybrid edge. -/
-def attachPairs : Brooqs.Side L → Finset (Address × Address) → Finset (Address × Address)
+def attachPairs : Phylogenetics.Side L → Finset (Address × Address) → Finset (Address × Address)
   | .hyb _, P => P
   | .node _ _ M S, P => liftPairs false (pairs M) ∪ liftPairs true (attachPairs S P)
 
 /-- The pairs of the cycles below a side, in `NMSC.detachTree`. -/
-def detachPairs : Brooqs.Side L → Finset (Address × Address)
+def detachPairs : Phylogenetics.Side L → Finset (Address × Address)
   | .hyb _ => ∅
   | .node _ _ M S =>
       if hasNode S then liftPairs false (pairs M) ∪ liftPairs true (detachPairs S) else pairs M
 end
 
-theorem baseTree_cycle_hyb (γ : ℝ) (S₁ : Brooqs.Side L) (ℓ' ℓ : ℝ) (H : Brooqs.Net L) :
+theorem baseTree_cycle_hyb (γ : ℝ) (S₁ : Phylogenetics.Side L) (ℓ' ℓ : ℝ) (H : Phylogenetics.Net L) :
     baseTree (.cycle γ S₁ (.hyb ℓ') ℓ H) =
-      .fork (attachTree (.hyb ℓ' : Brooqs.Side L) (baseTree H)) (detachTree S₁) := rfl
+      .fork (attachTree (.hyb ℓ' : Phylogenetics.Side L) (baseTree H)) (detachTree S₁) := rfl
 
-theorem baseTree_cycle_node (γ : ℝ) (S₁ : Brooqs.Side L) (ℓ' b : ℝ) (M : Brooqs.Net L)
-    (S : Brooqs.Side L) (ℓ : ℝ) (H : Brooqs.Net L) :
+theorem baseTree_cycle_node (γ : ℝ) (S₁ : Phylogenetics.Side L) (ℓ' b : ℝ) (M : Phylogenetics.Net L)
+    (S : Phylogenetics.Side L) (ℓ : ℝ) (H : Phylogenetics.Net L) :
     baseTree (.cycle γ S₁ (.node ℓ' b M S) ℓ H) =
       .fork (attachTree S₁ (baseTree H)) (detachTree (.node ℓ' b M S)) := rfl
 
-theorem detachTree_single (ℓ b ℓ' : ℝ) (M : Brooqs.Net L) :
+theorem detachTree_single (ℓ b ℓ' : ℝ) (M : Phylogenetics.Net L) :
     detachTree (.node ℓ b M (.hyb ℓ')) = baseTree M := rfl
 
-theorem detachTree_node (ℓ b ℓ' b' : ℝ) (M M' : Brooqs.Net L) (S : Brooqs.Side L) :
+theorem detachTree_node (ℓ b ℓ' b' : ℝ) (M M' : Phylogenetics.Net L) (S : Phylogenetics.Side L) :
     detachTree (.node ℓ b M (.node ℓ' b' M' S)) =
       .fork (baseTree M) (detachTree (.node ℓ' b' M' S)) := rfl
 
-theorem pairs_cycle_hyb (γ : ℝ) (S₁ : Brooqs.Side L) (ℓ' ℓ : ℝ) (H : Brooqs.Net L) :
+theorem pairs_cycle_hyb (γ : ℝ) (S₁ : Phylogenetics.Side L) (ℓ' ℓ : ℝ) (H : Phylogenetics.Net L) :
     pairs (.cycle γ S₁ (.hyb ℓ') ℓ H) =
-      insert (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Brooqs.Side L))
-        (liftPairs false (attachPairs (.hyb ℓ' : Brooqs.Side L) (pairs H)) ∪
+      insert (true :: lastAddr S₁, false :: hangAddr (.hyb ℓ' : Phylogenetics.Side L))
+        (liftPairs false (attachPairs (.hyb ℓ' : Phylogenetics.Side L) (pairs H)) ∪
           liftPairs true (detachPairs S₁)) := rfl
 
-theorem pairs_cycle_node (γ : ℝ) (S₁ : Brooqs.Side L) (ℓ' b : ℝ) (M : Brooqs.Net L)
-    (S : Brooqs.Side L) (ℓ : ℝ) (H : Brooqs.Net L) :
+theorem pairs_cycle_node (γ : ℝ) (S₁ : Phylogenetics.Side L) (ℓ' b : ℝ) (M : Phylogenetics.Net L)
+    (S : Phylogenetics.Side L) (ℓ : ℝ) (H : Phylogenetics.Net L) :
     pairs (.cycle γ S₁ (.node ℓ' b M S) ℓ H) =
       insert (true :: lastAddr (.node ℓ' b M S), false :: hangAddr S₁)
         (liftPairs false (attachPairs S₁ (pairs H)) ∪
           liftPairs true (detachPairs (.node ℓ' b M S))) := rfl
 
-theorem detachPairs_single (ℓ b ℓ' : ℝ) (M : Brooqs.Net L) :
+theorem detachPairs_single (ℓ b ℓ' : ℝ) (M : Phylogenetics.Net L) :
     detachPairs (.node ℓ b M (.hyb ℓ')) = pairs M := rfl
 
-theorem detachPairs_node (ℓ b ℓ' b' : ℝ) (M M' : Brooqs.Net L) (S : Brooqs.Side L) :
+theorem detachPairs_node (ℓ b ℓ' b' : ℝ) (M M' : Phylogenetics.Net L) (S : Phylogenetics.Side L) :
     detachPairs (.node ℓ b M (.node ℓ' b' M' S)) =
       liftPairs false (pairs M) ∪ liftPairs true (detachPairs (.node ℓ' b' M' S)) := rfl
 
@@ -158,21 +158,21 @@ theorem detachPairs_node (ℓ b ℓ' b' : ℝ) (M M' : Brooqs.Net L) (S : Brooqs
 mutual
 /-- The leaf labels of the base tree are the taxa of `N`, as natural numbers, up to order. -/
 theorem labels_baseTree :
-    ∀ N : Brooqs.Net L, N.IsMetric → (baseTree N).labels.Perm (N.leaves.map Subtype.val)
-  | .leaf x, _ => by simp [baseTree, PhyloTree.labels, Brooqs.Net.leaves]
+    ∀ N : Phylogenetics.Net L, N.IsMetric → (baseTree N).labels.Perm (N.leaves.map Subtype.val)
+  | .leaf x, _ => by simp [baseTree, PhyloTree.labels, Phylogenetics.Net.leaves]
   | .tree _ N₁ _ N₂, h => by
-      simp only [baseTree, PhyloTree.labels, Brooqs.Net.leaves, List.map_append]
+      simp only [baseTree, PhyloTree.labels, Phylogenetics.Net.leaves, List.map_append]
       exact (labels_baseTree N₁ h.2.2.1).append (labels_baseTree N₂ h.2.2.2)
   | .cycle _ S₁ (.hyb _) _ H, h => by
-      have h1 : S₁.nodes ≠ [] := h.2.2.2.2.2.2.resolve_right (by simp [Brooqs.Side.nodes])
+      have h1 : S₁.nodes ≠ [] := h.2.2.2.2.2.2.resolve_right (by simp [Phylogenetics.Side.nodes])
       rw [baseTree_cycle_hyb]
-      simp only [attachTree, PhyloTree.labels, Brooqs.Net.leaves, Brooqs.Side.leaves,
+      simp only [attachTree, PhyloTree.labels, Phylogenetics.Net.leaves, Phylogenetics.Side.leaves,
         List.append_nil, List.map_append]
       exact ((labels_baseTree H h.2.2.2.2.2.1).append (labels_detachTree S₁ h.2.2.2.1 h1)).trans
         List.perm_append_comm
   | .cycle _ S₁ (.node ℓ b M S₂) _ H, h => by
-      have h2 : (Brooqs.Side.node ℓ b M S₂).nodes ≠ [] := by simp [Brooqs.Side.nodes]
-      simp only [baseTree, Brooqs.Net.leaves, List.map_append]
+      have h2 : (Phylogenetics.Side.node ℓ b M S₂).nodes ≠ [] := by simp [Phylogenetics.Side.nodes]
+      simp only [baseTree, Phylogenetics.Net.leaves, List.map_append]
       refine ((labels_attachTree S₁ (baseTree H) h.2.2.2.1).append
         (labels_detachTree _ h.2.2.2.2.1 h2)).trans ?_
       refine (((List.Perm.refl _).append (labels_baseTree H h.2.2.2.2.2.1)).append
@@ -182,84 +182,84 @@ theorem labels_baseTree :
 
 /-- The leaf labels of the tree of a side with `X` attached: the taxa below the side and the
 labels of `X`. -/
-theorem labels_attachTree : ∀ (S : Brooqs.Side L) (X : PhyloTree), S.IsMetric →
+theorem labels_attachTree : ∀ (S : Phylogenetics.Side L) (X : PhyloTree), S.IsMetric →
     (attachTree S X).labels.Perm (S.leaves.map Subtype.val ++ X.labels)
-  | .hyb _, X, _ => by simp [attachTree, Brooqs.Side.leaves]
+  | .hyb _, X, _ => by simp [attachTree, Phylogenetics.Side.leaves]
   | .node _ _ M S, X, h => by
-      simp only [attachTree, PhyloTree.labels, Brooqs.Side.leaves, List.map_append,
+      simp only [attachTree, PhyloTree.labels, Phylogenetics.Side.leaves, List.map_append,
         List.append_assoc]
       exact (labels_baseTree M h.2.2.1).append (labels_attachTree S X h.2.2.2)
 
 /-- The leaf labels of the tree of a side with a node whose hybrid edge is deleted: the taxa below
 the side. -/
-theorem labels_detachTree : ∀ (S : Brooqs.Side L), S.IsMetric → S.nodes ≠ [] →
+theorem labels_detachTree : ∀ (S : Phylogenetics.Side L), S.IsMetric → S.nodes ≠ [] →
     (detachTree S).labels.Perm (S.leaves.map Subtype.val)
   | .hyb _, _, h => absurd rfl h
   | .node _ _ M (.hyb _), h, _ => by
-      simpa [detachTree, Brooqs.Side.leaves] using labels_baseTree M h.2.2.1
+      simpa [detachTree, Phylogenetics.Side.leaves] using labels_baseTree M h.2.2.1
   | .node _ _ M (.node ℓ b M' S), h, _ => by
-      have hS : (Brooqs.Side.node ℓ b M' S).nodes ≠ [] := by simp [Brooqs.Side.nodes]
+      have hS : (Phylogenetics.Side.node ℓ b M' S).nodes ≠ [] := by simp [Phylogenetics.Side.nodes]
       have h' := (labels_baseTree M h.2.2.1).append (labels_detachTree _ h.2.2.2 hS)
-      simp only [detachTree, Brooqs.Side.leaves, List.map_append] at h' ⊢
+      simp only [detachTree, Phylogenetics.Side.leaves, List.map_append] at h' ⊢
       exact h'
 end
 
 /-- The base tree of a metric level-1 network with distinct leaf labels is a phylogenetic tree:
 its leaves have distinct labels. -/
-theorem wellLabelled_baseTree {N : Brooqs.Net L} (hN : N.WellFormed) :
+theorem wellLabelled_baseTree {N : Phylogenetics.Net L} (hN : N.WellFormed) :
     (baseTree N).WellLabelled :=
   (labels_baseTree N hN.1).nodup_iff.2 (hN.2.map Subtype.val_injective)
 
 /-- The taxa of the base tree are the taxa of `N`, as natural numbers. -/
-theorem taxa_baseTree {N : Brooqs.Net L} (hN : N.IsMetric) :
+theorem taxa_baseTree {N : Phylogenetics.Net L} (hN : N.IsMetric) :
     (baseTree N).taxa = N.taxa.map (Coalescent.label L) := by
   ext a
   simp only [PhyloTree.taxa, List.mem_toFinset, (labels_baseTree N hN).mem_iff, List.mem_map,
-    Brooqs.Net.taxa, Finset.mem_map, Coalescent.label, Function.Embedding.subtype_apply]
+    Phylogenetics.Net.taxa, Finset.mem_map, Coalescent.label, Function.Embedding.subtype_apply]
 
 /-- The taxa of the tree of a side with `X` attached. -/
-theorem taxa_attachTree {S : Brooqs.Side L} (hS : S.IsMetric) (X : PhyloTree) :
-    (attachTree S X).taxa = S.taxa.map (Coalescent.label L) ∪ X.taxa := by
+theorem taxa_attachTree {S : Phylogenetics.Side L} (hS : S.IsMetric) (X : PhyloTree) :
+    (attachTree S X).taxa = (External.NMSC.Side.taxa S).map (Coalescent.label L) ∪ X.taxa := by
   ext a
   simp only [PhyloTree.taxa, List.mem_toFinset, (labels_attachTree S X hS).mem_iff,
-    List.mem_append, List.mem_map, Brooqs.Side.taxa, Finset.mem_union, Finset.mem_map,
+    List.mem_append, List.mem_map, External.NMSC.Side.taxa, Finset.mem_union, Finset.mem_map,
     Coalescent.label, Function.Embedding.subtype_apply]
 
 /-- The taxa of the tree of a side with a node whose hybrid edge is deleted. -/
-theorem taxa_detachTree {S : Brooqs.Side L} (hS : S.IsMetric) (hne : S.nodes ≠ []) :
-    (detachTree S).taxa = S.taxa.map (Coalescent.label L) := by
+theorem taxa_detachTree {S : Phylogenetics.Side L} (hS : S.IsMetric) (hne : S.nodes ≠ []) :
+    (detachTree S).taxa = (External.NMSC.Side.taxa S).map (Coalescent.label L) := by
   ext a
   simp only [PhyloTree.taxa, List.mem_toFinset, (labels_detachTree S hS hne).mem_iff,
-    List.mem_map, Brooqs.Side.taxa, Finset.mem_map, Coalescent.label,
+    List.mem_map, External.NMSC.Side.taxa, Finset.mem_map, Coalescent.label,
     Function.Embedding.subtype_apply]
 
 /-! ### Addresses along a side -/
 
-theorem hangAddr_node (ℓ b : ℝ) (M : Brooqs.Net L) (S : Brooqs.Side L) :
+theorem hangAddr_node (ℓ b : ℝ) (M : Phylogenetics.Net L) (S : Phylogenetics.Side L) :
     hangAddr (.node ℓ b M S) = true :: hangAddr S := by
-  simp [hangAddr, Brooqs.Side.nodes, List.replicate_succ]
+  simp [hangAddr, Phylogenetics.Side.nodes, List.replicate_succ]
 
-theorem lastAddr_single (ℓ b ℓ' : ℝ) (M : Brooqs.Net L) :
-    lastAddr (.node ℓ b M (.hyb ℓ') : Brooqs.Side L) = [] := by
-  simp [lastAddr, Brooqs.Side.nodes]
+theorem lastAddr_single (ℓ b ℓ' : ℝ) (M : Phylogenetics.Net L) :
+    lastAddr (.node ℓ b M (.hyb ℓ') : Phylogenetics.Side L) = [] := by
+  simp [lastAddr, Phylogenetics.Side.nodes]
 
-theorem lastAddr_node (ℓ b ℓ' b' : ℝ) (M M' : Brooqs.Net L) (S : Brooqs.Side L) :
+theorem lastAddr_node (ℓ b ℓ' b' : ℝ) (M M' : Phylogenetics.Net L) (S : Phylogenetics.Side L) :
     lastAddr (.node ℓ b M (.node ℓ' b' M' S)) = true :: lastAddr (.node ℓ' b' M' S) := by
-  simp [lastAddr, Brooqs.Side.nodes, List.replicate_succ]
+  simp [lastAddr, Phylogenetics.Side.nodes, List.replicate_succ]
 
 /-- The tree `X` hangs at the address `hangAddr S` of the tree of the side `S` with `X`
 attached. -/
-theorem nodeAt_hangAddr : ∀ (S : Brooqs.Side L) (X : PhyloTree),
+theorem nodeAt_hangAddr : ∀ (S : Phylogenetics.Side L) (X : PhyloTree),
     (attachTree S X).nodeAt (hangAddr S) = some X
-  | .hyb _, X => by simp [attachTree, hangAddr, Brooqs.Side.nodes, PhyloTree.nodeAt]
+  | .hyb _, X => by simp [attachTree, hangAddr, Phylogenetics.Side.nodes, PhyloTree.nodeAt]
   | .node _ _ M S, X => by
       rw [hangAddr_node]
       simpa [attachTree, PhyloTree.nodeAt] using nodeAt_hangAddr S X
 
 /-- The address `lastAddr S` is a vertex of the tree of the side `S` with its hybrid edge
 deleted. -/
-theorem lastAddr_mem_nodes : ∀ S : Brooqs.Side L, lastAddr S ∈ (detachTree S).nodes
-  | .hyb _ => by simp [lastAddr, detachTree, PhyloTree.nodes, Brooqs.Side.nodes]
+theorem lastAddr_mem_nodes : ∀ S : Phylogenetics.Side L, lastAddr S ∈ (detachTree S).nodes
+  | .hyb _ => by simp [lastAddr, detachTree, PhyloTree.nodes, Phylogenetics.Side.nodes]
   | .node _ _ M (.hyb _) => by
       rw [lastAddr_single]
       exact PhyloTree.root_mem_nodes _
@@ -368,9 +368,9 @@ theorem separated_insert {t : PhyloTree} {E : Finset (Address × Address)} {e : 
 /-- The cycles of the pairs below a side, in the tree of the side with a tree attached, avoid the
 path from the top of the side to the attached tree: a vertex below the target of such a pair and
 above the attached tree is its root. -/
-theorem attachPairs_off_path : ∀ (S : Brooqs.Side L) (P : Finset (Address × Address)),
+theorem attachPairs_off_path : ∀ (S : Phylogenetics.Side L) (P : Finset (Address × Address)),
     ∀ e ∈ attachPairs S P, ∀ x, EdgeAbove.target e <+: x → x <+: hangAddr S → x = hangAddr S
-  | .hyb _, P, e, he, x, _, h2 => by simpa [hangAddr, Brooqs.Side.nodes] using h2
+  | .hyb _, P, e, he, x, _, h2 => by simpa [hangAddr, Phylogenetics.Side.nodes] using h2
   | .node _ _ M S, P, e, he, x, h1, h2 => by
       rw [hangAddr_node] at h2 ⊢
       simp only [attachPairs, mem_union] at he
@@ -386,7 +386,7 @@ theorem attachPairs_off_path : ∀ (S : Brooqs.Side L) (P : Finset (Address × A
 
 /-- The cycles of the pairs below a side, in the tree of the side with its hybrid edge deleted,
 avoid the path from the top of the side to its last pendant network. -/
-theorem detachPairs_off_path : ∀ (S : Brooqs.Side L),
+theorem detachPairs_off_path : ∀ (S : Phylogenetics.Side L),
     ∀ e ∈ detachPairs S, ∀ x, EdgeAbove.target e <+: x → x <+: lastAddr S → x = lastAddr S
   | .hyb _, e, he, _, _, _ => by simp [detachPairs] at he
   | .node _ _ M (.hyb _), e, he, x, _, h2 => by
@@ -412,7 +412,7 @@ theorem footprint_cases {t : PhyloTree} {e : Address × Address} {x : Address}
 /-- The pairs of a cycle and of the cycles below it form a cycle-separated family of the tree
 of the cycle: the side `Sa` with the tree `X` of the hybrid component attached, and the side `Sd`
 with its hybrid edge deleted. -/
-theorem separated_cycle {Sa Sd : Brooqs.Side L} {X : PhyloTree} {P : Finset (Address × Address)}
+theorem separated_cycle {Sa Sd : Phylogenetics.Side L} {X : PhyloTree} {P : Finset (Address × Address)}
     (hA : EdgeAbove.CycleSeparated (attachTree Sa X) (attachPairs Sa P))
     (hD : EdgeAbove.CycleSeparated (detachTree Sd) (detachPairs Sd)) :
     EdgeAbove.CycleSeparated (.fork (attachTree Sa X) (detachTree Sd))
@@ -444,7 +444,7 @@ mutual
 /-- **Section 3.2**: the pairs of the added edges of a level-1 network `N` form a cycle-separated
 family of the base tree, so that adding an edge above each of them gives a rooted binary level-1
 network built on the base tree (`Realization.levelOne`). -/
-theorem separated_pairs : ∀ N : Brooqs.Net L, EdgeAbove.CycleSeparated (baseTree N) (pairs N)
+theorem separated_pairs : ∀ N : Phylogenetics.Net L, EdgeAbove.CycleSeparated (baseTree N) (pairs N)
   | .leaf _ => by simp [EdgeAbove.CycleSeparated, pairs]
   | .tree _ N₁ _ N₂ => separated_fork (separated_pairs N₁) (separated_pairs N₂)
   | .cycle _ S₁ (.hyb _) _ H =>
@@ -454,14 +454,14 @@ theorem separated_pairs : ∀ N : Brooqs.Net L, EdgeAbove.CycleSeparated (baseTr
 
 /-- The pairs below a side, with a tree and a cycle-separated family of it attached, form a
 cycle-separated family. -/
-theorem separated_attach : ∀ (S : Brooqs.Side L) {X : PhyloTree} {P : Finset (Address × Address)},
+theorem separated_attach : ∀ (S : Phylogenetics.Side L) {X : PhyloTree} {P : Finset (Address × Address)},
     EdgeAbove.CycleSeparated X P → EdgeAbove.CycleSeparated (attachTree S X) (attachPairs S P)
   | .hyb _, _, _, h => h
   | .node _ _ M S, _, _, h => separated_fork (separated_pairs M) (separated_attach S h)
 
 /-- The pairs below a side, with its hybrid edge deleted, form a cycle-separated family. -/
 theorem separated_detach :
-    ∀ S : Brooqs.Side L, EdgeAbove.CycleSeparated (detachTree S) (detachPairs S)
+    ∀ S : Phylogenetics.Side L, EdgeAbove.CycleSeparated (detachTree S) (detachPairs S)
   | .hyb _ => by simp [EdgeAbove.CycleSeparated, detachPairs]
   | .node _ _ M (.hyb _) => separated_pairs M
   | .node _ _ M (.node ..) => separated_fork (separated_pairs M) (separated_detach _)

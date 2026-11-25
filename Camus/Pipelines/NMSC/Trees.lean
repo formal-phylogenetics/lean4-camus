@@ -26,8 +26,8 @@ NMSC whose root has a leaf `z` as a child gives such a graph (`NMSC.graph_outgro
 the graph induce exactly the quartet trees of Q(N_r) together
 (`NMSC.displaysQuartet_iff_exists_builtOn`).
 
-Some of the displayed trees of `N` in the model (`Brooqs.Net.displayed`) are reached through the
-exchange of the two sides of cycles (`Brooqs.Net.SideSwap`), which describes the same network: the
+Some of the displayed trees of `N` in the model (`External.NMSC.Net.displayed`) are reached through the
+exchange of the two sides of cycles (`External.NMSC.Net.SideSwap`), which describes the same network: the
 gene trees, Q(N_r) and the threshold are unchanged (`Camus/Pipelines/NMSC/Swap.lean`), and CAMUS,
 given the base tree of the exchanged network `N'`, returns the graph of `N'`
 (`NMSC.nmsc_recovery_sideSwap`). The base trees of the exchanges are exactly the displayed trees of
@@ -79,7 +79,7 @@ variable {L : Finset ℕ}
 
 /-- The pairs of the graph of a network whose root has the leaf `z` as its left child are in the
 right child of the root. -/
-private theorem tr_pairs_tree_leaf {ℓ₁ ℓ₂ : ℝ} {z : L} {N' : Brooqs.Net L}
+private theorem tr_pairs_tree_leaf {ℓ₁ ℓ₂ : ℝ} {z : L} {N' : Phylogenetics.Net L}
     {e : Address × Address} (he : e ∈ pairs (.tree ℓ₁ (.leaf z) ℓ₂ N')) :
     e.1 ≠ [false] ∧ e.2 ≠ [false] := by
   simp only [pairs, mem_union, mem_liftPairs, notMem_empty, false_and, exists_false,
@@ -92,7 +92,7 @@ species": if the root of `N` has the leaf `z` as a child, `N = tree ℓ₁ (leaf
 the graph `Realization.graph (baseTree N) (pairs N)` of `N` the leaf of `z` is a child of the root:
 no added edge subdivides the edge above it. These are the hypotheses of
 `RootedNetwork.BuiltOn.anchored_of_outgroup`. -/
-theorem graph_outgroup {N N' : Brooqs.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L} (hN : N.WellFormed)
+theorem graph_outgroup {N N' : Phylogenetics.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L} (hN : N.WellFormed)
     (hz : N = .tree ℓ₁ (.leaf z) ℓ₂ N') :
     (z : ℕ) ∈ (Realization.graph (baseTree N) (pairs N)).taxa ∧
       ((Realization.graph (baseTree N) (pairs N)).root,
@@ -129,7 +129,7 @@ theorem graph_outgroup {N N' : Brooqs.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L} (hN :
 
 /-- The pairs of the graph of a network whose root has the leaf `z` as its right child are in the
 left child of the root. -/
-private theorem tr_pairs_tree_leaf_right {ℓ₁ ℓ₂ : ℝ} {z : L} {N' : Brooqs.Net L}
+private theorem tr_pairs_tree_leaf_right {ℓ₁ ℓ₂ : ℝ} {z : L} {N' : Phylogenetics.Net L}
     {e : Address × Address} (he : e ∈ pairs (.tree ℓ₁ N' ℓ₂ (.leaf z))) :
     e.1 ≠ [true] ∧ e.2 ≠ [true] := by
   simp only [pairs, mem_union, mem_liftPairs, notMem_empty, false_and, exists_false,
@@ -139,7 +139,7 @@ private theorem tr_pairs_tree_leaf_right {ℓ₁ ℓ₂ : ℝ} {z : L} {N' : Bro
 
 /-- `NMSC.graph_outgroup` with the outgroup as the right child of the root:
 `N = tree ℓ₁ N' ℓ₂ (leaf z)`. -/
-theorem graph_outgroup_right {N N' : Brooqs.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L} (hN : N.WellFormed)
+theorem graph_outgroup_right {N N' : Phylogenetics.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L} (hN : N.WellFormed)
     (hz : N = .tree ℓ₁ N' ℓ₂ (.leaf z)) :
     (z : ℕ) ∈ (Realization.graph (baseTree N) (pairs N)).taxa ∧
       ((Realization.graph (baseTree N) (pairs N)).root,
@@ -180,7 +180,7 @@ theorem graph_outgroup_right {N N' : Brooqs.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L}
 network `N` with distinct leaf labels on the taxa `L` displays the quartet tree `q` iff some tree
 `T` of its graph `Realization.graph (baseTree N) (pairs N)`, in the sense of Definition 1, induces
 `q`. In particular every tree of the graph induces only quartet trees of Q(N_r). -/
-theorem displaysQuartet_iff_exists_builtOn {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem displaysQuartet_iff_exists_builtOn {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (q : Quartet) :
     DisplaysQuartet N q ↔ ∃ T : PhyloTree,
       (Realization.graph (baseTree N) (pairs N)).BuiltOn T ∧ q.induced T = true :=
@@ -209,7 +209,7 @@ large numbers `n` of genes, every network built on `T` that has the best score f
 of Quartet Filtering on the quartet trees of the first `n` gene trees, with the fewest
 reticulations among the networks with the best score, is isomorphic to `Nr`: "CAMUS will add the
 correct reticulations and return N" (Section 3.2). -/
-theorem nmsc_recovery_builtOn {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_recovery_builtOn {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
@@ -245,7 +245,7 @@ open DynamicProgramming in
 /-- **Sections 3.2 to 3.4 under the NMSC, through every tree of `N`, with an outgroup at the root
 of `N`.** `NMSC.nmsc_recovery_builtOn` for a network `N = tree ℓ₁ (leaf z) ℓ₂ N'` whose root has
 the leaf `z` as a child (`NMSC.graph_outgroup`). -/
-theorem nmsc_recovery_outgroup {N N' : Brooqs.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L}
+theorem nmsc_recovery_outgroup {N N' : Phylogenetics.Net L} {ℓ₁ ℓ₂ : ℝ} {z : L}
     (hNz : N = .tree ℓ₁ (.leaf z) ℓ₂ N') (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
@@ -279,17 +279,17 @@ end Genes
 /-! ### The base trees of the exchanges of the sides -/
 
 /-- Exchanging the sides of cycles keeps the sides with a node. -/
-theorem hasNode_of_sideSwap {S S' : Brooqs.Side L} (h : S.SideSwap S') :
+theorem hasNode_of_sideSwap {S S' : Phylogenetics.Side L} (h : (External.NMSC.Side.SideSwap S) S') :
     hasNode S' = hasNode S := by
   cases h <;> rfl
 
 mutual
-/-- The displayed trees of `N` (`Brooqs.Net.displayed`) that, at each cycle, delete the hybrid edge
+/-- The displayed trees of `N` (`External.NMSC.Net.displayed`) that, at each cycle, delete the hybrid edge
 of a side with a node: the hybrid component hangs from the bottom of `S₁` when `S₂` has a node,
 and from the bottom of `S₂` when `S₁` has a node. At a cycle one of whose sides is a single hybrid
 edge, from the top node to the hybrid node, the hybrid component hangs from the top node through
 that edge. -/
-def nodeDisplayed : Brooqs.Net L → List (Finset (Finset L))
+def nodeDisplayed : Phylogenetics.Net L → List (Finset (Finset L))
   | .leaf x => [{{x}}]
   | .tree _ N₁ _ N₂ =>
       (nodeDisplayed N₁).flatMap fun K₁ => (nodeDisplayed N₂).map fun K₂ =>
@@ -298,32 +298,32 @@ def nodeDisplayed : Brooqs.Net L → List (Finset (Finset L))
       (nodeDisplayed H).flatMap fun K =>
         (if hasNode S₂ then
           (sideNodeDisplayed S₁ H.taxa).flatMap fun K₁ => (sideNodeDisplayed S₂ ∅).map fun K₂ =>
-            insert (S₁.taxa ∪ S₂.taxa ∪ H.taxa) (K ∪ K₁ ∪ K₂)
+            insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa S₂) ∪ H.taxa) (K ∪ K₁ ∪ K₂)
         else []) ++
         (if hasNode S₁ then
           (sideNodeDisplayed S₁ ∅).flatMap fun K₁ => (sideNodeDisplayed S₂ H.taxa).map fun K₂ =>
-            insert (S₁.taxa ∪ S₂.taxa ∪ H.taxa) (K ∪ K₁ ∪ K₂)
+            insert ((External.NMSC.Side.taxa S₁) ∪ (External.NMSC.Side.taxa S₂) ∪ H.taxa) (K ∪ K₁ ∪ K₂)
         else [])
 
 /-- The clusters along a side in the displayed trees of `NMSC.nodeDisplayed`, with the taxa `T`
 below its hybrid edge. -/
-def sideNodeDisplayed : Brooqs.Side L → Finset L → List (Finset (Finset L))
+def sideNodeDisplayed : Phylogenetics.Side L → Finset L → List (Finset (Finset L))
   | .hyb _, _ => [∅]
   | .node _ _ M S, T => (sideNodeDisplayed S T).flatMap fun K => (nodeDisplayed M).map fun K' =>
-      insert (T ∪ S.taxa ∪ M.taxa) (K ∪ K')
+      insert (T ∪ (External.NMSC.Side.taxa S) ∪ M.taxa) (K ∪ K')
 end
 
 mutual
 /-- The trees of `NMSC.nodeDisplayed N` are displayed trees of `N`. -/
-theorem nodeDisplayed_subset : ∀ {N : Brooqs.Net L} {K : Finset (Finset L)},
-    K ∈ nodeDisplayed N → K ∈ N.displayed
-  | .leaf _, _, hK => by simpa [nodeDisplayed, Brooqs.Net.displayed] using hK
+theorem nodeDisplayed_subset : ∀ {N : Phylogenetics.Net L} {K : Finset (Finset L)},
+    K ∈ nodeDisplayed N → K ∈ (External.NMSC.Net.displayed N)
+  | .leaf _, _, hK => by simpa [nodeDisplayed, External.NMSC.Net.displayed] using hK
   | .tree _ N₁ _ N₂, _, hK => by
-      simp only [nodeDisplayed, Brooqs.Net.displayed, List.mem_flatMap, List.mem_map] at hK ⊢
+      simp only [nodeDisplayed, External.NMSC.Net.displayed, List.mem_flatMap, List.mem_map] at hK ⊢
       obtain ⟨K₁, hK₁, K₂, hK₂, rfl⟩ := hK
       exact ⟨K₁, nodeDisplayed_subset hK₁, K₂, nodeDisplayed_subset hK₂, rfl⟩
   | .cycle _ S₁ S₂ _ H, _, hK => by
-      simp only [nodeDisplayed, Brooqs.Net.displayed, List.mem_flatMap, List.mem_append] at hK ⊢
+      simp only [nodeDisplayed, External.NMSC.Net.displayed, List.mem_flatMap, List.mem_append] at hK ⊢
       obtain ⟨K₀, hK₀, hK⟩ := hK
       refine ⟨K₀, nodeDisplayed_subset hK₀, ?_⟩
       rcases hK with hK | hK
@@ -341,11 +341,11 @@ theorem nodeDisplayed_subset : ∀ {N : Brooqs.Net L} {K : Finset (Finset L)},
         · simp [h1] at hK
 
 /-- The clusters along a side in `NMSC.sideNodeDisplayed` are those of the displayed trees. -/
-theorem sideNodeDisplayed_subset : ∀ {S : Brooqs.Side L} {T : Finset L}
-    {K : Finset (Finset L)}, K ∈ sideNodeDisplayed S T → K ∈ S.displayed T
-  | .hyb _, _, _, hK => by simpa [sideNodeDisplayed, Brooqs.Side.displayed] using hK
+theorem sideNodeDisplayed_subset : ∀ {S : Phylogenetics.Side L} {T : Finset L}
+    {K : Finset (Finset L)}, K ∈ sideNodeDisplayed S T → K ∈ (External.NMSC.Side.displayed S) T
+  | .hyb _, _, _, hK => by simpa [sideNodeDisplayed, External.NMSC.Side.displayed] using hK
   | .node _ _ M S, _, _, hK => by
-      simp only [sideNodeDisplayed, Brooqs.Side.displayed, List.mem_flatMap,
+      simp only [sideNodeDisplayed, External.NMSC.Side.displayed, List.mem_flatMap,
         List.mem_map] at hK ⊢
       obtain ⟨K₁, hK₁, K₂, hK₂, rfl⟩ := hK
       exact ⟨K₁, sideNodeDisplayed_subset hK₁, K₂, nodeDisplayed_subset hK₂, rfl⟩
@@ -356,8 +356,8 @@ mutual
 tree of `N` that deletes, at each cycle, the hybrid edge of a side with a node is the displayed
 tree `NMSC.baseClusters N'` of the base tree of `N` with the sides of some cycles exchanged: those
 whose hybrid component hangs from the bottom of `S₂`. -/
-theorem exists_sideSwap_of_mem_nodeDisplayed : ∀ {N : Brooqs.Net L} {K : Finset (Finset L)},
-    K ∈ nodeDisplayed N → ∃ N', N.SideSwap N' ∧ baseClusters N' = K
+theorem exists_sideSwap_of_mem_nodeDisplayed : ∀ {N : Phylogenetics.Net L} {K : Finset (Finset L)},
+    K ∈ nodeDisplayed N → ∃ N', (External.NMSC.Net.SideSwap N) N' ∧ baseClusters N' = K
   | .leaf x, _, hK => by
       simp only [nodeDisplayed, List.mem_singleton] at hK
       exact ⟨.leaf x, .leaf x, by rw [hK]; rfl⟩
@@ -391,14 +391,14 @@ theorem exists_sideSwap_of_mem_nodeDisplayed : ∀ {N : Brooqs.Net L} {K : Finse
           refine ⟨_, .swap h₁' h₂ hH, ?_⟩
           simp only [baseClusters, hasNode_of_sideSwap h₁', h1, ↓reduceIte, hH.taxa_eq,
             h₁'.taxa_eq, h₂.taxa_eq]
-          rw [union_comm S₂'.taxa, union_right_comm (baseClusters H')]
+          rw [union_comm (External.NMSC.Side.taxa S₂'), union_right_comm (baseClusters H')]
         · simp [h1] at hK
 
 /-- The clusters along a side in `NMSC.sideNodeDisplayed` are those of the base tree of the side
 with the sides of some cycles exchanged. -/
-theorem exists_sideSwap_of_mem_sideNodeDisplayed : ∀ {S : Brooqs.Side L} {T : Finset L}
+theorem exists_sideSwap_of_mem_sideNodeDisplayed : ∀ {S : Phylogenetics.Side L} {T : Finset L}
     {K : Finset (Finset L)}, K ∈ sideNodeDisplayed S T →
-      ∃ S', S.SideSwap S' ∧ sideBaseClusters S' T = K
+      ∃ S', (External.NMSC.Side.SideSwap S) S' ∧ sideBaseClusters S' T = K
   | .hyb ℓ, _, _, hK => by
       simp only [sideNodeDisplayed, List.mem_singleton] at hK
       exact ⟨.hyb ℓ, .hyb ℓ, by rw [hK]; rfl⟩
@@ -412,21 +412,21 @@ end
 
 /-- A metric side without a node is a single hybrid edge, so the other side of its cycle has a
 node. -/
-private theorem tr_hasNode_of_not {S₁ S₂ : Brooqs.Side L} (h : S₁.nodes ≠ [] ∨ S₂.nodes ≠ [])
+private theorem tr_hasNode_of_not {S₁ S₂ : Phylogenetics.Side L} (h : S₁.nodes ≠ [] ∨ S₂.nodes ≠ [])
     (h2 : ¬ hasNode S₂ = true) : hasNode S₁ = true := by
   cases S₂ with
   | node => exact absurd rfl h2
   | hyb =>
       cases S₁ with
       | node => rfl
-      | hyb => simp [Brooqs.Side.nodes] at h
+      | hyb => simp [Phylogenetics.Side.nodes] at h
 
 mutual
 /-- **The base trees of the exchanges are trees of `NMSC.nodeDisplayed N`.** For a metric network
 `N` and an exchange `N'` of the sides of some of its cycles, the displayed tree
 `NMSC.baseClusters N'` of the base tree of `N'` deletes, at each cycle, the hybrid edge of a side
 with a node. -/
-theorem baseClusters_mem_nodeDisplayed : ∀ {N N' : Brooqs.Net L}, N.SideSwap N' → N.IsMetric →
+theorem baseClusters_mem_nodeDisplayed : ∀ {N N' : Phylogenetics.Net L}, (External.NMSC.Net.SideSwap N) N' → N.IsMetric →
     baseClusters N' ∈ nodeDisplayed N
   | _, _, .leaf x, _ => by simp [baseClusters, nodeDisplayed]
   | _, _, .tree h₁ h₂, hm => by
@@ -454,7 +454,7 @@ theorem baseClusters_mem_nodeDisplayed : ∀ {N N' : Brooqs.Net L}, N.SideSwap N
       have hK := baseClusters_mem_nodeDisplayed hH hHm
       simp only [baseClusters, nodeDisplayed, List.mem_flatMap, List.mem_append,
         hasNode_of_sideSwap h₁, ← hH.taxa_eq, ← h₁.taxa_eq, ← h₂.taxa_eq,
-        union_comm S₂.taxa S₁.taxa]
+        union_comm (External.NMSC.Side.taxa S₂) (External.NMSC.Side.taxa S₁)]
       by_cases h1 : hasNode S₁ = true
       -- the hybrid component hangs from `S₂`, the first side of the exchanged cycle
       · simp only [h1, ↓reduceIte, List.mem_flatMap, List.mem_map]
@@ -471,8 +471,8 @@ theorem baseClusters_mem_nodeDisplayed : ∀ {N N' : Brooqs.Net L}, N.SideSwap N
 
 /-- The clusters along a side of the base tree of an exchange are those of a tree of
 `NMSC.nodeDisplayed`. -/
-theorem sideBaseClusters_mem_sideNodeDisplayed : ∀ {S S' : Brooqs.Side L} {T : Finset L},
-    S.SideSwap S' → S.IsMetric → sideBaseClusters S' T ∈ sideNodeDisplayed S T
+theorem sideBaseClusters_mem_sideNodeDisplayed : ∀ {S S' : Phylogenetics.Side L} {T : Finset L},
+    (External.NMSC.Side.SideSwap S) S' → S.IsMetric → sideBaseClusters S' T ∈ sideNodeDisplayed S T
   | _, _, _, .hyb _, _ => by simp [sideBaseClusters, sideNodeDisplayed]
   | _, _, _, .node hM hS, hm => by
       simp only [sideBaseClusters, sideNodeDisplayed, List.mem_flatMap, List.mem_map]
@@ -484,14 +484,14 @@ end
 delete, at each cycle, the hybrid edge of a side with a node (`NMSC.nodeDisplayed N`) are exactly
 the displayed trees `NMSC.baseClusters N'` of the base trees of the exchanges `N'` of the sides of
 cycles of `N`. -/
-theorem mem_nodeDisplayed_iff {N : Brooqs.Net L} (hN : N.IsMetric) (K : Finset (Finset L)) :
-    K ∈ nodeDisplayed N ↔ ∃ N', N.SideSwap N' ∧ baseClusters N' = K :=
+theorem mem_nodeDisplayed_iff {N : Phylogenetics.Net L} (hN : N.IsMetric) (K : Finset (Finset L)) :
+    K ∈ nodeDisplayed N ↔ ∃ N', (External.NMSC.Net.SideSwap N) N' ∧ baseClusters N' = K :=
   ⟨exists_sideSwap_of_mem_nodeDisplayed, fun ⟨_, h, hK⟩ =>
     hK ▸ baseClusters_mem_nodeDisplayed h hN⟩
 
 mutual
 /-- Exchanging the sides of cycles keeps the number of cycles. -/
-theorem cycleCount_of_sideSwap : ∀ {N N' : Brooqs.Net L}, N.SideSwap N' →
+theorem cycleCount_of_sideSwap : ∀ {N N' : Phylogenetics.Net L}, (External.NMSC.Net.SideSwap N) N' →
     cycleCount N' = cycleCount N
   | _, _, .leaf _ => rfl
   | _, _, .tree h₁ h₂ => by
@@ -505,7 +505,7 @@ theorem cycleCount_of_sideSwap : ∀ {N N' : Brooqs.Net L}, N.SideSwap N' →
       ring
 
 /-- Exchanging the sides of cycles keeps the number of cycles below a side. -/
-theorem sideCycleCount_of_sideSwap : ∀ {S S' : Brooqs.Side L}, S.SideSwap S' →
+theorem sideCycleCount_of_sideSwap : ∀ {S S' : Phylogenetics.Side L}, (External.NMSC.Side.SideSwap S) S' →
     sideCycleCount S' = sideCycleCount S
   | _, _, .hyb _ => rfl
   | _, _, .node hM hS => by
@@ -514,7 +514,7 @@ end
 
 /-- The graphs of `N` and of an exchange `N'` of the sides of some of its cycles display the same
 quartet trees, those of Q(N_r), and have the same number of reticulations, one for each cycle. -/
-theorem graph_sideSwap {N N' : Brooqs.Net L} (h : N.SideSwap N') (hN : N.WellFormed)
+theorem graph_sideSwap {N N' : Phylogenetics.Net L} (h : (External.NMSC.Net.SideSwap N) N') (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) :
     (∀ q, (Realization.graph (baseTree N') (pairs N')).DisplaysQuartet q ↔
         (Realization.graph (baseTree N) (pairs N)).DisplaysQuartet q) ∧
@@ -527,7 +527,7 @@ theorem graph_sideSwap {N N' : Brooqs.Net L} (h : N.SideSwap N') (hN : N.WellFor
 
 /-- The base tree of `N` with the sides of some cycles exchanged is a displayed tree of `N`
 (`NMSC.DisplaysTree`). -/
-theorem displaysTree_baseTree_of_sideSwap {N N' : Brooqs.Net L} (h : N.SideSwap N')
+theorem displaysTree_baseTree_of_sideSwap {N N' : Phylogenetics.Net L} (h : (External.NMSC.Net.SideSwap N) N')
     (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa) : DisplaysTree N (baseTree N') :=
   (displaysTree_iff_of_sideSwap h _).2
     (displaysTree_baseTree (h.wellFormed_iff.1 hN) fun x => h.taxa_eq ▸ htaxa x)
@@ -535,9 +535,9 @@ theorem displaysTree_baseTree_of_sideSwap {N N' : Brooqs.Net L} (h : N.SideSwap 
 /-- **Every displayed tree of `NMSC.nodeDisplayed N` is a base tree.** For each displayed tree `K`
 of `N` that deletes, at each cycle, the hybrid edge of a side with a node, the base tree of some
 exchange `N'` of the sides of cycles of `N` has the clusters of `K` as its clades. -/
-theorem exists_baseTree_of_mem_nodeDisplayed {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem exists_baseTree_of_mem_nodeDisplayed {N : Phylogenetics.Net L} (hN : N.WellFormed)
     {K : Finset (Finset L)} (hK : K ∈ nodeDisplayed N) :
-    ∃ N', N.SideSwap N' ∧
+    ∃ N', (External.NMSC.Net.SideSwap N) N' ∧
       (baseTree N').clades.toFinset = K.image (Finset.map (Coalescent.label L)) := by
   obtain ⟨N', h, rfl⟩ := exists_sideSwap_of_mem_nodeDisplayed hK
   exact ⟨N', h, clades_baseTree N' (h.wellFormed_iff.1 hN)⟩
@@ -560,7 +560,7 @@ the networks built on `T`. Almost surely, for all large numbers `n` of genes, ev
 on `T` that has the best score for the output `Q` of Quartet Filtering on the quartet trees of the
 first `n` gene trees, with the fewest reticulations among the networks with the best score, is
 isomorphic to `Nr`. -/
-theorem nmsc_recovery_sideSwap {N N' : Brooqs.Net L} (hNN' : N.SideSwap N') (hN : N.WellFormed)
+theorem nmsc_recovery_sideSwap {N N' : Phylogenetics.Net L} (hNN' : (External.NMSC.Net.SideSwap N) N') (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)

@@ -1,8 +1,8 @@
 module
 
 public import Camus.Pipelines.Algorithm1
-public import ADR11.Identifiability.Proposition3
-public import ADR11.MSC.Marginal
+public import Camus.External.AllmanDegnanRhodes2011.FourTaxa
+public import Phylogenetics.MSC.Marginal
 
 /-!
 # Section 3.3: quartet trees of gene trees under the multispecies coalescent
@@ -10,21 +10,21 @@ public import ADR11.MSC.Marginal
 Section 3.3 motivates Algorithm 1 by "the multi-species coalescent (MSC) model (Takahata 1989)
 under which, for every four species, the most probable quartet tree matches the species tree and
 the other two quartet trees have the same lower probability". This file proves this statement for
-rooted binary species trees, from the MSC of lean4-adr11 (a formalization of Allman, Degnan and
-Rhodes 2011), and states it with the quartet trees of CAMUS (`msc_pattern`).
+rooted binary species trees, from the MSC of lean4-phylogenetics and the four-taxon distributions of
+Allman, Degnan and Rhodes 2011, and states it with the quartet trees of CAMUS (`msc_pattern`).
 
 ## Representation
 
-The taxa form a finite set `L` of labels, natural numbers as in CAMUS. A species tree is an
-`ADR11.SpeciesTree L`: its clusters, with a positive length on every edge. A gene tree is an
-unrooted tree on `L` in the representation of ADR11, the set `T : Finset (Finset L)` of the sides
+The taxa form a finite set `L` of labels, natural numbers as in CAMUS. A species tree is a
+`Phylogenetics.SpeciesTree L`: its clusters, with a positive length on every edge. A gene tree is an
+unrooted tree on `L` in the representation of lean4-phylogenetics, the set `T : Finset (Finset L)` of the sides
 of its splits; under the MSC with one lineage per taxon it has probability `σ.unrootedDist id T`.
 A quartet tree of CAMUS on the taxa `a < b < c < d` has the topology `split`: `0` is ab|cd, `1` is
 ac|bd, `2` is ad|bc. The gene tree `T` induces the quartet tree `q` (`Induces T q`) when a side of
 a split of `T` meets `{a, b, c, d}` in a side of `q`: `Quartet.induced`, with splits in place of
 clades. The four taxa of a key `k` (`QuartetKey`), relabelled `0, 1, 2, 3` in increasing order
 (`keyTaxon`), give the quartet species tree `quartetSpeciesTree σ k` on `Fin 4`, and the topology
-`s` is the unrooted tree of ADR11 on `Fin 4` with the split `side s | (side s)ᶜ`,
+`s` is the unrooted tree on `Fin 4` with the split `side s | (side s)ᶜ`,
 `side s = {0, s + 1}`: `treeOfClusters {{0, 1}}` is AB|CD, `treeOfClusters {{0, 2}}` is AC|BD and
 `treeOfClusters {{0, 3}}` is AD|BC (`treeOfClusters_side`).
 
@@ -50,13 +50,13 @@ The paper cites the MSC for this description. The proof here uses Allman, Degnan
 topology that a gene tree induces on four taxa depends only on its quartet tree on them, the
 restriction of its splits to the four taxa (`induces_iff`). That quartet tree is distributed as the
 gene tree of the MSC on the quartet species tree (`quartetSpeciesTree_unrootedDist`): this is
-their Lemma 5 (marginalization), from ADR11's dropping of lineages
-(`ADR11.SpeciesTree.unrootedDist_comp_embedding`) and pruning of the species tree
-(`ADR11.SpeciesTree.rootedDist_restrict`), with a relabelling. The quartet species tree of a binary
-species tree is binary (`ADR11.SpeciesTree.restrict_isBinary`), so its unrooted topology has one
+their Lemma 5 (marginalization), from lean4-phylogenetics's dropping of lineages
+(`Phylogenetics.SpeciesTree.unrootedDist_comp_embedding`) and pruning of the species tree
+(`Phylogenetics.SpeciesTree.rootedDist_restrict`), with a relabelling. The quartet species tree of a binary
+species tree is binary (`Phylogenetics.SpeciesTree.restrict_isBinary`), so its unrooted topology has one
 nontrivial split, the topology of `σ` on the four taxa (`existsUnique_species`), and the formulas of
-their Section 4.1 (`ADR11.four_unrootedDist_of_mem`, `ADR11.four_unrootedDist_of_ne_of_isBinary`)
-give the probabilities `1 − (2/3) e^{−x}` for it and `(1/3) e^{−x}` for each other topology.
+their Section 4.1 (`External.AllmanDegnanRhodes2011.four_unrootedDist_of_mem`,
+`External.AllmanDegnanRhodes2011.four_unrootedDist_of_ne_of_isBinary`) give the probabilities `1 − (2/3) e^{−x}` for it and `(1/3) e^{−x}` for each other topology.
 -/
 
 @[expose] public section
@@ -65,15 +65,15 @@ namespace Camus
 
 namespace Coalescent
 
-open Finset ADR11 Real
+open Finset Phylogenetics External.AllmanDegnanRhodes2011 Real
 
 variable {L : Finset ℕ}
 
 /-- The labels of the taxa `L`: the inclusion `L ↪ ℕ`. -/
 abbrev label (L : Finset ℕ) : L ↪ ℕ := Function.Embedding.subtype (· ∈ L)
 
-/-- Section 3.3: the unrooted gene tree `T` on the taxa `L`, given as in ADR11 by the sides of its
-splits, induces the quartet tree `q`: the taxa of `q` are taxa of `L`, and some side of a split of
+/-- Section 3.3: the unrooted gene tree `T` on the taxa `L`, given as in lean4-phylogenetics by the
+sides of its splits, induces the quartet tree `q`: the taxa of `q` are taxa of `L`, and some side of a split of
 `T` meets them in one side of `q` (`Quartet.cutBy`), so that deleting the edge of that split
 separates the two sides of `q`. -/
 def Induces (T : Finset (Finset L)) (q : Quartet) : Prop :=
@@ -160,7 +160,7 @@ theorem side_mem_treeOfClusters : ∀ s s' : Fin 3,
     side s ∈ treeOfClusters {side s'} ∨ (side s)ᶜ ∈ treeOfClusters {side s'} ↔ s = s' := by
   decide
 
-/-- The three quartet trees of ADR11 on `Fin 4` are those of the three topologies. -/
+/-- The three quartet trees on `Fin 4` are those of the three topologies. -/
 theorem treeOfClusters_side : treeOfClusters {side 0} = treeOfClusters {{0, 1}} ∧
     treeOfClusters {side 1} = treeOfClusters {{0, 2}} ∧
     treeOfClusters {side 2} = treeOfClusters {{0, 3}} := by
@@ -278,8 +278,8 @@ end Bridge
 /-! ### The species tree induced on four taxa -/
 
 /-- The quartet species tree of `σ` on the four taxa of `k`: the species tree `σ(S)` that `σ`
-induces on `S = {a, b, c, d}` (ADR11's `SpeciesTree.restrict`: the clusters are the traces of
-the clusters of `σ`, and each edge has the total length of the edges of `σ` with the same trace),
+induces on `S = {a, b, c, d}` (lean4-phylogenetics's `SpeciesTree.restrict`: the clusters are the
+traces of the clusters of `σ`, and each edge has the total length of the edges of `σ` with the same trace),
 with `a, b, c, d` relabelled `0, 1, 2, 3`. -/
 noncomputable def quartetSpeciesTree (σ : SpeciesTree L) (k : QuartetKey) (hk : keyTaxa k ⊆ L) :
     SpeciesTree (Fin 4) :=
@@ -379,8 +379,8 @@ theorem sum_ite_comp {α β : Type*} [Fintype α] [Fintype β] [DecidableEq β] 
     · rw [ite_eq_left ha, ite_eq_right (ha ▸ hb)]
     · rw [ite_eq_right ha]
 
-/-- The bridge to the quartet trees of ADR11. The probability that the gene tree of the MSC on `σ`
-induces the topology `s` on the four taxa `a < b < c < d` of `k` is the probability of the quartet
+/-- The bridge to the quartet trees of lean4-phylogenetics. The probability that the gene tree of
+the MSC on `σ` induces the topology `s` on the four taxa `a < b < c < d` of `k` is the probability of the quartet
 tree `treeOfClusters {side s}` (AB|CD, AC|BD, AD|BC for `s = 0, 1, 2`) under the MSC on the quartet
 species tree. -/
 theorem quartetProb_eq (σ : SpeciesTree L) (k : QuartetKey) (hk : keyTaxa k ⊆ L) (s : Fin 3) :
@@ -490,7 +490,7 @@ theorem msc_pattern_of_induces {σ : SpeciesTree L} (hσ : σ.IsBinary) (k : Qua
 /-- Section 3.3: "the multi-species coalescent (MSC) model (Takahata 1989) under which, for
 every four species, the most probable quartet tree matches the species tree and the other two
 quartet trees have the same lower probability". Under the MSC on a rooted binary species tree `σ`
-(every `ADR11.SpeciesTree` has positive edge lengths), with one lineage per taxon, on every four
+(every `Phylogenetics.SpeciesTree` has positive edge lengths), with one lineage per taxon, on every four
 taxa `a < b < c < d` of `σ`, the topology `s` induced by `σ` is strictly the most probable one, and
 the two others have the same probability. -/
 theorem msc_pattern {σ : SpeciesTree L} (hσ : σ.IsBinary) (k : QuartetKey)

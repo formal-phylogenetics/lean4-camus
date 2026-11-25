@@ -6,34 +6,36 @@ public import Camus.External.NMSC.Splits
 # Four taxa in four components of a cycle
 
 Section 3.3 of CAMUS designs Quartet Filtering (Algorithm 1) for a CF pattern on each set of four
-taxa (`Brooqs.RegularPattern`, `Brooqs.Net.RegularOn`): if the network displays one of the three
+taxa (`External.NMSC.RegularPattern`, `External.NMSC.Net.RegularOn`): if the network displays one of the three
 quartets on them, it is strictly the most probable and the two others are equally probable; if it
 displays two, the third is strictly the least probable. This file proves the pattern for four taxa
-in four distinct components of a cycle `Ω`, the case of `Brooqs.nmsc_quartetCF`
-(`Brooqs.Net.Cycle.regularOn_of_components`).
+in four distinct components of a cycle `Ω`, the case of `Phylogenetics.nmsc_quartetCF`
+(`External.NMSC.Net.Cycle.regularOn_of_components`).
 
 The displayed quartets are read from the positions of the components on the path of a displayed
-tree (`Brooqs.Net.Cycle.displays_iff`): with the hybrid component below the side `side₁` (at
+tree (`Phylogenetics.Net.Cycle.displays_iff`): with the hybrid component below the side `side₁` (at
 position `0`) or below the side `side₂` (at position `d`), the clusters along the sides contain the
 taxa of the components at the positions up to some `k`, or from some `m` on; so the network displays
 `ab|ce` iff one of the two paths separates the positions of `a, b` from those of `c, e`
-(`Brooqs.pathSep`). The CFs are the `γ`-mixtures of `Brooqs.quartetCF_eq_of_components`, and the
-pattern follows (`Brooqs.regularPattern_of_mixture`).
+(`External.NMSC.pathSep`). The CFs are the `γ`-mixtures of `External.NMSC.quartetCF_eq_of_components`, and the
+pattern follows (`External.NMSC.regularPattern_of_mixture`).
 
 ## Main results
 
-* `Brooqs.RegularPattern`, `Brooqs.Net.cf3`, `Brooqs.Net.disp3`, `Brooqs.Net.RegularOn`: the CF
+* `External.NMSC.RegularPattern`, `External.NMSC.Net.cf3`, `External.NMSC.Net.disp3`, `External.NMSC.Net.RegularOn`: the CF
   pattern.
-* `Brooqs.Net.Cycle.mem_tail₁_iff`, `Brooqs.Net.Cycle.mem_tail₂_iff`,
-  `Brooqs.Net.Cycle.mem_top_iff`: the taxa below the parts of the sides, by positions.
-* `Brooqs.Net.Cycle.displays_iff`: the displayed quartets of four components.
-* `Brooqs.regularPattern_of_mixture`: the pattern of a `γ`-mixture of two quartet trees.
-* `Brooqs.Net.Cycle.regularOn_of_components`: the pattern for four components of a cycle.
+* `External.NMSC.Net.Cycle.mem_tail₁_iff`, `External.NMSC.Net.Cycle.mem_tail₂_iff`,
+  `External.NMSC.Net.Cycle.mem_top_iff`: the taxa below the parts of the sides, by positions.
+* `Phylogenetics.Net.Cycle.displays_iff`: the displayed quartets of four components.
+* `External.NMSC.regularPattern_of_mixture`: the pattern of a `γ`-mixture of two quartet trees.
+* `External.NMSC.Net.Cycle.regularOn_of_components`: the pattern for four components of a cycle.
 -/
 
 @[expose] public noncomputable section
 
-namespace Brooqs
+namespace External.NMSC
+
+open Phylogenetics
 
 open Finset
 
@@ -57,12 +59,12 @@ theorem eq_of_mem_component (hN : N.leaves.Nodup) {t : X} {i j : ℕ} (hi : t �
 theorem mem_below_iff (hN : N.leaves.Nodup) {t : X} {i : ℕ} (ht : t ∈ Ω.component i) :
     t ∈ Ω.below.taxa ↔ i = 0 := by
   rw [← Ω.component_zero]
-  exact ⟨fun h => Ω.eq_of_mem_component hN ht h, fun h => h ▸ ht⟩
+  exact ⟨fun h => (Net.Cycle.eq_of_mem_component Ω) hN ht h, fun h => h ▸ ht⟩
 
 /-- A taxon lies below a lower part `U` of the side `side₁` with `k` nodes iff its component is at
 a position `1, …, k`. -/
-theorem mem_tail₁_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ Ω.side₁.tails) {t : X}
-    {i : ℕ} (ht : t ∈ Ω.component i) : t ∈ U.taxa ↔ 1 ≤ i ∧ i ≤ U.nodes.length := by
+theorem mem_tail₁_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ (Side.tails Ω.side₁)) {t : X}
+    {i : ℕ} (ht : t ∈ Ω.component i) : t ∈ (Side.taxa U) ↔ 1 ≤ i ∧ i ≤ U.nodes.length := by
   have hUn := Side.nodes_of_mem_tails hU
   have hkp : U.nodes.length ≤ Ω.side₁.nodes.length := by
     have := congrArg List.length hUn
@@ -83,7 +85,7 @@ theorem mem_tail₁_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ Ω.side�
       rw [hcomp]
       simp only [hidx]
       exact htn
-    have := Ω.eq_of_mem_component hN ht htc
+    have := (Net.Cycle.eq_of_mem_component Ω) hN ht htc
     omega
   · rintro ⟨h1, h2⟩
     obtain ⟨i', rfl⟩ : ∃ i', i = i' + 1 := ⟨i - 1, by omega⟩
@@ -105,15 +107,15 @@ theorem size_ge : Ω.side₁.nodes.length + Ω.side₂.nodes.length + 1 ≤ Ω.s
 
 /-- A taxon lies below a lower part `U` of the side `side₂` with `k` nodes iff its component is at
 a position `d - k, …, d - 1`. -/
-theorem mem_tail₂_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ Ω.side₂.tails) {t : X}
+theorem mem_tail₂_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ (Side.tails Ω.side₂)) {t : X}
     {i : ℕ} (hi : i < Ω.size) (ht : t ∈ Ω.component i) :
-    t ∈ U.taxa ↔ Ω.size - U.nodes.length ≤ i := by
+    t ∈ (Side.taxa U) ↔ Ω.size - U.nodes.length ≤ i := by
   have hUn := Side.nodes_of_mem_tails hU
   have hkq : U.nodes.length ≤ Ω.side₂.nodes.length := by
     have := congrArg List.length hUn
     simp only [List.length_drop] at this
     omega
-  have hsz := Ω.size_ge
+  have hsz := (Net.Cycle.size_ge Ω)
   rw [Side.mem_taxa_iff]
   constructor
   · rintro ⟨n, hn, htn⟩
@@ -129,7 +131,7 @@ theorem mem_tail₂_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ Ω.side�
       rw [hcomp]
       simp only [hidx]
       exact htn
-    have := Ω.eq_of_mem_component hN ht htc
+    have := (Net.Cycle.eq_of_mem_component Ω) hN ht htc
     omega
   · intro h
     have hcomp := Ω.component_side₂ (i := Ω.size - 1 - i) (by omega)
@@ -146,7 +148,7 @@ theorem mem_tail₂_iff (hN : N.leaves.Nodup) {U : Side X} (hU : U ∈ Ω.side�
 theorem exists_component_of_mem_nodes {n : ℝ × ℝ × Net X}
     (hn : n ∈ Ω.side₁.nodes ∨ n ∈ Ω.side₂.nodes) :
     ∃ j < Ω.size, n.2.2.taxa = Ω.component j := by
-  have hsz := Ω.size_ge
+  have hsz := (Net.Cycle.size_ge Ω)
   rcases hn with hn | hn
   · obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem (List.mem_reverse.2 hn)
     simp only [List.length_reverse] at hi
@@ -156,7 +158,7 @@ theorem exists_component_of_mem_nodes {n : ℝ × ℝ × Net X}
     exact ⟨Ω.size - (i + 1), by omega, (Ω.component_side₂ hi).symm⟩
 
 omit [DecidableEq X] in
-theorem _root_.Brooqs.Side.self_mem_tails (S : Side X) : S ∈ S.tails := by
+theorem _root_.External.NMSC.Side.self_mem_tails (S : Side X) : S ∈ (Side.tails S) := by
   cases S <;> simp [Side.tails]
 
 /-- A taxon in the component at position `i` lies below the top node of the cycle iff the
@@ -164,10 +166,10 @@ component is not the component of the root, at position `p + 1`. -/
 theorem mem_top_iff (hN : N.leaves.Nodup) {t : X} {i : ℕ} (hi : i < Ω.size)
     (ht : t ∈ Ω.component i) :
     t ∈ Ω.top.taxa ↔ Ω.top = N ∨ i ≠ Ω.side₁.nodes.length + 1 := by
-  have h1 := Ω.mem_tail₁_iff hN (Side.self_mem_tails _) ht
-  have h2 := Ω.mem_tail₂_iff hN (Side.self_mem_tails _) hi ht
-  have h0 := Ω.mem_below_iff hN ht
-  have htop : Ω.top.taxa = Ω.side₁.taxa ∪ Ω.side₂.taxa ∪ Ω.below.taxa := Net.taxa_cycle _ _ _ _ _
+  have h1 := (Net.Cycle.mem_tail₁_iff Ω) hN (Side.self_mem_tails _) ht
+  have h2 := (Net.Cycle.mem_tail₂_iff Ω) hN (Side.self_mem_tails _) hi ht
+  have h0 := (Net.Cycle.mem_below_iff Ω) hN ht
+  have htop : Ω.top.taxa = (Side.taxa Ω.side₁) ∪ (Side.taxa Ω.side₂) ∪ Ω.below.taxa := Net.taxa_cycle _ _ _ _ _
   rw [htop, mem_union, mem_union, h1, h2, h0]
   by_cases h : Ω.top = N
   · have := Ω.size_of_top_eq h
@@ -182,7 +184,7 @@ end Net.Cycle
 /-! ### The displayed quartets of four components -/
 
 /-- The quartet tree on the path `0 — 1 — ⋯ — d` with the four taxa at the positions `a, b, c, e`
-has the split `ab|ce`: the condition of `Brooqs.pathCF`. -/
+has the split `ab|ce`: the condition of `Phylogenetics.pathCF`. -/
 def pathSep (a b c e : ℕ) : Prop := max a b < min c e ∨ max c e < min a b
 
 instance (a b c e : ℕ) : Decidable (pathSep a b c e) := by
@@ -220,22 +222,22 @@ components: the cluster of all the taxa of the cycle; a cluster inside one compo
 a side, the taxa at the positions up to `k` or from `m` on, for the hybrid component at position
 `0` (`pos`) or at position `d` (`toRightEnd`). -/
 private theorem fc_cluster_cases (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
-    (hs : ∀ l, s l ∈ Ω.component (pos l)) {K : Finset (Finset X)} (hK : K ∈ Ω.top.displayed)
+    (hs : ∀ l, s l ∈ Ω.component (pos l)) {K : Finset (Finset X)} (hK : K ∈ (Net.displayed Ω.top))
     {A : Finset X} (hA : A ∈ K) :
     A = Ω.top.taxa ∨ (∃ j, A ⊆ Ω.component j) ∨ (∃ k, ∀ l, s l ∈ A ↔ pos l ≤ k) ∨
       (∃ m, ∀ l, s l ∈ A ↔ m ≤ pos l) ∨
       (∃ k, ∀ l, s l ∈ A ↔ toRightEnd Ω.size (pos l) ≤ k) ∨
       (∃ m, ∀ l, s l ∈ A ↔ m ≤ toRightEnd Ω.size (pos l)) := by
-  have hsz := Ω.size_ge
+  have hsz := (Net.Cycle.size_ge Ω)
   have htop : Ω.top = .cycle Ω.γ Ω.side₁ Ω.side₂ Ω.ℓ Ω.below := rfl
-  have htaxa : Ω.top.taxa = Ω.side₁.taxa ∪ Ω.side₂.taxa ∪ Ω.below.taxa := Net.taxa_cycle _ _ _ _ _
-  have h0 := fun l => Ω.mem_below_iff hN (hs l)
-  have hpend : ∀ {S : Side X} {T : Finset X} {K₁ : Finset (Finset X)}, K₁ ∈ S.displayed T →
+  have htaxa : Ω.top.taxa = (Side.taxa Ω.side₁) ∪ (Side.taxa Ω.side₂) ∪ Ω.below.taxa := Net.taxa_cycle _ _ _ _ _
+  have h0 := fun l => (Net.Cycle.mem_below_iff Ω) hN (hs l)
+  have hpend : ∀ {S : Side X} {T : Finset X} {K₁ : Finset (Finset X)}, K₁ ∈ (Side.displayed S) T →
       (∀ n ∈ S.nodes, n ∈ Ω.side₁.nodes ∨ n ∈ Ω.side₂.nodes) → A ∈ K₁ →
-      (∃ j, A ⊆ Ω.component j) ∨ ∃ U ∈ S.tails, A = T ∪ U.taxa := by
+      (∃ j, A ⊆ Ω.component j) ∨ ∃ U ∈ (Side.tails S), A = T ∪ (Side.taxa U) := by
     intro S T K₁ hK₁ hS hA₁
     rcases Side.cluster_of_mem_displayed hK₁ A hA₁ with ⟨n, hn, K', hK', hAK'⟩ | h
-    · obtain ⟨j, -, hj⟩ := Ω.exists_component_of_mem_nodes (hS n hn)
+    · obtain ⟨j, -, hj⟩ := (Net.Cycle.exists_component_of_mem_nodes Ω) (hS n hn)
       exact Or.inl ⟨j, hj ▸ Net.subset_taxa_of_mem_displayed hK' A hAK'⟩
     · exact Or.inr h
   rw [htop] at hK
@@ -249,7 +251,7 @@ private theorem fc_cluster_cases (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.
       · exact Or.inr (Or.inl ⟨0, Ω.component_zero ▸ Net.subset_taxa_of_mem_displayed hK₀ A hA⟩)
       · rcases hpend hK₁ (fun n hn => Or.inl hn) hA with h | ⟨U, hU, rfl⟩
         · exact Or.inr (Or.inl h)
-        · have h1 := fun l => Ω.mem_tail₁_iff hN hU (hs l)
+        · have h1 := fun l => (Net.Cycle.mem_tail₁_iff Ω) hN hU (hs l)
           have hkp : U.nodes.length ≤ Ω.side₁.nodes.length := by
             have := congrArg List.length (Side.nodes_of_mem_tails hU)
             simp only [List.length_drop] at this
@@ -265,7 +267,7 @@ private theorem fc_cluster_cases (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.
               split_ifs <;> omega
     · rcases hpend hK₂ (fun n hn => Or.inr hn) hA with h | ⟨U, hU, rfl⟩
       · exact Or.inr (Or.inl h)
-      · have h2 := fun l => Ω.mem_tail₂_iff hN hU (hlt l) (hs l)
+      · have h2 := fun l => (Net.Cycle.mem_tail₂_iff Ω) hN hU (hlt l) (hs l)
         first
           | refine Or.inr (Or.inr (Or.inr (Or.inl ⟨Ω.size - U.nodes.length, fun l => ?_⟩)))
             rw [empty_union, h2 l]
@@ -279,8 +281,8 @@ private theorem fc_cluster_cases (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.
 /-- A displayed tree of the top of `Ω` with a cluster cutting the quartet gives a displayed tree of
 `N` that displays it. -/
 private theorem fc_displays_of_top {a b c e : Fin 4} {K : Finset (Finset X)}
-    (hK : K ∈ Ω.top.displayed) {A : Finset X} (hA : A ∈ K) (h : fc_cuts A s a b c e) :
-    N.Displays (s a) (s b) (s c) (s e) := by
+    (hK : K ∈ (Net.displayed Ω.top)) {A : Finset X} (hA : A ∈ K) (h : fc_cuts A s a b c e) :
+    (Net.Displays N) (s a) (s b) (s c) (s e) := by
   obtain ⟨K', hK', hsub⟩ := Net.extend_displayed Ω.mem K hK
   exact ⟨K', hK', decide_eq_true ⟨A, hsub hA, h⟩⟩
 
@@ -290,21 +292,21 @@ them. -/
 private theorem fc_cut₁ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
     (hs : ∀ l, s l ∈ Ω.component (pos l)) {x y z w : Fin 4} (hxy : pos x ≠ pos y)
     (hlow : max (pos x) (pos y) < min (pos z) (pos w)) :
-    ∃ K ∈ Ω.top.displayed, ∃ A ∈ K,
+    ∃ K ∈ (Net.displayed Ω.top), ∃ A ∈ K,
       (s x ∈ A ∧ s y ∈ A ∧ s z ∉ A ∧ s w ∉ A) ∨ (s z ∈ A ∧ s w ∈ A ∧ s x ∉ A ∧ s y ∉ A) := by
-  have hsz := Ω.size_ge
+  have hsz := (Net.Cycle.size_ge Ω)
   have hsz' : Ω.size ≤ Ω.side₁.nodes.length + Ω.side₂.nodes.length + 2 := by
     by_cases h : Ω.top = N
     · rw [Ω.size_of_top_eq h]
       omega
     · rw [Ω.size_of_top_ne h]
-  have h0 := fun l => Ω.mem_below_iff hN (hs l)
+  have h0 := fun l => (Net.Cycle.mem_below_iff Ω) hN (hs l)
   obtain ⟨K₀, hK₀⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil Ω.below)
   obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil Ω.side₁ Ω.below.taxa)
   obtain ⟨K₂, hK₂⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil Ω.side₂ ∅)
-  have hK : insert (Ω.side₁.taxa ∪ Ω.side₂.taxa ∪ Ω.below.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
-      Ω.top.displayed := by
-    show _ ∈ (Net.cycle Ω.γ Ω.side₁ Ω.side₂ Ω.ℓ Ω.below).displayed
+  have hK : insert ((Side.taxa Ω.side₁) ∪ (Side.taxa Ω.side₂) ∪ Ω.below.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
+      (Net.displayed Ω.top) := by
+    show _ ∈ (Net.displayed (Net.cycle Ω.γ Ω.side₁ Ω.side₂ Ω.ℓ Ω.below))
     simp only [Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
     exact ⟨K₀, hK₀, Or.inl ⟨K₁, hK₁, K₂, hK₂, rfl⟩⟩
   refine ⟨_, hK, ?_⟩
@@ -316,11 +318,11 @@ private theorem fc_cut₁ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
       rw [h] at hUk
       simp at hUk
       omega
-    refine ⟨Ω.below.taxa ∪ U.taxa, mem_insert_of_mem (mem_union_left _ (mem_union_right _
+    refine ⟨Ω.below.taxa ∪ (Side.taxa U), mem_insert_of_mem (mem_union_left _ (mem_union_right _
       (Side.tail_mem_displayed hK₁ U hU hne))), Or.inl ?_⟩
-    have hmem : ∀ l, s l ∈ Ω.below.taxa ∪ U.taxa ↔ pos l ≤ max (pos x) (pos y) := by
+    have hmem : ∀ l, s l ∈ Ω.below.taxa ∪ (Side.taxa U) ↔ pos l ≤ max (pos x) (pos y) := by
       intro l
-      rw [mem_union, h0 l, Ω.mem_tail₁_iff hN hU (hs l), hUk]
+      rw [mem_union, h0 l, (Net.Cycle.mem_tail₁_iff Ω) hN hU (hs l), hUk]
       omega
     simp only [hmem]
     exact ⟨le_max_left _ _, le_max_right _ _, not_le.2 (hlow.trans_le (min_le_left _ _)),
@@ -337,11 +339,11 @@ private theorem fc_cut₁ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
       have := hlt z
       have := hlt w
       omega
-    refine ⟨∅ ∪ U.taxa, mem_insert_of_mem (mem_union_right _
+    refine ⟨∅ ∪ (Side.taxa U), mem_insert_of_mem (mem_union_right _
       (Side.tail_mem_displayed hK₂ U hU hne)), Or.inr ?_⟩
-    have hmem : ∀ l, s l ∈ ∅ ∪ U.taxa ↔ min (pos z) (pos w) ≤ pos l := by
+    have hmem : ∀ l, s l ∈ ∅ ∪ (Side.taxa U) ↔ min (pos z) (pos w) ≤ pos l := by
       intro l
-      rw [empty_union, Ω.mem_tail₂_iff hN hU (hlt l) (hs l), hUk]
+      rw [empty_union, (Net.Cycle.mem_tail₂_iff Ω) hN hU (hlt l) (hs l), hUk]
       have := hlt z
       have := hlt w
       omega
@@ -356,15 +358,15 @@ private theorem fc_cut₂ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
     (hzw : toRightEnd Ω.size (pos z) ≠ toRightEnd Ω.size (pos w))
     (hlow : max (toRightEnd Ω.size (pos x)) (toRightEnd Ω.size (pos y)) <
       min (toRightEnd Ω.size (pos z)) (toRightEnd Ω.size (pos w))) :
-    ∃ K ∈ Ω.top.displayed, ∃ A ∈ K,
+    ∃ K ∈ (Net.displayed Ω.top), ∃ A ∈ K,
       (s x ∈ A ∧ s y ∈ A ∧ s z ∉ A ∧ s w ∉ A) ∨ (s z ∈ A ∧ s w ∈ A ∧ s x ∉ A ∧ s y ∉ A) := by
-  have hsz := Ω.size_ge
+  have hsz := (Net.Cycle.size_ge Ω)
   have hsz' : Ω.size ≤ Ω.side₁.nodes.length + Ω.side₂.nodes.length + 2 := by
     by_cases h : Ω.top = N
     · rw [Ω.size_of_top_eq h]
       omega
     · rw [Ω.size_of_top_ne h]
-  have h0 := fun l => Ω.mem_below_iff hN (hs l)
+  have h0 := fun l => (Net.Cycle.mem_below_iff Ω) hN (hs l)
   have hP : ∀ l, 1 ≤ toRightEnd Ω.size (pos l) ∧ toRightEnd Ω.size (pos l) ≤ Ω.size ∧
       (pos l = 0 → toRightEnd Ω.size (pos l) = Ω.size) ∧
       (pos l ≠ 0 → toRightEnd Ω.size (pos l) = pos l) := by
@@ -375,9 +377,9 @@ private theorem fc_cut₂ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
   obtain ⟨K₀, hK₀⟩ := List.exists_mem_of_ne_nil _ (Net.displayed_ne_nil Ω.below)
   obtain ⟨K₁, hK₁⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil Ω.side₁ ∅)
   obtain ⟨K₂, hK₂⟩ := List.exists_mem_of_ne_nil _ (Side.displayed_ne_nil Ω.side₂ Ω.below.taxa)
-  have hK : insert (Ω.side₁.taxa ∪ Ω.side₂.taxa ∪ Ω.below.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
-      Ω.top.displayed := by
-    show _ ∈ (Net.cycle Ω.γ Ω.side₁ Ω.side₂ Ω.ℓ Ω.below).displayed
+  have hK : insert ((Side.taxa Ω.side₁) ∪ (Side.taxa Ω.side₂) ∪ Ω.below.taxa) (K₀ ∪ K₁ ∪ K₂) ∈
+      (Net.displayed Ω.top) := by
+    show _ ∈ (Net.displayed (Net.cycle Ω.γ Ω.side₁ Ω.side₂ Ω.ℓ Ω.below))
     simp only [Net.displayed, List.mem_flatMap, List.mem_append, List.mem_map]
     exact ⟨K₀, hK₀, Or.inr ⟨K₁, hK₁, K₂, hK₂, rfl⟩⟩
   refine ⟨_, hK, ?_⟩
@@ -393,13 +395,13 @@ private theorem fc_cut₂ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
       rw [h] at hUk
       simp at hUk
       omega
-    refine ⟨∅ ∪ U.taxa, mem_insert_of_mem (mem_union_left _ (mem_union_right _
+    refine ⟨∅ ∪ (Side.taxa U), mem_insert_of_mem (mem_union_left _ (mem_union_right _
       (Side.tail_mem_displayed hK₁ U hU hne))), Or.inl ?_⟩
-    have hmem : ∀ l, s l ∈ ∅ ∪ U.taxa ↔
+    have hmem : ∀ l, s l ∈ ∅ ∪ (Side.taxa U) ↔
         toRightEnd Ω.size (pos l) ≤ max (toRightEnd Ω.size (pos x))
           (toRightEnd Ω.size (pos y)) := by
       intro l
-      rw [empty_union, Ω.mem_tail₁_iff hN hU (hs l), hUk]
+      rw [empty_union, (Net.Cycle.mem_tail₁_iff Ω) hN hU (hs l), hUk]
       have := hP l
       by_cases h : pos l = 0
       · rw [this.2.2.1 h]
@@ -416,13 +418,13 @@ private theorem fc_cut₂ (hN : N.leaves.Nodup) (hlt : ∀ l, pos l < Ω.size)
       rw [h] at hUk
       simp at hUk
       omega
-    refine ⟨Ω.below.taxa ∪ U.taxa, mem_insert_of_mem (mem_union_right _
+    refine ⟨Ω.below.taxa ∪ (Side.taxa U), mem_insert_of_mem (mem_union_right _
       (Side.tail_mem_displayed hK₂ U hU hne)), Or.inr ?_⟩
-    have hmem : ∀ l, s l ∈ Ω.below.taxa ∪ U.taxa ↔
+    have hmem : ∀ l, s l ∈ Ω.below.taxa ∪ (Side.taxa U) ↔
         min (toRightEnd Ω.size (pos z)) (toRightEnd Ω.size (pos w)) ≤
           toRightEnd Ω.size (pos l) := by
       intro l
-      rw [mem_union, h0 l, Ω.mem_tail₂_iff hN hU (hlt l) (hs l), hUk]
+      rw [mem_union, h0 l, (Net.Cycle.mem_tail₂_iff Ω) hN hU (hlt l) (hs l), hUk]
       have := hP l
       by_cases h : pos l = 0
       · rw [this.2.2.1 h]
@@ -441,7 +443,7 @@ the side `side₂`) has the split `ab|ce`. -/
 theorem displays_iff (hN : N.leaves.Nodup) (hinj : Function.Injective pos)
     (hlt : ∀ l, pos l < Ω.size) (hs : ∀ l, s l ∈ Ω.component (pos l)) {a b c e : Fin 4}
     (hab : a ≠ b) (hce : c ≠ e) :
-    N.Displays (s a) (s b) (s c) (s e) ↔
+    (Net.Displays N) (s a) (s b) (s c) (s e) ↔
       pathSep (pos a) (pos b) (pos c) (pos e) ∨
         pathSep (toRightEnd Ω.size (pos a)) (toRightEnd Ω.size (pos b))
           (toRightEnd Ω.size (pos c)) (toRightEnd Ω.size (pos e)) := by
@@ -465,9 +467,9 @@ theorem displays_iff (hN : N.leaves.Nodup) (hinj : Function.Injective pos)
     obtain ⟨x, y, z, w, hxy, hzw, hx, hy, hz, hw⟩ := hin
     have hcontra : ¬ Ω.top.taxa ⊆ A := by
       intro hsub
-      rcases (Ω.mem_top_iff hN (hlt z) (hs z)).2 |>.mt (fun h => hz (hsub h)) |> not_or.1 with
+      rcases ((Net.Cycle.mem_top_iff Ω) hN (hlt z) (hs z)).2 |>.mt (fun h => hz (hsub h)) |> not_or.1 with
         ⟨h1, h2⟩
-      have := (Ω.mem_top_iff hN (hlt w) (hs w)).2 (Or.inr (fun h3 => hne hzw (by
+      have := ((Net.Cycle.mem_top_iff Ω) hN (hlt w) (hs w)).2 (Or.inr (fun h3 => hne hzw (by
         push Not at h2
         rw [h2, h3])))
       exact hw (hsub this)
@@ -476,16 +478,16 @@ theorem displays_iff (hN : N.leaves.Nodup) (hinj : Function.Injective pos)
     · rcases fc_cluster_cases Ω hN hlt hs hK' hA' with
           h | ⟨j, hj⟩ | ⟨k, hk⟩ | ⟨m, hm⟩ | ⟨k, hk⟩ | ⟨m, hm⟩
       · exact absurd (h ▸ subset_rfl) hcontra
-      · exact absurd ((Ω.eq_of_mem_component hN (hs x) (hj hx)).trans
-          (Ω.eq_of_mem_component hN (hs y) (hj hy)).symm) (hne hxy)
+      · exact absurd (((Net.Cycle.eq_of_mem_component Ω) hN (hs x) (hj hx)).trans
+          ((Net.Cycle.eq_of_mem_component Ω) hN (hs y) (hj hy)).symm) (hne hxy)
       · exact Or.inl (fc_cuts_le hk hcut')
       · exact Or.inl (fc_cuts_ge hm hcut')
       · exact Or.inr (fc_cuts_le hk hcut')
       · exact Or.inr (fc_cuts_ge hm hcut')
     · exact absurd hsup hcontra
-    · have hxo := (Ω.mem_top_iff hN (hlt x) (hs x)).not.1
+    · have hxo := ((Net.Cycle.mem_top_iff Ω) hN (hlt x) (hs x)).not.1
         (fun h => disjoint_left.1 hdis hx h)
-      have hyo := (Ω.mem_top_iff hN (hlt y) (hs y)).not.1
+      have hyo := ((Net.Cycle.mem_top_iff Ω) hN (hlt y) (hs y)).not.1
         (fun h => disjoint_left.1 hdis hy h)
       push Not at hxo hyo
       exact absurd (hxo.2.trans hyo.2.symm) (hne hxy)
@@ -521,11 +523,11 @@ def Net.cf3 (N : Net X) (a b c e : X) : Fin 3 → ℝ :=
 
 /-- Whether `N` displays the three quartets `ab|ce`, `ac|be`, `ae|bc`. -/
 def Net.disp3 (N : Net X) (a b c e : X) : Fin 3 → Prop :=
-  ![N.Displays a b c e, N.Displays a c b e, N.Displays a e b c]
+  ![(Net.Displays N) a b c e, (Net.Displays N) a c b e, (Net.Displays N) a e b c]
 
 /-- The four taxa `a, b, c, e` have the CF pattern that Quartet Filtering presumes. -/
 def Net.RegularOn (N : Net X) (a b c e : X) : Prop :=
-  RegularPattern (N.disp3 a b c e) (N.cf3 a b c e)
+  RegularPattern ((Net.disp3 N) a b c e) ((Net.cf3 N) a b c e)
 
 private theorem fc_other : ∀ a b : Fin 3, ∃ u : Fin 3, u ≠ a ∧ u ≠ b := by
   decide
@@ -658,11 +660,11 @@ metric network with distinct leaf labels, the quartet CFs have the pattern that 
 presumes: if the hybrid component is not among the four, the network displays one quartet, the
 quartet of the tree, with CF `1 - (2/3) e^{-t}` against `(1/3) e^{-t}` for the two others; if it
 is, the network displays two quartets, the quartets of its two displayed trees, and the third is
-strictly less probable (the `γ`-mixture of `Brooqs.nmsc_quartetCF`). -/
+strictly less probable (the `γ`-mixture of `Phylogenetics.nmsc_quartetCF`). -/
 theorem Net.Cycle.regularOn_of_components (hN : N.WellFormed) (Ω : N.Cycle) {s : Fin 4 → X}
     {pos : Fin 4 → ℕ} (hinj : Function.Injective pos) (hlt : ∀ l, pos l < Ω.size)
     (hs : ∀ l, s l ∈ Ω.component (pos l)) :
-    N.RegularOn (s 0) (s 1) (s 2) (s 3) := by
+    (Net.RegularOn N) (s 0) (s 1) (s 2) (s 3) := by
   -- the inheritance probability and the edge lengths of the cycle
   obtain ⟨hγ0, hγ1, -⟩ := Net.isMetric_of_mem_subnets Ω.mem hN.1
   obtain ⟨M, -, hMw⟩ := Ω.exists_metricCycle hN
@@ -798,4 +800,4 @@ theorem Net.Cycle.regularOn_of_components (hN : N.WellFormed) (Ω : N.Cycle) {s 
       rw [q2]
       exact ⟨fun h => ite_eq_left h, fun h => ite_eq_right h⟩
 
-end Brooqs
+end External.NMSC

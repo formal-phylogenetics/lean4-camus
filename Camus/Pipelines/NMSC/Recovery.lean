@@ -45,14 +45,14 @@ open Finset Filter Topology MeasureTheory ProbabilityTheory Coalescent Algorithm
 variable {L : Finset ℕ}
 
 /-- Every quartet tree on the taxa of a metric network with distinct leaf labels has positive
-probability under the NMSC (`Brooqs.Net.quartetCF_pos`). -/
-theorem quartetProb_pos {N : Brooqs.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
+probability under the NMSC (`External.NMSC.Net.quartetCF_pos`). -/
+theorem quartetProb_pos {N : Phylogenetics.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
     {q : Quartet} (hq : q.taxa ⊆ L) : 0 < quartetProb N q := by
   have hk : keyTaxa q.key ⊆ L := hq
   have hqk : q.key.quartet q.split = q := Quartet.key_quartet q
   obtain ⟨p0, p1, p2⟩ := quartetProb_eq_quartetCF N hN.2 q.key hk
   have hpos := fun (a b c e : Fin 4) =>
-    Brooqs.Net.quartetCF_pos hN (htaxa (keyTaxon q.key hk a)) (htaxa (keyTaxon q.key hk b))
+    External.NMSC.Net.quartetCF_pos hN (htaxa (keyTaxon q.key hk a)) (htaxa (keyTaxon q.key hk b))
       (htaxa (keyTaxon q.key hk c)) (htaxa (keyTaxon q.key hk e))
   rw [← hqk]
   rcases (show q.split = 0 ∨ q.split = 1 ∨ q.split = 2 by omega) with h | h | h <;> rw [h]
@@ -71,7 +71,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasur
 /-- For independent gene trees with the law of the NMSC on a metric network with distinct leaf
 labels on the taxa `L`, almost surely, for all large numbers `n` of genes, every quartet tree on
 the taxa is induced by one of the first `n` gene trees. -/
-theorem eventually_mem_geneQuartets {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem eventually_mem_geneQuartets {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) :
@@ -97,7 +97,7 @@ law of the NMSC on a metric level-1 network `N` with distinct leaf labels on the
 the anomalous configuration. For every threshold `0 < t < t₀(N)`, almost surely, for all large
 numbers `n` of genes, the quartet trees that Quartet Filtering returns are exactly those in
 Q(N_r): its output is "a multi-set version of Q(Nr)" (Section 3.2). -/
-theorem nmsc_filterQuartets_support {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_filterQuartets_support {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
@@ -126,7 +126,7 @@ every network built on `T` that has the best score for the output `Q` of Quartet
 quartet trees of the first `n` gene trees, with the fewest reticulations among the networks with the
 best score, is isomorphic to `Nr`. The paper's uniqueness claim, without the tie-break and the
 identifiability, is false (the report's E7). -/
-theorem nmsc_recovery {N : Brooqs.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
+theorem nmsc_recovery {N : Phylogenetics.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
     (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
@@ -158,7 +158,7 @@ theorem nmsc_recovery {N : Brooqs.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L,
 trees that Quartet Filtering returns are exactly those displayed by the network
 `Realization.graph (baseTree N) (pairs N)` of CAMUS, the graph of `N` built on its base tree
 (`NMSC.graph_displaysQuartet_iff`). -/
-theorem nmsc_filterQuartets_graph {N : Brooqs.Net L} (hN : N.WellFormed)
+theorem nmsc_filterQuartets_graph {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L))
     (hind : iIndepFun G P) (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)
@@ -172,15 +172,15 @@ theorem nmsc_filterQuartets_graph {N : Brooqs.Net L} (hN : N.WellFormed)
 
 /-- Sections 3.3 and 3.4, for gene trees that exist: the hypotheses of
 `NMSC.nmsc_filterQuartets_graph` hold for the coordinates of `N.genes hN`, the product law of
-independent gene trees under the NMSC on `N` (`Brooqs.Net.genes`). -/
-theorem nmsc_filterQuartets_graph_genes {N : Brooqs.Net L} (hN : N.WellFormed)
+independent gene trees under the NMSC on `N` (`External.NMSC.Net.genes`). -/
+theorem nmsc_filterQuartets_graph_genes {N : Phylogenetics.Net L} (hN : N.WellFormed)
     (htaxa : ∀ x : L, x ∈ N.taxa) (hna : NoAnomaly N) {t : ℝ} (ht : 0 < t)
     (ht₀ : t < threshold N) :
-    ∀ᵐ ω ∂(N.genes hN), ∀ᶠ n in atTop, ∀ q,
+    ∀ᵐ ω ∂((External.NMSC.Net.genes N) hN), ∀ᶠ n in atTop, ∀ q,
       q ∈ filterQuartets t (geneQuartets (fun i => ω i) n) ↔
         (Realization.graph (baseTree N) (pairs N)).DisplaysQuartet q :=
   nmsc_filterQuartets_graph hN htaxa hna (fun n (ω : ℕ → Finset (Finset L)) => ω n)
-    (N.genes_iIndepFun hN) (N.genes_identDistrib hN) (N.genes_law hN) ht ht₀
+    ((External.NMSC.Net.genes_iIndepFun N) hN) ((External.NMSC.Net.genes_identDistrib N) hN) ((External.NMSC.Net.genes_law N) hN) ht ht₀
 
 open DynamicProgramming in
 /-- **Sections 3.2 to 3.4 under the NMSC, in the graph representation.** Let the gene trees be
@@ -195,7 +195,7 @@ inclusion among the networks built on `T`. Almost surely, for all large numbers 
 every network built on `T` that has the best score for the output `Q` of Quartet Filtering on the
 quartet trees of the first `n` gene trees, with the fewest reticulations among the networks with
 the best score, is isomorphic to `Nr`. -/
-theorem nmsc_recovery_graph {N : Brooqs.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
+theorem nmsc_recovery_graph {N : Phylogenetics.Net L} (hN : N.WellFormed) (htaxa : ∀ x : L, x ∈ N.taxa)
     (hna : NoAnomaly N) (G : ℕ → Ω → Finset (Finset L)) (hind : iIndepFun G P)
     (hid : ∀ n, IdentDistrib (G n) (G 0) P P)
     (hlaw : ∀ T, P.real (G 0 ⁻¹' {T}) = N.geneTreeDist id T) {t : ℝ} (ht : 0 < t)

@@ -28,13 +28,13 @@ jobs:
       # The audit sees a module's proofs only through its own `import all` line: every module of
       # Camus/ (Basic/, External/ and the paper's library), the paper's Solution in palomar/, but
       # not the Challenge (it holds a copy of the paper's definitions), and every module of
-      # Phylogenetics and Allman2011.
+      # Phylogenetics, PhyloNetwork and Allman2011.
       - name: Check that the audit imports every module of the libraries
         run: |
           diff <({ find Camus -name '*.lean'; cd palomar && find . -name Solution.lean; } \
             | sed 's#^\./##; s/\.lean$//; s#/#.#g' | sort) \
             <(grep -E '^import all Camus\.' scripts/Audit.lean | sed 's/^import all //' | sort)
-          for p in Phylogenetics Allman2011; do
+          for p in Phylogenetics PhyloNetwork Allman2011; do
             diff <(cd .lake/packages/$p && find $p -name '*.lean' | sed 's/\.lean$//; s#/#.#g' | sort) \
               <(grep -E "^import all $p\." scripts/Audit.lean | sed 's/^import all //' | sort)
           done

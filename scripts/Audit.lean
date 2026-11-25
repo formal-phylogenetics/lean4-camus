@@ -7,12 +7,12 @@ public meta import Lean.DocString
 -- (`Basic/`, `External/` and the paper's library) and the paper's Solution in `palomar/`, but not
 -- the Challenge, which holds a copy of the definitions of `Camus/Defs.lean`; then every module of
 -- the libraries that this repository requires, `Phylogenetics`, `PhyloNetwork` and `Allman2011`
--- (lean4-phylogenetics, docs/CONVENTIONS.md, Section 3). Generate the lines with
+-- (lean4-phylogenetics, docs/CONVENTIONS.md, Section 3). Generate the lines, in the C locale, with
 --   { find Camus -name '*.lean'; cd palomar && find . -name Solution.lean; } |
 --     sed 's#^\./##; s/\.lean$//; s#/#.#g; s/^/import all /' | sort
---   for p in Phylogenetics Allman2011; do (cd .lake/packages/$p && find $p -name '*.lean'); done |
---     sed 's/\.lean$//; s#/#.#g; s/^/import all /' | sort
--- and `import all PhyloNetwork`, the hub's library, which has no module under `PhyloNetwork/` yet.
+--   for p in Phylogenetics PhyloNetwork Allman2011; do
+--     (cd .lake/packages/$p && find $p -name '*.lean') |
+--       sed 's/\.lean$//; s#/#.#g; s/^/import all /' | sort; done
 import all Camus.Basic.Algebra.BigOperators.Fintype
 import all Camus.Basic.Combinatorics.SimpleGraph.Acyclic
 import all Camus.Basic.Combinatorics.SimpleGraph.Cycles
@@ -211,6 +211,7 @@ import all Phylogenetics.Computation.FiveTaxa
 import all Phylogenetics.Computation.FourTaxa
 import all Phylogenetics.Computation.ThreeTaxa
 import all Phylogenetics.Computation.Toolkit
+import all Phylogenetics.ForMathlib.Analysis.AnalyticZeroSet
 import all Phylogenetics.ForMathlib.Analysis.MatrixExponential
 import all Phylogenetics.ForMathlib.MeasureTheory.HaarPreimage
 import all Phylogenetics.Graph.Basic
@@ -239,10 +240,12 @@ import all Phylogenetics.MSC.Shapes
 import all Phylogenetics.MSC.Small
 import all Phylogenetics.NMSC.Analytic
 import all Phylogenetics.NMSC.Basic
+import all Phylogenetics.NMSC.ChoiceMetric
 import all Phylogenetics.NMSC.Defs
 import all Phylogenetics.NMSC.DisplayedTreeModel
 import all Phylogenetics.NMSC.Exchangeability
 import all Phylogenetics.NMSC.Factor
+import all Phylogenetics.NMSC.Generic
 import all Phylogenetics.NMSC.Glue
 import all Phylogenetics.NMSC.History
 import all Phylogenetics.NMSC.Induced
@@ -318,6 +321,37 @@ import all Phylogenetics.Tree.Splice
 import all Phylogenetics.Tree.Splits
 import all Phylogenetics.Tree.SplitsEquivalence
 import all Phylogenetics.Tree.XTree
+import all PhyloNetwork.External.HuberEtAl2025.Theorem51
+import all PhyloNetwork.External.MitchellAllmanRhodes2019.CutModel
+import all PhyloNetwork.External.MitchellAllmanRhodes2019.T1Limit
+import all PhyloNetwork.External.MitchellAllmanRhodes2019.T3Density
+import all PhyloNetwork.External.MitchellAllmanRhodes2019.T3Limit
+import all PhyloNetwork.External.MitchellAllmanRhodes2019.T3Test
+import all PhyloNetwork.External.Rhodes2020.Theorem2
+import all PhyloNetwork.ForMathlib.Analysis.SpecialFunctions.EntropyExcess
+import all PhyloNetwork.ForMathlib.Analysis.SpecialFunctions.Erf
+import all PhyloNetwork.ForMathlib.Probability.GaussianPlane
+import all PhyloNetwork.ForMathlib.Probability.GaussianStrip
+import all PhyloNetwork.ForMathlib.Probability.GaussianTail
+import all PhyloNetwork.ForMathlib.Probability.Transfer
+import all PhyloNetwork.InducedSplits
+import all PhyloNetwork.Level1Blobs
+import all PhyloNetwork.Level1Blocks
+import all PhyloNetwork.Level1CF
+import all PhyloNetwork.NMSCChain
+import all PhyloNetwork.Testing.Combining
+import all PhyloNetwork.Testing.Defs
+import all PhyloNetwork.Testing.IID
+import all PhyloNetwork.Testing.Limits
+import all PhyloNetwork.Testing.MissingTaxa
+import all PhyloNetwork.Testing.Tails
+import all PhyloNetwork.Testing.Trinomial.Bridge
+import all PhyloNetwork.Testing.Trinomial.CLT
+import all PhyloNetwork.Testing.Trinomial.Gaussian
+import all PhyloNetwork.Testing.Trinomial.Statistics
+import all PhyloNetwork.Testing.Trinomial.Tests
+import all PhyloNetwork.Testing.Trinomial.Whiten
+import all PhyloNetwork.Wedge
 import all Allman2011.AppendixA
 import all Allman2011.AppendixC.Ac1Classes
 import all Allman2011.AppendixC.FiveTaxa
@@ -368,7 +402,6 @@ import all Allman2011.Nonbinary.Unrooted
 import all Allman2011.Rootings.Proofs
 import all Allman2011.Rootings.Statements
 import all Allman2011.Rootings.Support
-import all PhyloNetwork
 
 /-!
 # Axiom and dependency audit

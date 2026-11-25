@@ -2,7 +2,11 @@
 
 Two results of Warnow, Tabatabaee and Evans that the paper uses: Observation 2, in the proof of
 Lemma 1, and the convergence of the quartets of SNPs to the quartets of the network under their
-site model, in the consistency argument of Section 3.2.
+site model, in the consistency argument of Section 3.2. The modules are
+`Camus.External.WarnowTabatabaeeEvans.{Observation2, SiteModel, Sampling}`, in the namespace
+`External.WarnowTabatabaeeEvans`. They state the source's results on the networks of the paper
+([`Camus/Defs.lean`](../../Defs.lean)), and import only the modules of definitions and facts about networks that they
+share with the paper's library ([`Camus/External/README.md`](../README.md)).
 
 ## Observation 2
 
@@ -23,10 +27,10 @@ Observation 2 in Warnow et al. (2025)." The formalization uses it for the existe
 Lemma 1 ([`RootedNetwork.novel_edge_exists`](../../Preliminaries/Lemma1/Cuts.lean#L95)); the uniqueness half needs another argument
 (the report's E1).
 
-**The Lean statement.** [`External.WarnowTabatabaeeEvansObservation2`](Observation2.lean#L70), in
+**The Lean statement.** [`External.WarnowTabatabaeeEvans.WarnowTabatabaeeEvansObservation2`](Observation2.lean#L72), in
 [`Camus/External/WarnowTabatabaeeEvans/Observation2.lean`](Observation2.lean): for every rooted binary level-1 network `N`
-([`RootedNetwork.RootedBinaryLevelOne`](../../../Challenge.lean#L270)) and every quartet `q` on four of its taxa, `N` displays `q`
-([`RootedNetwork.DisplaysQuartet`](../../../Challenge.lean#L311): some switching of `N`, which keeps one incoming edge at every
+([`RootedNetwork.RootedBinaryLevelOne`](../../../palomar/Camus/Challenge.lean#L270)) and every quartet `q` on four of its taxa, `N` displays `q`
+([`RootedNetwork.DisplaysQuartet`](../../../palomar/Camus/Challenge.lean#L311): some switching of `N`, which keeps one incoming edge at every
 vertex other than the root, has an edge whose deletion separates the two pairs of `q`, each pair
 staying connected) if and only if deleting a cut edge of the underlying undirected graph
 separates them ([`RootedNetwork.CutEdgeSeparates`](../../Defs.lean#L882)), or deleting two edges of one cycle, at least one
@@ -36,8 +40,8 @@ unlabelled leaves change no split; a vertex of indegree 2 on a cycle of a level-
 cycle's bottom node; and deleting both edges into the bottom node separates the same pairs as
 deleting the edge below it.
 
-**The proof.** [`External.observation2`](Observation2.lean#L187), from [`External.observation2_forward`](Observation2.lean#L80) and
-[`External.observation2_backward`](Observation2.lean#L156). A switching is a spanning tree of the network, and every edge
+**The proof.** [`External.WarnowTabatabaeeEvans.observation2`](Observation2.lean#L189), from [`External.WarnowTabatabaeeEvans.observation2_forward`](Observation2.lean#L82) and
+[`External.WarnowTabatabaeeEvans.observation2_backward`](Observation2.lean#L158). A switching is a spanning tree of the network, and every edge
 `d` that it leaves out closes a cycle with the path of the switching between its ends; the head of
 `d` is the cycle's reticulation. If a switching displays `q` through an edge `e`, either `e` is a
 cut edge of `N`, and deleting it leaves the same two components in `N` as in the switching, or `e`
@@ -70,27 +74,28 @@ set), with probability converging to 1." Here the multiset is that of the quarte
 SNPs, `a`, `b` in one state and `c`, `d` in the other, and "gene trees" means sites (the report's
 E10).
 
-**The Lean statement.** The model is [`External.SiteModel`](SiteModel.lean#L316) in
-[`Camus/External/WarnowTabatabaeeEvans/SiteModel.lean`](SiteModel.lean) (its parameters, with the constraints of Section 4.2 and their designation of the reticulation edges, at least one of the two edges into each reticulation, are [`External.SiteParameters`](SiteModel.lean#L290)), and the convergence is [`External.support_tendsto`](Sampling.lean#L99) in
+**The Lean statement.** The model is [`External.WarnowTabatabaeeEvans.SiteModel`](SiteModel.lean#L145) in
+[`Camus/External/WarnowTabatabaeeEvans/SiteModel.lean`](SiteModel.lean) (its parameters, with the constraints of Section 4.2 and their designation of the reticulation edges, at least one of the two edges into each reticulation, are [`External.WarnowTabatabaeeEvans.SiteParameters`](SiteModel.lean#L119)), and the convergence is [`External.WarnowTabatabaeeEvans.support_tendsto`](Sampling.lean#L102) in
 [`Camus/External/WarnowTabatabaeeEvans/Sampling.lean`](Sampling.lean): for independent sites with the law of the
 model, the probability that the support of the multiset of the quartets of the SNPs among the first
 `m` sites is the set of quartets displayed by `N` tends to 1. Sequences of independent sites with
-this law exist ([`External.SiteModel.sites`](Sampling.lean#L250)).
+this law exist ([`External.WarnowTabatabaeeEvans.SiteModel.sites`](Sampling.lean#L228)).
 
 **A missing hypothesis.** The constraints of Section 4.2 do not make `p(e, s, s)` positive on the
 tree edges, and the step "it is easy to see" needs it: if the state must change on a tree edge `f`,
 no site that changes only on another edge exists. For the tree `(((A,B),C),D)` with the state always
 changing on the edge above `((A,B),C)`, which meets every constraint of Section 4.2, no SNP of
 positive probability has the clade `{A, B}`, and the quartet `AB|CD` of the tree is never observed
-([`External.theorem6_step_needs_stay`](Theorem6.lean#L186), in [`Camus/External/WarnowTabatabaeeEvans/Theorem6.lean`](Theorem6.lean)).
+([`Camus.theorem6_step_needs_stay`](../../Pipelines/Theorem6Gap.lean#L188), in the paper's library,
+[`Camus/Pipelines/Theorem6Gap.lean`](../../Pipelines/Theorem6Gap.lean), since the example is built from the paper's networks).
 Theorem 6 then fails for this network. Their Theorem 7 assumes `0 < p_on ≤ p(e, s, s)`, and so does
-[`External.SiteModel`](SiteModel.lean#L316) (its field `stay_pos`). Substitution probabilities of a continuous-time Markov
+[`External.WarnowTabatabaeeEvans.SiteModel`](SiteModel.lean#L145) (its field `stay_pos`). Substitution probabilities of a continuous-time Markov
 chain, as in the standard models, satisfy it.
 
 **The proof.** WTE's, for quartets in place of clades. If `N` displays `q`, some switching has an
-edge into a vertex of indegree 1 whose clade cuts `q` ([`RootedNetwork.displays_iff_treeEdge_cladeBelow`](../../Network/Clades.lean#L205)).
+edge into a vertex of indegree 1 whose clade cuts `q` ([`RootedNetwork.displays_iff_treeEdge_cladeBelow`](../../Network/Clades.lean#L206)).
 The history that follows this switching and changes state on that edge alone has positive
-probability ([`External.SiteModel.exists_snp`](SiteModel.lean#L1041), [`External.SiteModel.quartetProb_pos`](SiteModel.lean#L1056)), and every
-quartet of an SNP is displayed by `N` ([`External.SiteHistory.displays_of_mem_quartets`](SiteModel.lean#L905)). With
+probability ([`External.WarnowTabatabaeeEvans.SiteModel.exists_snp`](SiteModel.lean#L870), [`External.WarnowTabatabaeeEvans.SiteModel.quartetProb_pos`](SiteModel.lean#L885)), and every
+quartet of an SNP is displayed by `N` ([`External.WarnowTabatabaeeEvans.SiteHistory.displays_of_mem_quartets`](SiteModel.lean#L734)). With
 finitely many quartets, a union bound with `(1 − p)^m → 0` gives the convergence.
 

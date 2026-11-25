@@ -82,7 +82,7 @@ How it was made:
   Section 3.2, which the main session added to the library. A sub-agent searched the literature and
   the paper's versions.
 - **The audit.** The main session rewrote the audit script, the routes of the paper's proofs, CI,
-  and wrote [`REPORT.md`](REPORT.md) and [`README.md`](README.md), renumbering the findings in the paper's order and adding
+  and wrote [`REPORT.md`](REPORT.md) and [`README.md`](../../README.md), renumbering the findings in the paper's order and adding
   three (E1, E2 and the typos, E10 since the fourth round). A sub-agent
   checked every finding of the report and every summary of another work against its source, and the
   main session applied its corrections.
@@ -171,7 +171,7 @@ How it was made:
   trees determined by their quartets, with the SNP pipeline of Section 3.2 as one statement; and
   the time of backtracking in Section 2.4, with peak memory. After the author's answer, it copied
   the network multispecies coalescent of the formalization of BROOQS (commit `1c2eede`) into
-  [`Camus/External/NMSC/`](Camus/External/NMSC) and started a fourth sub-agent on Sections 3.3 and 3.4 under that model.
+  [`Camus/External/NMSC/`](../../Camus/External/NMSC) and started a fourth sub-agent on Sections 3.3 and 3.4 under that model.
 - **The work.** The sub-agents proved:
   - that every level-1 network is built on one of its trees, with at most `n − 1` reticulations,
     and which quartet trees the network of Figure 1 displays;

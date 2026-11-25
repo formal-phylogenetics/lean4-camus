@@ -2,59 +2,53 @@
 
 **Why it is here.** Sections 3.3 and 3.4 of the paper assume that gene trees evolve down a level-1
 network under the network multispecies coalescent (NMSC), and motivate Quartet Filtering
-(Algorithm 1) by the distributions of quartet trees that it gives. This directory holds that model.
+(Algorithm 1) by the distributions of quartet trees that it gives. The model is in
+lean4-phylogenetics, which this repository requires: rooted metric level-1 networks described
+recursively from the root (`Phylogenetics.Net`, with `Phylogenetics.Net.WellFormed`: positive edge
+lengths, inheritance probabilities in `(0, 1)`, no cycle of two edges, distinct leaf labels),
+Kingman's coalescent on forests of gene lineages, the NMSC (`Phylogenetics.Net.forestDist`,
+`Phylogenetics.Net.geneTreeDist`), the quartet concordance factors (CFs, `Phylogenetics.Net.quartetCF`),
+sampling consistency, and the CFs of four components of a cycle, those of the induced metric quarnet
+(H. Baños, *Identifying species network features from gene tree quartets under the coalescent
+model*, Bull. Math. Biol. 81 (2019) 494–534: `Phylogenetics.nmsc_quartetCF`). This directory, in
+the namespace `External.NMSC`, holds the facts about the model that the paper's library needs and
+lean4-phylogenetics does not have. They import nothing of the paper's library.
 
-**Where it comes from.** The files are copied from the Lean formalization of BROOQS (Shayesteh
-Arasti and Siavash Mirarab, *BROOQS: Spectral Methods Resolve Level-1 Hybridization Cycles without
-Tests of Symmetry*, bioRxiv [10.64898/2026.08.31.748319](https://doi.org/10.64898/2026.08.31.748319)),
-lean4-brooqs, library `Primitive`, commit `1c2eede`, by the maintainer of this project. The
-namespace `Brooqs` is kept, so that the two copies stay comparable. BROOQS's F-matrix and the steps
-of its algorithm are left out. The model:
+**The files.**
 
-- rooted metric level-1 networks, described recursively from the root ([`Brooqs.Net`](Model.lean#L61)), with positive
-  edge lengths, inheritance probabilities in `(0, 1)` and distinct leaf labels
-  ([`Brooqs.Net.WellFormed`](Model.lean#L134));
-- Kingman's coalescent on forests of gene lineages, from the formalization of Allman, Degnan and
-  Rhodes (2011), lean4-adr11 (a dependency of this project);
-- the NMSC ([`Brooqs.Net.forestDist`](Model.lean#L205), [`Brooqs.Net.geneTreeDist`](Model.lean#L230)), and the quartet concordance factors
-  ([`Brooqs.Net.quartetCF`](Model.lean#L244));
-- the quartet concordance factors of four components of a cycle, which are those of the induced
-  metric quarnet (H. Baños, *Identifying species network features from gene tree quartets under the
-  coalescent model*, Bull. Math. Biol. 81 (2019) 494–534): [`Brooqs.nmsc_quartetCF`](Cycle.lean#L743);
-- sampling consistency: the gene tree of a subset of the lineages has the distribution of the
-  coalescent of that subset ([`Brooqs.Net.geneTreeDist_restrict`](Consistency.lean#L539)), so a quartet CF is the
-  probability that a gene tree on all the taxa displays the quartet ([`Brooqs.quartetCF_eq_displays`](Displays.lean#L113)).
-
-**What was added for CAMUS.** BROOQS's `Defs.lean`, without the F-matrix, is `Model.lean`. The
-copied files are unchanged except for their import paths, their layout (lines wrapped at 100
-characters), their docstrings, which name BROOQS where they refer to its paper, and three public
-lemmas: [`Brooqs.exists_context_kernel`](Context.lean#L439) and [`Brooqs.quartetCF_eq_sum_subnet`](Context.lean#L469) in `Context.lean` (the
-argument of [`Brooqs.quartetCF_eq_sum_top`](Context.lean#L563), stated for any subnetwork; `quartetCF_eq_sum_top` is now
-its corollary) and [`Brooqs.quartetCF_eq_of_components`](Cycle.lean#L825) in `Cycle.lean` (the steps of
-[`Brooqs.nmsc_quartetCF`](Cycle.lean#L743) for four given taxa). Files written for CAMUS:
-
-- `Displayed.lean`: the displayed trees of a network (CAMUS's Definition 1), by their clusters, and
-  its displayed quartets ([`Brooqs.Net.Displays`](Displayed.lean#L729)).
-- `ThreeCycle.lean`: the quartet CFs of a 3-cycle above two taxa, `N₃₂`, and the anomaly: the only
-  quartet that `N₃₂` displays on its four taxa can be strictly the least probable
-  ([`Brooqs.net32_anomaly`](ThreeCycle.lean#L583)), or strictly the most probable, depending on the edge lengths
-  ([`Brooqs.net32_long`](ThreeCycle.lean#L612)).
-- `GeneLaw.lean`: the gene tree distribution is a probability distribution, and independent gene
-  trees with that law ([`Brooqs.Net.genes`](GeneLaw.lean#L150)).
-- `Swap.lean`: the exchange of the two sides of a cycle, with `γ` and `1 − γ`
-  ([`Brooqs.Net.SideSwap`](Swap.lean#L64)), which changes neither the distribution of the gene trees
-  ([`Brooqs.Net.SideSwap.geneTreeDist_eq`](Swap.lean#L307)) nor the displayed trees nor the anomalous configuration.
-- `AnomalyRegion.lean`: the exact region of the parameters of `N₃₂` in which the quartet it displays
-  is the least probable ([`Brooqs.net32_anomalous_iff`](AnomalyRegion.lean#L140)); `AnomalyShapes.lean`: the two other
+- [`Context.lean`](Context.lean): the argument of `Phylogenetics.quartetCF_eq_sum_top`, stated for any subnetwork:
+  the rest of the network acts on the forest at the root of a subnetwork by a nice kernel
+  ([`External.NMSC.exists_context_kernel`](Context.lean#L430)), and the quartet CF is the expected score of that forest
+  when three of the four lineages are sampled below it ([`External.NMSC.quartetCF_eq_sum_subnet`](Context.lean#L460)).
+  [`Cycle.lean`](Cycle.lean): the steps of `Phylogenetics.nmsc_quartetCF` for four given taxa
+  ([`External.NMSC.quartetCF_eq_of_components`](Cycle.lean#L459)). Both files repeat the private steps of the
+  library's proofs that they need, which lean4-phylogenetics does not export.
+- [`Displayed.lean`](Displayed.lean): the displayed trees of a network (the paper's Definition 1), by their clusters,
+  and its displayed quartets ([`External.NMSC.Net.Displays`](Displayed.lean#L731)).
+- [`ThreeCycle.lean`](ThreeCycle.lean): the quartet CFs of a 3-cycle above two taxa, `N₃₂`, and the anomaly of Ané,
+  Fogg, Allman, Baños and Rhodes (2024): the only quartet that `N₃₂` displays on its four taxa can be
+  strictly the least probable ([`External.NMSC.net32_anomaly`](ThreeCycle.lean#L585)), or strictly the most probable,
+  depending on the edge lengths ([`External.NMSC.net32_long`](ThreeCycle.lean#L614)).
+- [`GeneLaw.lean`](GeneLaw.lean): independent gene trees with the law of the NMSC ([`External.NMSC.Net.genes`](GeneLaw.lean#L78)).
+- [`Swap.lean`](Swap.lean): the exchange of the two sides of a cycle, with `γ` and `1 − γ`
+  ([`External.NMSC.Net.SideSwap`](Swap.lean#L66)), which changes neither the distribution of the gene trees
+  ([`External.NMSC.Net.SideSwap.geneTreeDist_eq`](Swap.lean#L309)) nor the displayed trees nor the anomalous configuration.
+- [`AnomalyRegion.lean`](AnomalyRegion.lean): the exact region of the parameters of `N₃₂` in which the quartet it displays
+  is the least probable ([`External.NMSC.net32_anomalous_iff`](AnomalyRegion.lean#L142)); [`AnomalyShapes.lean`](AnomalyShapes.lean): the two other
   rootings of the same quarnet, whose CFs are those of `N₃₂` with lengths added;
-  `AnomalyGeneral.lean`: the CFs of four taxa in the anomalous configuration of any network, those
+  [`AnomalyGeneral.lean`](AnomalyGeneral.lean): the CFs of four taxa in the anomalous configuration of any network, those
   of `N₃₂` with the probability that the two lineages below the hybrid node reach it apart
-  ([`Brooqs.Net.Cycle.apartProb`](AnomalyGeneral.lean#L422)) and lengths added along the sides
-  ([`Brooqs.Net.Cycle.quartetCF_of_anomalous`](AnomalyGeneral.lean#L766)).
-- `Splits.lean`, `FourComponents.lean`, `Pairs.lean`, `Pattern.lean`: the CF pattern that Quartet
+  ([`External.NMSC.Net.Cycle.apartProb`](AnomalyGeneral.lean#L424)) and lengths added along the sides
+  ([`External.NMSC.Net.Cycle.quartetCF_of_anomalous`](AnomalyGeneral.lean#L768)).
+- [`Splits.lean`](Splits.lean), [`FourComponents.lean`](FourComponents.lean), [`Pairs.lean`](Pairs.lean), [`Pattern.lean`](Pattern.lean): the CF pattern that Quartet
   Filtering presumes holds for every set of four taxa except in the anomalous configuration
-  ([`Brooqs.Net.regularOn_of_not_anomalous`](Pattern.lean#L872)), and its weaker part holds always
-  ([`Brooqs.Net.weakPattern`](Pattern.lean#L881)).
+  ([`External.NMSC.Net.regularOn_of_not_anomalous`](Pattern.lean#L873)), and its weaker part holds always
+  ([`External.NMSC.Net.weakPattern`](Pattern.lean#L882)).
+
+The declarations on the networks of lean4-phylogenetics (`Phylogenetics.Net`, `Phylogenetics.Side`,
+`Phylogenetics.Net.Cycle`) are named in this namespace, [`External.NMSC.Net.Displays`](Displayed.lean#L731) for instance,
+so the code applies them by name (`Net.Displays N q`) rather than with dot notation. They are
+general facts about the NMSC, and their home is lean4-phylogenetics ([`Camus/External/README.md`](../README.md)).
 
 The consequences for Sections 3.2 to 3.4 of CAMUS are in [`Camus/Pipelines/NMSC/`](../../Pipelines/NMSC), with the graph
 of a network in the representation of CAMUS ([`Camus/Pipelines/NMSC/BaseTree.lean`](../../Pipelines/NMSC/BaseTree.lean),

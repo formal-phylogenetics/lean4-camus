@@ -37,7 +37,7 @@ DOCS = ['README.md', 'docs/Camus/REPORT.md', 'docs/Camus/CREDITS.md', 'Camus/Bas
         'Camus/External/NMSC/README.md', 'Camus/External/WarnowTabatabaeeEvans/README.md']
 # Namespaces in which the documents name declarations without their prefix, most specific last:
 # the paper's library, then its Challenge.
-NAMESPACES = ['Camus', 'CamusChallenge']
+NAMESPACES = ['Camus']
 # With several papers in one repository (references/multi-paper.md): the namespaces of the documents
 # in each top-level directory, tried before `NAMESPACES`, so that a short name in a paper's documents
 # names that paper's declaration; the first namespace that declares a name wins, and the longest

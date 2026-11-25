@@ -22,7 +22,7 @@ least five and an outgroup (Section 3.2); and a tree of a network need not be a 
 outside `Q(N_r)` and drop the one inside it, exactly in an explicit region of the parameters of the
 network (Sections 3.3 and 3.4).
 
-This paper is one of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network),
+This paper belongs to the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network),
 on phylogenetic network estimation, in the collection rooted at
 [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
 

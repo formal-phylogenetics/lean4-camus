@@ -1,88 +1,136 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
 version: "v0.4"
+
 project:
   name: "CAMUS: optimality of a dynamic program for level-1 phylogenetic networks"
   description: >-
-    A Lean 4 and Mathlib formalization of Willson and Warnow, "CAMUS: scalable phylogenetic
-    network estimation" (Bioinformatics 2026). CAMUS adds edges to a rooted binary tree T to
-    obtain a rooted level-1 phylogenetic network that displays as many quartets of a multiset Q
-    as possible. The formalization proves the paper's Theorem 1 (its dynamic program is optimal
-    over every finite directed rooted binary level-1 network built on T in the sense of
-    Definition 1), Lemmas 1 and 2, the running time and memory of Section 2.3 for CAMUS written as
-    a program in a cost semantics, the reticulation-restricted dynamic program of Section 2.4 with
-    its backtracking, that every level-1 network is built on one of its trees, and the steps of the
-    statistical arguments of Sections 3.2 to 3.4 inside the models they use (the site model of
-    Warnow, Tabatabaee and Evans, the multispecies coalescent and the network multispecies
-    coalescent), by the paper's arguments. It also proves Observation 2 of Warnow, Tabatabaee
-    and Evans (2025), on which Lemma 1 rests and which its authors state without proof, and the
-    convergence of the quartets of SNPs under their site model, which needs a hypothesis that their
-    model omits; the formalization is unconditional.
+    A Lean 4 formalization of James Willson and Tandy Warnow (2026), "CAMUS: scalable phylogenetic
+    network estimation", Bioinformatics 42, Supplement 1 (2026), btag245. CAMUS adds edges to a
+    rooted binary tree T to obtain a rooted level-1 phylogenetic network that displays as many
+    quartets of a multiset Q as possible.
 
 
-    Four claims of the paper are refuted: the best score with exactly k reticulations can decrease
-    as k grows, and the stopping rule can stop before a better score (Section 2.4); the true network
-    need not be the unique optimal network, even with the fewest reticulations and long cycles, so
-    that CAMUS can return another network under every hypothesis of the SNP pipeline's consistency
-    argument; and a tree of a network need not be a basis for it (Section 3.2). Under the network
-    coalescent, on a network in an anomalous configuration known from the literature, with suitable
-    edge lengths, Quartet Filtering keeps a quartet that the network does not display and drops the
-    one it does (Sections 3.3 and 3.4); the region of parameters in which this happens is determined
-    exactly, in every network. A corrected recovery theorem holds under identifiability under
-    inclusion and a tie-break toward the fewest reticulations.
-  authors: ["The-Anh Vu-Le"]
+    Proved: the paper's Theorem 1 (its dynamic program is optimal over every finite directed rooted
+    binary level-1 network built on T in the sense of Definition 1), Lemmas 1 and 2, the running
+    time and memory of Section 2.3 for CAMUS written as a program in a cost semantics, the
+    reticulation-restricted dynamic program of Section 2.4 with its backtracking, that every level-1
+    network is built on one of its trees, and the steps of the statistical arguments of Sections 3.2
+    to 3.4 inside the models they use (the site model of Warnow, Tabatabaee and Evans, the
+    multispecies coalescent and the network multispecies coalescent), by the paper's arguments. Of
+    the sources: Observation 2 of Warnow, Tabatabaee and Evans (2025), on which Lemma 1 rests and
+    which its authors state without proof, and the convergence of the quartets of SNPs under their
+    site model, which needs a hypothesis that their model omits.
+
+
+    The audit records four claims of the paper that the formalization refutes: the best score with
+    exactly k reticulations can decrease as k grows, and the stopping rule can stop before a better
+    score (Section 2.4); the true network need not be the unique optimal network, even with the
+    fewest reticulations and long cycles, so that CAMUS can return another network under every
+    hypothesis of the SNP pipeline's consistency argument; and a tree of a network need not be a
+    basis for it (Section 3.2). Under the network coalescent, on a network in an anomalous
+    configuration known from the literature, with suitable edge lengths, Quartet Filtering keeps a
+    quartet that the network does not display and drops the one it does (Sections 3.3 and 3.4); the
+    region of parameters in which this happens is determined exactly, in every network. A corrected
+    recovery theorem holds under identifiability under inclusion and a tie-break toward the fewest
+    reticulations.
+
+
+    No result of the literature is assumed. No person has reviewed the proofs.
+  authors:
+    - "The-Anh Vu-Le"
   license: "Apache-2.0"
-  responsible_maintainers: ["The-Anh Vu-Le"]
+  responsible_maintainers:
+    - "The-Anh Vu-Le"
+
 classification:
-  arxiv: ["math.CO", "q-bio.PE"]
+  arxiv: ["q-bio.PE", "math.CO"]
   msc2020: ["05C90", "92D15"]
+
 sources:
   - title: "CAMUS: scalable phylogenetic network estimation"
-    authors: ["James Willson", "Tandy Warnow"]
+    authors:
+      - "James Willson"
+      - "Tandy Warnow"
     id: "doi:10.1093/bioinformatics/btag245"
     type: "article"
     location: "https://doi.org/10.1093/bioinformatics/btag245"
-    relationship: "formalizes"
-    note: "The published version (Bioinformatics 42, Supplement 1, 2026), audited against its JATS XML (Europe PMC PMC13340232); docs/Camus/REPORT.md lists the readings, the two refuted claims and the one departure from the paper's proofs."
     license: "CC-BY-4.0"
+    relationship: "formalizes"
     author_endorsement: "not-contacted"
+    note: >-
+      The published version (Bioinformatics 42, Supplement 1, 2026), audited against its JATS XML
+      (Europe PMC PMC13340232); docs/Camus/REPORT.md lists the readings, the two refuted claims and
+      the one departure from the paper's proofs.
   - title: "Advances in Estimating Level-1 Phylogenetic Networks from Unrooted SNPs"
-    authors: ["Tandy Warnow", "Yasamin Tabatabaee", "Steven N. Evans"]
+    authors:
+      - "Tandy Warnow"
+      - "Yasamin Tabatabaee"
+      - "Steven N. Evans"
     id: "doi:10.1089/cmb.2024.0710"
     type: "article"
     location: "https://doi.org/10.1089/cmb.2024.0710"
     relationship: "background"
-    note: "Its Observation 2, stated there without proof and used by the paper's Lemma 1, and the convergence of the quartets of SNPs under its site model (the step of its Theorem 6 that the paper's Section 3.2 uses, with the hypothesis p(e, s, s) > 0 that its Section 4.2 omits), are proved in Camus/External/WarnowTabatabaeeEvans."
     author_endorsement: "not-contacted"
+    note: >-
+      Its Observation 2, stated there without proof and used by the paper's Lemma 1, and the
+      convergence of the quartets of SNPs under its site model (the step of its Theorem 6 that the
+      paper's Section 3.2 uses, with the hypothesis p(e, s, s) > 0 that its Section 4.2 omits), are
+      proved in Camus/External/WarnowTabatabaeeEvans.
   - title: "Identifying the rooted species tree from the distribution of unrooted gene trees under the coalescent"
-    authors: ["Elizabeth S. Allman", "James H. Degnan", "John A. Rhodes"]
+    authors:
+      - "Elizabeth S. Allman"
+      - "James H. Degnan"
+      - "John A. Rhodes"
     id: "doi:10.1007/s00285-010-0355-7"
     type: "article"
     location: "https://doi.org/10.1007/s00285-010-0355-7"
     relationship: "background"
-    note: "Its four-taxon distributions of unrooted gene trees under the multispecies coalescent, from its Lean formalization lean4-allman2011 (a dependency), restated in Camus/External/AllmanDegnanRhodes2011, give the motivation of Algorithm 1 (Section 3.4)."
     author_endorsement: "not-contacted"
+    note: >-
+      Its four-taxon distributions of unrooted gene trees under the multispecies coalescent, from
+      its Lean formalization lean4-allman2011 (a dependency), restated in
+      Camus/External/AllmanDegnanRhodes2011, give the motivation of Algorithm 1 (Section 3.4).
   - title: "Anomalous networks under the multispecies coalescent: theory and prevalence"
-    authors: ["Cécile Ané", "John Fogg", "Elizabeth S. Allman", "Hector Baños", "John A. Rhodes"]
+    authors:
+      - "Cécile Ané"
+      - "John Fogg"
+      - "Elizabeth S. Allman"
+      - "Hector Baños"
+      - "John A. Rhodes"
     id: "doi:10.1007/s00285-024-02050-7"
     type: "article"
     location: "https://doi.org/10.1007/s00285-024-02050-7"
     relationship: "background"
-    note: "Cited by the paper for ASTRAL; its anomalous 3-cycle is formalized in Camus/External/NMSC and makes Quartet Filtering keep the wrong quartets (the report's E9)."
     author_endorsement: "not-contacted"
+    note: >-
+      Cited by the paper for ASTRAL; its anomalous 3-cycle is formalized in Camus/External/NMSC and
+      makes Quartet Filtering keep the wrong quartets (the report's E9).
   - title: "Identifying species network features from gene tree quartets under the coalescent model"
-    authors: ["Hector Baños"]
+    authors:
+      - "Hector Baños"
     id: "doi:10.1007/s11538-018-0485-4"
     type: "article"
     location: "https://doi.org/10.1007/s11538-018-0485-4"
     relationship: "background"
-    note: "The quartet concordance factors of the components of a cycle under the network coalescent, from lean4-phylogenetics (a dependency), Phylogenetics.nmsc_quartetCF."
     author_endorsement: "not-contacted"
+    note: >-
+      The quartet concordance factors of the components of a cycle under the network coalescent,
+      from lean4-phylogenetics (a dependency), Phylogenetics.nmsc_quartetCF.
+
 related_formalizations:
   - id: "https://github.com/vltanh/lean4-phylogenetics"
     relationship: "builds-on"
-    note: "The library of the collection that this repository belongs to: the library uses its multispecies coalescent, its network multispecies coalescent with the quartet concordance factors of a cycle, and Steel's determination of a tree by its quartets; the Challenge does not import it."
+    note: >-
+      The library of the collection that this repository belongs to: the library uses its
+      multispecies coalescent, its network multispecies coalescent with the quartet concordance
+      factors of a cycle, and Steel's determination of a tree by its quartets; the Challenge does
+      not import it.
   - id: "https://github.com/vltanh/lean4-allman2011"
     relationship: "builds-on"
-    note: "The library uses its four-taxon distributions of unrooted gene trees under the multispecies coalescent, for the motivation of Algorithm 1; the Challenge does not import it."
+    note: >-
+      The library uses its four-taxon distributions of unrooted gene trees under the multispecies
+      coalescent, for the motivation of Algorithm 1; the Challenge does not import it.
+
 status:
   scope: >-
     Unconditional. Proves Lemmas 1 and 2 and Theorem 1 over every network built on the constraint
@@ -112,10 +160,12 @@ status:
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: []
+
 automation:
   methods:
     - method: "agent"
-      models: ["gpt-6.1-sol"]
+      models:
+        - "gpt-6.1-sol"
       framework: "Codex CLI 0.162.0-alpha.2"
       tool_setup: >-
         First formalization (8 October 2026): formalize-math-paper skill 2.2.0
@@ -127,7 +177,8 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "The maintainer invoked the skill and approved a conditional formalization (later made unconditional), the corrected statements of Sections 2.4 and 3.2, and the directed-graph network library."
     - method: "agent"
-      models: ["claude-opus-5-5"]
+      models:
+        - "claude-opus-5-5"
       framework: "Claude Code 2.1.296"
       tool_setup: >-
         Second round (10 October 2026): formalize-math-paper skill 2.2.0
@@ -140,7 +191,8 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "The maintainer asked to restyle the first formalization in the procedure's usual way; the round reorganized and documented the library, proved Observation 2, restated the Challenge and rewrote the audit."
     - method: "agent"
-      models: ["claude-opus-5-5"]
+      models:
+        - "claude-opus-5-5"
       framework: "Claude Code 2.1.296"
       tool_setup: >-
         Third round (10 October 2026): formalize-math-paper skill 2.2.0
@@ -155,7 +207,8 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "The maintainer asked to formalize what the second round left out (\"I think there is a proof of running time complexity? Add counterexamples. Do 1-4.\"): backtracking in Section 2.4, Section 3.2 inside the model of Warnow, Tabatabaee and Evans, Definition 1's networks whose root lies above the root of T, Algorithm 1's motivation from the coalescent, a cost semantics for Section 2.3, and the counterexamples."
     - method: "agent"
-      models: ["claude-opus-5-5"]
+      models:
+        - "claude-opus-5-5"
       framework: "Claude Code 2.1.296"
       tool_setup: >-
         Fourth round (10 October 2026): formalize-math-paper skill 2.2.0
@@ -170,7 +223,8 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "The maintainer chose the items that remained (\"1-3 seem ok. the first 2 points of 4 seems ok.\"), asked to copy the network coalescent of the formalization of BROOQS into the project, declined a shared library for now, and asked why the round took so long (\"Why are we taking so long? Are we trying to prove new results?\"), after which the network-coalescent work was wrapped up; before the push, the maintainer asked for a review (\"review then push\")."
     - method: "agent"
-      models: ["claude-opus-5-5"]
+      models:
+        - "claude-opus-5-5"
       framework: "Claude Code 2.1.296"
       tool_setup: >-
         Fifth round (10 October 2026): formalize-math-paper skill 2.2.0
@@ -183,7 +237,8 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "With the network-coalescent items of the report's Section 9 selected, the maintainer asked: \"Why don't you formalize this\"."
     - method: "agent"
-      models: ["claude-opus-5-5"]
+      models:
+        - "claude-opus-5-5"
       framework: "Claude Code 2.1.296"
       tool_setup: >-
         Sixth round (10 October 2026): formalize-math-paper skill 2.2.0
@@ -197,7 +252,10 @@ automation:
         hardware: "local machine (Lean builds); model API"
       prompting_notes: "After the fifth round, the maintainer asked: \"Finish the job.\""
   spend_usd: "not tracked"
-  notes: "Six rounds by two AI systems, at the maintainer's request; see docs/Camus/CREDITS.md for the procedure and the figures, taken from the session transcripts."
+  notes: >-
+    Six rounds by two AI systems, at the maintainer's request; see docs/Camus/CREDITS.md for the
+    procedure and the figures, taken from the session transcripts.
+
 fidelity:
   divergences: >-
     Equation (1) is read over the distinct quartets of Q, with their multiplicities as weights,
@@ -226,10 +284,19 @@ fidelity:
     vertex-disjointness of the cycles); and Theorem 1 over Definition 1's class, whose networks
     with the root above the root of T the paper's proof does not treat (the formalization reduces
     them to networks obtained by adding edges, with the same quartets and reticulations).
+
 review:
   status: "agent-reviewed"
-  reviewers: ["Independent Codex review agents (first round)", "Independent Claude review agents (second to fourth rounds)"]
-  notes: "Statements checked against the published JATS source by agents other than their writers in every round (in the fourth, those of the SNP pipeline during the round and the others after the report); proofs compared with the paper's; the report's findings and account of the literature checked against their sources in the second to fourth rounds. No person has reviewed the proofs."
+  reviewers:
+    - "none (no human review)"
+  notes: >-
+    The reviewers were independent Codex review agents (first round) and independent Claude review
+    agents (second to fourth rounds). Statements checked against the published JATS source by agents
+    other than their writers in every round (in the fourth, those of the SNP pipeline during the
+    round and the others after the report); proofs compared with the paper's; the report's findings
+    and account of the literature checked against their sources in the second to fourth rounds. No
+    person has reviewed the proofs.
+
 alignment:
   namespace: "CamusChallenge"
   statements:
@@ -276,7 +343,9 @@ alignment:
       lean: "CamusChallenge.not_exactStoppingRule"
       module: "Camus.Solution"
       status: "proved"
-      note: "Refutes the claim that the score does not improve after the column where the rule stops, for exact numbers of reticulations."
+      note: >-
+        Refutes the claim that the score does not improve after the column where the rule stops, for
+        exact numbers of reticulations.
     - source: "Section 2.4, stopping rule, at most k reticulations (refuted)"
       lean: "CamusChallenge.not_atMostStoppingRule"
       module: "Camus.Solution"
@@ -299,5 +368,8 @@ alignment:
       lean: "CamusChallenge.recovery_needs_identifiable"
       module: "Camus.Solution"
       status: "proved"
-      note: "Even with the fewest-reticulation tie-break, CAMUS may return a network that is not isomorphic to the true one."
-acknowledgements: "Lean, Mathlib and the formalize-math-paper skill; the paper's authors are credited bibliographically."
+      note: >-
+        Even with the fewest-reticulation tie-break, CAMUS may return a network that is not
+        isomorphic to the true one.
+
+acknowledgements: "Lean and Mathlib; the formalize-math-paper skill, whose procedure it follows; lean4-phylogenetics, for its multispecies coalescent, its network multispecies coalescent with the quartet concordance factors of a cycle, and Steel's determination of a tree by its quartets; lean4-allman2011, for its four-taxon distributions of unrooted gene trees under the multispecies coalescent; the authors of the paper and of its sources."

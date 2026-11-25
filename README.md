@@ -1,13 +1,13 @@
 # CAMUS: scalable phylogenetic network estimation, in Lean
 
-[![Lean Action CI](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml)
+[![CI](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml)
 
-A Lean 4 and Mathlib formalization of James Willson and Tandy Warnow, *CAMUS: scalable
-phylogenetic network estimation*, Bioinformatics 42, Supplement 1 (2026), btag245,
-<https://doi.org/10.1093/bioinformatics/btag245>, with the results it cites. CAMUS takes a rooted
-binary tree `T` and a multiset `Q` of quartet trees, and adds edges to `T` to obtain a rooted
-level-1 phylogenetic network that displays as many quartets of `Q` as possible. The paper's
-Theorem 1 says that its dynamic program over `T` finds such a network.
+A Lean 4 formalization of James Willson and Tandy Warnow (2026), "CAMUS: scalable phylogenetic
+network estimation", [Bioinformatics 42, Supplement 1 (2026), btag245](https://doi.org/10.1093/bioinformatics/btag245),
+with the results it cites. CAMUS takes a rooted binary tree `T` and a multiset `Q` of quartet
+trees, and adds edges to `T` to obtain a rooted level-1 phylogenetic network that displays as many
+quartets of `Q` as possible. The paper's Theorem 1 says that its dynamic program over `T` finds such
+a network.
 
 Every result of the paper is proved, by the paper's argument except at two steps, or refuted, with
 no `sorry` and no assumed result: Lemmas 1 and 2, Theorem 1 against every network built on `T` in
@@ -21,6 +21,10 @@ least five and an outgroup (Section 3.2); and a tree of a network need not be a 
 (Section 3.2). Under the network multispecies coalescent, Quartet Filtering can keep a quartet
 outside `Q(N_r)` and drop the one inside it, exactly in an explicit region of the parameters of the
 network (Sections 3.3 and 3.4).
+
+This paper is one of the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network),
+on phylogenetic network estimation, in the collection rooted at
+[lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
 
 ## Status
 
@@ -109,7 +113,7 @@ in Lemma 1 and Theorem 1 over Definition 1's class, both in
   reason.
 - Comparator checks that the Solution proves exactly the Challenge's statements, under Lean's kernel
   and NanoDa.
-- **No person has reviewed the proofs.** Independent agents reviewed the statements, the proofs,
+- No person has reviewed the proofs. Independent agents reviewed the statements, the proofs,
   the findings and the account of the literature ([`docs/Camus/CREDITS.md`](docs/Camus/CREDITS.md)).
 
 ## Dependencies
@@ -129,7 +133,7 @@ Each is pinned by commit in [`lakefile.toml`](lakefile.toml).
 ## Palomar
 
 No submission to Palomar is planned. [`palomar/Camus/`](palomar/Camus) has the files of an entry: the Challenge,
-which imports only Mathlib, the Solution, [`palomar/Camus/comparator.json`](palomar/Camus/comparator.json), which names them and the 15
+which imports only Mathlib, the Solution, [`palomar/Camus/comparator.json`](palomar/Camus/comparator.json), which names them and the
 theorems, and [`palomar/Camus/formalization.yaml`](palomar/Camus/formalization.yaml), the entry's metadata. CI checks that the Challenge's
 copy of the definitions is the block of [`Camus/Defs.lean`](Camus/Defs.lean) (`python3 scripts/sync_challenge_defs.py --check`).
 
@@ -167,15 +171,6 @@ The toolchain is Lean `v4.37.0-rc1` ([`lean-toolchain`](lean-toolchain), [`lake-
 | [`docs/Camus/`](docs/Camus) | [The report](docs/Camus/REPORT.md), [the credits](docs/Camus/CREDITS.md), the routes of the proofs and the reviewed differences |
 | [`scripts/`](scripts) | The audit, the route check, the copy of the definitions into the Challenge, the links and the tables |
 
-## Credits
-
-- Formalized in six rounds, at the request of The-Anh Vu-Le, following the
-  [formalize-math-paper](https://github.com/vltanh/formalize-math-paper) procedure: first by OpenAI's
-  `gpt-6.1-sol` in Codex CLI (8 October 2026), then by Claude Opus 5.5 in Claude Code (10 October
-  2026, five rounds). [`docs/Camus/CREDITS.md`](docs/Camus/CREDITS.md) gives the agents, the figures and what each round did.
-- No person has reviewed the proofs yet; independent agents reviewed the statements, the proofs, the
-  findings and the account of the literature.
-
 ## Related work
 
 From [the report](docs/Camus/REPORT.md#10-the-paper-in-the-literature), Section 10 (search of 10 October 2026):
@@ -202,6 +197,17 @@ three frequencies avoids the anomaly of E9 is open. Theorem 1 splits into Lemma 
 packing of paths in a tree, which is how the formal proof is organized. See
 [Section 11 of the report](docs/Camus/REPORT.md#11-whats-next).
 
+## Credits
+
+- Maintainer: The-Anh Vu-Le, who requested and supervised the formalization.
+- Formalization: in six rounds, following the
+  [formalize-math-paper](https://github.com/vltanh/formalize-math-paper) procedure, first by
+  OpenAI's `gpt-6.1-sol` in Codex CLI (2026-10-08), then by Claude Opus 5.5 in Claude Code
+  (2026-10-10, five rounds). [`docs/Camus/CREDITS.md`](docs/Camus/CREDITS.md) gives the agents, the
+  figures and what each round did.
+- Review: no person has reviewed the proofs; Lean's kernel checks them. Independent agents reviewed
+  the statements, the proofs, the findings and the account of the literature.
+
 ## License
 
-Apache-2.0; see [`LICENSE`](LICENSE).
+Apache-2.0: [LICENSE](LICENSE).

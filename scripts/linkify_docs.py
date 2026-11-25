@@ -6,7 +6,7 @@ repository becomes a relative link; the link of a declaration points at the line
 name. A code span that names a module of the pinned Mathlib links to the module's page in
 Mathlib's documentation. Existing links are kept, except links to a line of a Lean file and
 links to the page of a Mathlib module, which are recomputed: running the script after editing
-the code brings them up to date. Private files (`NEXT.md`, `notes/`, and anything git ignores) are
+the code brings them up to date. Private files (`notes/` and anything git ignores) are
 never linked, and existing links to them are removed, since they are not published. Fenced code blocks, headings and table headers are left
 alone, and the text of a link may run over several lines of a paragraph.
 
@@ -71,7 +71,7 @@ PATH_BASES = {'': ['.github/workflows', 'docs/Camus', 'palomar/Camus'],
               'docs/Camus': ['palomar/Camus']}
 # Paths that are never linked, whether or not git ignores them: the private follow-up notes, which
 # are not published (SKILL.md, Phase 8). Any other path that git ignores is not linked either.
-PRIVATE = ('NEXT.md', 'notes')
+PRIVATE = ('notes',)
 # ---------------------------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -83,7 +83,6 @@ def private(path):
     so a link to them would be broken in the repository."""
     import subprocess
     parts = Path(os.path.normpath(path)).parts
-    # `NEXT.md` is private in any directory (each paper of a multi-paper repository has one).
     if any(part in PRIVATE for part in parts) or os.path.normpath(path) in PRIVATE:
         return True
     return subprocess.run(['git', 'check-ignore', '-q', path], cwd=ROOT).returncode == 0

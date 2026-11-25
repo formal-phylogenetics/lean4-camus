@@ -142,7 +142,7 @@ convergence follows from the positivity by a union bound
 
 | Result | Where the paper uses it | Source | In the formalization |
 | --- | --- | --- | --- |
-| Under the multispecies coalescent on a rooted binary species tree, the quartet gene tree that matches the species tree on four taxa has probability `1 − (2/3)e^{−x}`, and each of the other two `(1/3)e^{−x}`, where `x > 0` is the length of the internal edge of the species tree on those taxa | Section 3.3, the motivation of Algorithm 1: "the multi-species coalescent (MSC) model (Takahata 1989) under which, for every four species, the most probable quartet tree matches the species tree and the other two quartet trees have the same lower probability" | E. S. Allman, J. H. Degnan, J. A. Rhodes, *Identifying the rooted species tree from the distribution of unrooted gene trees under the coalescent*, J. Math. Biol. 62 (2011) 833–862, [doi:10.1007/s00285-010-0355-7](https://doi.org/10.1007/s00285-010-0355-7), Section 4.1 and Lemma 5; the paper cites Takahata (1989) | lean4-allman2011 (<https://github.com/vltanh/lean4-allman2011>, a dependency of this project): its four-taxon distributions, restated as [`External.AllmanDegnanRhodes2011.four_unrootedDist_of_mem`](../../Camus/External/AllmanDegnanRhodes2011/FourTaxa.lean#L38) and [`External.AllmanDegnanRhodes2011.four_unrootedDist_of_ne_of_isBinary`](../../Camus/External/AllmanDegnanRhodes2011/FourTaxa.lean#L46); and lean4-phylogenetics's restriction of the coalescent to four taxa; applied in [`Coalescent.quartetProb_species`](../../Camus/Pipelines/Coalescent/Quartets.lean#L415), [`Coalescent.quartetProb_other`](../../Camus/Pipelines/Coalescent/Quartets.lean#L426) and [`Coalescent.msc_pattern`](../../Camus/Pipelines/Coalescent/Quartets.lean#L463) |
+| Under the multispecies coalescent on a rooted binary species tree, the quartet gene tree that matches the species tree on four taxa has probability `1 − (2/3)e^{−x}`, and each of the other two `(1/3)e^{−x}`, where `x > 0` is the length of the internal edge of the species tree on those taxa | Section 3.3, the motivation of Algorithm 1: "the multi-species coalescent (MSC) model (Takahata 1989) under which, for every four species, the most probable quartet tree matches the species tree and the other two quartet trees have the same lower probability" | E. S. Allman, J. H. Degnan, J. A. Rhodes, *Identifying the rooted species tree from the distribution of unrooted gene trees under the coalescent*, J. Math. Biol. 62 (2011) 833–862, [doi:10.1007/s00285-010-0355-7](https://doi.org/10.1007/s00285-010-0355-7), Section 4.1 and Lemma 5; the paper cites Takahata (1989) | lean4-allman2011 (<https://github.com/formal-phylogenetics/lean4-allman2011>, a dependency of this project): its four-taxon distributions, restated as [`External.AllmanDegnanRhodes2011.four_unrootedDist_of_mem`](../../Camus/External/AllmanDegnanRhodes2011/FourTaxa.lean#L38) and [`External.AllmanDegnanRhodes2011.four_unrootedDist_of_ne_of_isBinary`](../../Camus/External/AllmanDegnanRhodes2011/FourTaxa.lean#L46); and lean4-phylogenetics's restriction of the coalescent to four taxa; applied in [`Coalescent.quartetProb_species`](../../Camus/Pipelines/Coalescent/Quartets.lean#L415), [`Coalescent.quartetProb_other`](../../Camus/Pipelines/Coalescent/Quartets.lean#L426) and [`Coalescent.msc_pattern`](../../Camus/Pipelines/Coalescent/Quartets.lean#L463) |
 
 ### Assumed
 
@@ -831,14 +831,15 @@ the estimation of trees of blobs by quartet methods (Dai, Han and Molloy, *Genom
 
 No other formalization of CAMUS, of its Theorem 1, or of Observation 2 was found. Formalizations of
 nearby phylogenetics exist in Lean: Allman, Degnan and Rhodes's identifiability of species trees
-(lean4-allman2011, <https://github.com/vltanh/lean4-allman2011>, by the maintainer of this project,
-registered on Palomar), trees, splits, quartets, consensus and the consistency of quartet-based species-tree methods
-(<https://github.com/chaoszhang/lean4phylo>, October 2026), and partial modules on rooted networks for
-NANUQ in an AI-agent research repository (<https://github.com/Sodelin/Research-Commons>); none treats
-CAMUS. This work requires lean4-phylogenetics, the library of the collection to which it and
-lean4-allman2011 belong, for the multispecies coalescent, the network coalescent and Steel's
-determination of a tree by its quartets, and lean4-allman2011 for the quartet probabilities on four
-taxa (Section 2); it consulted none of the others.
+(lean4-allman2011, <https://github.com/formal-phylogenetics/lean4-allman2011>, by the maintainer of
+this project, registered on Palomar), trees, splits, quartets, consensus and the consistency of
+quartet-based species-tree methods (<https://github.com/chaoszhang/lean4phylo>, October 2026), and
+partial modules on rooted networks for NANUQ in an AI-agent research repository
+(<https://github.com/Sodelin/Research-Commons>); none treats CAMUS. This work requires
+lean4-phylogenetics, the library of the collection to which it and lean4-allman2011 belong, for the
+multispecies coalescent, the network coalescent and Steel's determination of a tree by its quartets,
+and lean4-allman2011 for the quartet probabilities on four taxa (Section 2); it consulted none of
+the others.
 
 ## 11. What's next
 

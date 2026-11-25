@@ -24,5 +24,6 @@ distribution `σ.unrootedDist id` of the unrooted gene tree, a tree given by the
 | [`External.AllmanDegnanRhodes2011.four_unrootedLength_pos`](FourTaxa.lean#L76) | the edge of the unrooted species tree that induces a split has positive length |
 
 **The proof.** Each statement is the theorem of the same name of lean4-allman2011
-(<https://github.com/vltanh/lean4-allman2011>, the formalization of Allman, Degnan and Rhodes 2011,
-which this repository requires), which proves them by the source's argument of Section 4.1.
+(<https://github.com/formal-phylogenetics/lean4-allman2011>, the formalization of Allman, Degnan and
+Rhodes 2011, which this repository requires), which proves them by the source's argument of Section
+4.1.

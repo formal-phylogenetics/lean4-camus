@@ -118,14 +118,14 @@ sources:
       from lean4-phylogenetics (a dependency), Phylogenetics.nmsc_quartetCF.
 
 related_formalizations:
-  - id: "https://github.com/vltanh/lean4-phylogenetics"
+  - id: "https://github.com/formal-phylogenetics/lean4-phylogenetics"
     relationship: "builds-on"
     note: >-
       The library of the collection that this repository belongs to: the library uses its
       multispecies coalescent, its network multispecies coalescent with the quartet concordance
       factors of a cycle, and Steel's determination of a tree by its quartets; the Challenge does
       not import it.
-  - id: "https://github.com/vltanh/lean4-allman2011"
+  - id: "https://github.com/formal-phylogenetics/lean4-allman2011"
     relationship: "builds-on"
     note: >-
       The library uses its four-taxon distributions of unrooted gene trees under the multispecies

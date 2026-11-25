@@ -1,6 +1,6 @@
 # CAMUS: scalable phylogenetic network estimation, in Lean
 
-[![CI](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/vltanh/lean4-camus/actions/workflows/lean_action_ci.yml)
+[![CI](https://github.com/formal-phylogenetics/lean4-camus/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/formal-phylogenetics/lean4-camus/actions/workflows/lean_action_ci.yml)
 
 A Lean 4 formalization of James Willson and Tandy Warnow (2026), "CAMUS: scalable phylogenetic
 network estimation", [Bioinformatics 42, Supplement 1 (2026), btag245](https://doi.org/10.1093/bioinformatics/btag245),
@@ -22,9 +22,10 @@ least five and an outgroup (Section 3.2); and a tree of a network need not be a 
 outside `Q(N_r)` and drop the one inside it, exactly in an explicit region of the parameters of the
 network (Sections 3.3 and 3.4).
 
-This paper belongs to the hub [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network),
-on phylogenetic network estimation, in the collection rooted at
-[lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics).
+This paper belongs to the hub
+[lean4-phylo-network](https://github.com/formal-phylogenetics/lean4-phylo-network), on phylogenetic
+network estimation, in the collection rooted at
+[lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics).
 
 ## Status
 
@@ -119,14 +120,14 @@ in Lemma 1 and Theorem 1 over Definition 1's class, both in
 ## Dependencies
 
 - [Mathlib](https://github.com/leanprover-community/mathlib4), at `v4.37.0-rc1`.
-- [lean4-phylogenetics](https://github.com/vltanh/lean4-phylogenetics), the library of the
-  collection: the multispecies coalescent, the network multispecies coalescent on level-1 networks
-  with the quartet concordance factors of a cycle, and Steel's determination of a tree by its
-  quartets.
-- [lean4-phylo-network](https://github.com/vltanh/lean4-phylo-network), the library of the papers on
-  network estimation, of which this is one.
-- [lean4-allman2011](https://github.com/vltanh/lean4-allman2011), the formalization of Allman,
-  Degnan and Rhodes 2011: the distributions of the gene trees on four taxa.
+- [lean4-phylogenetics](https://github.com/formal-phylogenetics/lean4-phylogenetics), the library of
+  the collection: the multispecies coalescent, the network multispecies coalescent on level-1
+  networks with the quartet concordance factors of a cycle, and Steel's determination of a tree by
+  its quartets.
+- [lean4-phylo-network](https://github.com/formal-phylogenetics/lean4-phylo-network), the library of
+  the papers on network estimation, of which this is one.
+- [lean4-allman2011](https://github.com/formal-phylogenetics/lean4-allman2011), the formalization of
+  Allman, Degnan and Rhodes 2011: the distributions of the gene trees on four taxa.
 
 Each is pinned by commit in [`lakefile.toml`](lakefile.toml).
 

@@ -2,6 +2,9 @@ module
 
 public import Camus.Complexity.Program
 public import Camus.Restriction.Main
+public import Camus.Basic.Data.List.Foldl
+public import Camus.Basic.Data.List.Lattice
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # Section 2.4: the reticulation-restricted program and its running time
@@ -151,13 +154,6 @@ theorem rowMax_biUnion {α : Type} [DecidableEq α] (s : Finset α) (F : α → 
   unfold rowMax
   rw [Finset.sup_biUnion]
 
-/-- A loop keeping the larger value computes the supremum over the elements of the list. -/
-theorem foldl_sup_eq {α : Type} [DecidableEq α] (f : α → WithBot ℕ) (l : List α) (a : WithBot ℕ) :
-    l.foldl (fun acc x => acc ⊔ f x) a = a ⊔ l.toFinset.sup f := by
-  induction l generalizing a with
-  | nil => simp
-  | cons x l ih => simp only [List.foldl_cons, ih, List.toFinset_cons, Finset.sup_insert, sup_assoc]
-
 /-! ### The knapsack does not depend on the order of the subtrees -/
 
 /-- The knapsack keeps the best value of all distributions of the budget. -/
@@ -235,29 +231,6 @@ theorem cases_congr_le (t : PhyloTree) (w : Pair → ℕ) {M N : Address → ℕ
         have hgeo := frontier_below (EdgeAbove.footprint_region t e hae) hr'
         exact h r (Finset.mem_filter.mp hr').1 (het ▸ hgeo.1) (het ▸ hgeo.2) i (by omega)
 
-theorem list_range_toFinset (n : ℕ) : (List.range n).toFinset = Finset.range n := by
-  ext i
-  simp
-
-/-- In `List.range n = K ++ k :: K'`, the budgets before `k` are those below `k`. -/
-theorem mem_range_prefix {n k : ℕ} {K K' : List ℕ} (h : List.range n = K ++ k :: K') (i : ℕ) :
-    i ∈ K ↔ i < k := by
-  have hpw := List.pairwise_lt_range (n := n)
-  rw [h, List.pairwise_append] at hpw
-  have hk : k < n := List.mem_range.mp (by rw [h]; simp)
-  constructor
-  · intro hi
-    exact hpw.2.2 i hi k (by simp)
-  · intro hik
-    have hin : i ∈ List.range n := List.mem_range.mpr (by omega)
-    rw [h] at hin
-    rcases List.mem_append.mp hin with hK | hK
-    · exact hK
-    · rcases List.mem_cons.mp hK with rfl | hK'
-      · omega
-      · have := (List.pairwise_cons.mp hpw.2.1).1 i hK'
-        omega
-
 /-! ### The program -/
 
 /-- The max-plus convolution of the columns `A` and `B` at the budget `k`: the best sum
@@ -272,12 +245,12 @@ def convAt (A B : ℕ → WithBot ℕ) (k : ℕ) : Timed (WithBot ℕ) :=
 theorem val_convAt (A B : ℕ → WithBot ℕ) (k : ℕ) :
     (convAt A B k).val = (Finset.range (k + 1)).sup fun i => A i + B (k - i) := by
   simp only [convAt, val_forList, val_bind, val_step, val_steps]
-  rw [foldl_sup_eq (fun i => A i + B (k - i)), list_range_toFinset, bot_sup_eq]
+  rw [List.foldl_sup_eq_sup_sup (fun i => A i + B (k - i)), List.toFinset_range, bot_sup_eq]
 
 theorem time_convAt (A B : ℕ → WithBot ℕ) (k : ℕ) : (convAt A B k).time = 6 * (k + 1) := by
   unfold convAt
   rw [time_forList_eq _ _ _ (fun _ => 5) (fun _ _ _ => rfl)]
-  simp only [sum_map_const_nat, List.length_range]
+  simp only [List.sum_map_const_eq_length_mul, List.length_range]
   ring
 
 /-- The knapsack over the subtrees `L` at budget `j` (`BudgetDP.forest`): starting from the row of
@@ -290,13 +263,6 @@ def knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j : ℕ) :
       let c ← convAt (fun i => R (r, i)) F i
       step (Function.update F' i c)) (List.range (j + 1)) F) L F₀
   step (F j)
-
-/-- A loop of updates at the keys `0, …, j` writes the value of each key. -/
-theorem foldl_update_range {β : Type} (f : ℕ → β) (F : ℕ → β) {j i : ℕ} (hi : i ≤ j) :
-    ((List.range (j + 1)).foldl (fun F i => Function.update F i (f i)) F) i = f i := by
-  have h := foldl_update_of_mem (fun i => i) f (List.range (j + 1)) F
-    (by simpa using List.nodup_range) (List.mem_range.mpr (Nat.lt_succ_of_le hi))
-  exact h
 
 /-- The knapsack computes the value of `BudgetDP.forest` over the reversed list. -/
 theorem val_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j : ℕ) :
@@ -320,7 +286,7 @@ theorem val_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j 
             rowMax (forest Mr (A ++ [r]).reverse i) := by
         intro i hi
         simp only [val_forList, val_bind, val_step]
-        rw [foldl_update_range (fun i => (convAt (fun i => R (r, i)) F i).val) F hi,
+        rw [List.foldl_update_range (fun i => (convAt (fun i => R (r, i)) F i).val) F hi,
           val_convAt, List.reverse_append, List.reverse_singleton, List.singleton_append,
           forest, rowMax_best, rowMax_convolution]
         apply Finset.sup_congr rfl
@@ -332,7 +298,7 @@ theorem val_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j 
   have h0 : ∀ i ≤ j, ((List.range (j + 1)).foldl (fun F i => Function.update F i
       (if i = 0 then (0 : WithBot ℕ) else ⊥)) fun _ => ⊥) i = rowMax (forest Mr [].reverse i) := by
     intro i hi
-    rw [foldl_update_range _ _ hi]
+    rw [List.foldl_update_range _ _ hi]
     by_cases h : i = 0 <;> simp [h, forest, rowMax]
   have := hloop [] _ h0 j le_rfl
   simpa using this
@@ -345,7 +311,7 @@ theorem time_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j
       (if i = 0 then (0 : WithBot ℕ) else ⊥))) (List.range (j + 1)) F).time = 3 * (j + 1) := by
     intro F
     rw [time_forList_eq _ _ _ (fun _ => 2) (fun _ _ _ => rfl)]
-    simp only [sum_map_const_nat, List.length_range]
+    simp only [List.sum_map_const_eq_length_mul, List.length_range]
     ring
   have hrow : ∀ (F : ℕ → WithBot ℕ) (r : Address), (forList (fun F' i => do
       let c ← convAt (fun i => R (r, i)) F i
@@ -358,7 +324,7 @@ theorem time_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j
         have := List.mem_range.mp hi
         simp only [time_bind, time_convAt, time_step]
         nlinarith
-      _ = _ := by simp only [sum_map_const_nat, List.length_range]
+      _ = _ := by simp only [List.sum_map_const_eq_length_mul, List.length_range]
   have hmain : ∀ F : ℕ → WithBot ℕ, (forList (fun F r => forList (fun F' i => do
       let c ← convAt (fun i => R (r, i)) F i
       step (Function.update F' i c)) (List.range (j + 1)) F) L F).time ≤
@@ -367,7 +333,7 @@ theorem time_knapsack (R : Address × ℕ → WithBot ℕ) (L : List Address) (j
     calc
       _ ≤ (L.map fun _ => (j + 1) * (6 * j + 8) + 1).sum :=
         time_forList_le _ _ _ _ (fun F r _ => hrow F r)
-      _ = _ := by simp only [sum_map_const_nat]; ring
+      _ = _ := by simp only [List.sum_map_const_eq_length_mul]; ring
   simp only [knapsack, time_bind, time_step]
   have h1 := hinit fun _ => ⊥
   have h2 := hmain ((forList (fun F i => steps 2 (Function.update F i
@@ -425,7 +391,7 @@ theorem val_budgetCell {t : PhyloTree} {T : Tables} (hT : T.Correct t)
     have hchild (b : Bool) (i : ℕ) (hi : i ≤ k) : R (v ++ [b], i) = rowMax (A (v ++ [b]) i) :=
       hbelow _ (PhyloTree.child_mem_nodes hsub b) (List.prefix_append _ _) (by simp) i hi
     simp only [budgetCell, val_bind, val_step, hk', val_steps, val_forList]
-    rw [foldl_sup_eq (fun e => (W e : WithBot ℕ) + (knapsack R (hangingList T e).val (k - 1)).val)]
+    rw [List.foldl_sup_eq_sup_sup (fun e => (W e : WithBot ℕ) + (knapsack R (hangingList T e).val (k - 1)).val)]
     simp only [cases, hsub, rowMax_union, val_convAt, rowMax_convolution]
     congr 1
     · apply Finset.sup_congr rfl
@@ -476,7 +442,7 @@ theorem budgetFill_rows {t : PhyloTree} {T : Tables} (hT : T.Correct t)
   have hout : ∀ x ∈ t.nodes, ∀ i ∈ List.range (m + 1),
       (budgetFill T B W m t.preorder.reverse).val (x, i) = rowMax (A x i) := by
     simp only [budgetFill, val_forList]
-    refine foldl_invariant (List.range (m + 1)) _
+    refine List.foldl_invariant (List.range (m + 1)) _
       (fun (K : List ℕ) (R : Address × ℕ → WithBot ℕ) =>
         ∀ x ∈ t.nodes, ∀ i ∈ K, R (x, i) = rowMax (A x i)) (by simp) ?_
     intro K k K' R hsplit hR
@@ -488,7 +454,7 @@ theorem budgetFill_rows {t : PhyloTree} {T : Tables} (hT : T.Correct t)
           (do let x ← budgetCell T B W R v k
               step (Function.update R (v, k) x) : Timed _).val) R) (x, k) =
           rowMax (A x k) := by
-      refine foldl_invariant t.preorder.reverse _
+      refine List.foldl_invariant t.preorder.reverse _
         (fun (V : List Address) (R : Address × ℕ → WithBot ℕ) =>
           (∀ x ∈ t.nodes, ∀ i ∈ K, R (x, i) = rowMax (A x i)) ∧
             ∀ x ∈ V, R (x, k) = rowMax (A x k)) ⟨hR, by simp⟩ ?_
@@ -503,12 +469,12 @@ theorem budgetFill_rows {t : PhyloTree} {T : Tables} (hT : T.Correct t)
       have hcell := val_budgetCell hT hB hW hA hv (R := U) (k := k) (by
         intro y hy hvy hne i hi
         rcases Nat.lt_or_eq_of_le hi with hlt | rfl
-        · exact hK y hy i ((mem_range_prefix hsplit i).mpr hlt)
+        · exact hK y hy i ((List.mem_iff_lt_of_range_eq_append_cons hsplit i).mpr hlt)
         · exact hV y (PhyloTree.reverse_preorder_descendant_before hsplit' hy hvy hne))
       simp only [val_bind, val_step, hcell]
       refine ⟨fun x hx i hi => ?_, fun x hx => ?_⟩
       · have hik : i ≠ k := by
-          have := (mem_range_prefix hsplit i).mp hi
+          have := (List.mem_iff_lt_of_range_eq_append_cons hsplit i).mp hi
           omega
         rw [Function.update_of_ne (fun h => hik (Prod.mk.inj h).2)]
         exact hK x hx i hi
@@ -616,7 +582,7 @@ theorem time_budgetCell {t : PhyloTree} {T : Tables} (hT : T.Correct t)
     have hloop := time_forList_le _ (if k = 0 then [] else B v)
       (convAt (fun i => R (l, i)) (fun i => R (r, i)) k).val
       (fun _ => 13 + 3 * m + 7 * N + N * m * (6 * m + 2)) hbody
-    rw [sum_map_const_nat] at hloop
+    rw [List.sum_map_const_eq_length_mul] at hloop
     have hlen : (if k = 0 then [] else B v).length ≤ (B v).length := by
       split_ifs <;> simp
     have := Nat.mul_le_mul_right (13 + 3 * m + 7 * N + N * m * (6 * m + 2) + 1) hlen
@@ -672,7 +638,7 @@ theorem time_budgetFill {t : PhyloTree} {T : Tables} (hT : T.Correct t)
         (N * (6 * m + 11) + (EdgeAbove.candidates t).card * X) + 1).sum :=
       time_forList_le _ _ _ _ hcol
     _ = _ := by
-      simp only [sum_map_const_nat, List.length_range]
+      simp only [List.sum_map_const_eq_length_mul, List.length_range]
       ring
 
 /-- **Section 2.4: the running time `O(n²(|Q| + m³n))`.** For a well-labelled tree `T` with `n`

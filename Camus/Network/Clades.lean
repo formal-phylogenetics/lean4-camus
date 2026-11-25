@@ -1,7 +1,8 @@
 module
 
 public import Camus.Network.Cuts
-public import Camus.Network.Baseline.Clades
+public import Camus.Network.Isomorphism.Rename
+public import Camus.Basic.Data.Finset.Basic
 
 /-!
 # Displayed quartets by clades
@@ -166,7 +167,7 @@ theorem switching_cut_separates_iff (hN : N.RootedBinaryLevelOne) (hS : N.Switch
           (∀ b ∈ q.sides.2, b ∈ N.cladeBelow S y)) := by
     simp only [Quartet.cutBy, decide_eq_true_eq, Finset.subset_iff, Finset.disjoint_left]
     tauto
-  rw [hbool, ← Realization.side_partition_iff q.sides_nonempty.1 q.sides_nonempty.2
+  rw [hbool, ← Finset.iff_partition_of_nonempty q.sides_nonempty.1 q.sides_nonempty.2
     (· ∈ N.cladeBelow S y)]
   constructor
   · rintro ⟨hAA, hBB, hAB⟩

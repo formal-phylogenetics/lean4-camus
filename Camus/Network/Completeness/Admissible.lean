@@ -1,6 +1,7 @@
 module
 
 public import Camus.Network.Completeness.Reachability
+public import Camus.Basic.Combinatorics.SimpleGraph.Paths
 
 /-!
 # Extracted pairs are admissible
@@ -18,37 +19,13 @@ lay inside the same wire.
   through an original vertex.
 * `SupportSubdivision.deleted_anchors_ne`: `u ≠ w`.
 * `SupportSubdivision.deleted_pair_admissible`: `(u, w)` is admissible.
-* `path_between_chain_members`: two members of a chain of adjacent vertices are joined by a path
+* `SimpleGraph.exists_isPath_support_subset_of_isChain`: two members of a chain of adjacent vertices are joined by a path
   inside the chain.
 -/
 
 @[expose] public section
 
 namespace Camus
-
-/-- If consecutive members of the list `l` are adjacent in `G`, any two members of `l` are joined
-by a path of `G` through members of `l`. -/
-theorem path_between_chain_members {G : SimpleGraph ℕ} {l : List ℕ}
-    (hchain : l.IsChain G.Adj) {u v : ℕ} (hu : u ∈ l) (hv : v ∈ l) :
-    ∃ p : G.Walk u v, p.IsPath ∧ p.support ⊆ l := by
-  classical
-  have hne : l ≠ [] := List.ne_nil_of_mem hu
-  let w := SimpleGraph.Walk.ofSupport l hne hchain
-  have hwu : u ∈ w.support := by simpa only [w, SimpleGraph.Walk.support_ofSupport] using hu
-  have hwv : v ∈ w.support := by simpa only [w, SimpleGraph.Walk.support_ofSupport] using hv
-  let a := w.takeUntil u hwu
-  let b := w.takeUntil v hwv
-  let z := a.reverse.append b
-  refine ⟨z.toPath, z.toPath.isPath, ?_⟩
-  intro x hx
-  have hxz := z.support_toPath_subset_support hx
-  rcases (SimpleGraph.Walk.mem_support_append_iff _ _).mp hxz with ha | hb
-  · have hxa : x ∈ a.support := by
-      simpa only [SimpleGraph.Walk.support_reverse, List.mem_reverse] using ha
-    have hxw := w.support_takeUntil_subset_support hwu hxa
-    simpa only [w, SimpleGraph.Walk.support_ofSupport] using hxw
-  · have hxw := w.support_takeUntil_subset_support hwv hb
-    simpa only [w, SimpleGraph.Walk.support_ofSupport] using hxw
 
 namespace RootedNetwork
 
@@ -128,7 +105,7 @@ theorem deleted_anchors_ne (H : SupportSubdivision t N S)
     intro f hf
     have hfS := H.wire_edge_mem_support hu.1 hu.2.1 hf
     exact ⟨RootedNetwork.edge_ne hN (H.switching.1 hfS), Or.inl hfS⟩
-  obtain ⟨p,hp,hps⟩ := path_between_chain_members hchain.tail.dropLast
+  obtain ⟨p,hp,hps⟩ := SimpleGraph.exists_isPath_support_subset_of_isChain hchain.tail.dropLast
     (List.mem_toFinset.mp hw.2.2) (List.mem_toFinset.mp hu.2.2)
   have hpeq : p = (RootedNetwork.supportPath hN H.switching he).val :=
     Subtype.mk.inj ((RootedNetwork.switching_acyclic hN H.switching).subsingleton_path _ _

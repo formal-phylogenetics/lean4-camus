@@ -23,14 +23,14 @@ vertex-disjoint; it does not use Observation 2. The paper derives all of Lemma 1
 
 1. Write `q = ab|cd` (`Quartet.sides_pairs`).
 2. In the subdivided `T`, the path from `a` to `b` and the path from `c` to `d` meet. Otherwise one
-   edge of `T` separates them (`disjoint_paths_separating_edge`), and `T` induces `q`
+   edge of `T` separates them (`SimpleGraph.IsAcyclic.exists_separating_edge`), and `T` induces `q`
    (`RootedNetwork.nonbaseline_pair_paths_intersect`).
 3. Let `v` be a common vertex, and `d` a non-tree edge such that `T + d` displays `q`. Then
    `{N with edges := insert d S}` displays `q`: a switching `K` and an edge of `K` whose deletion
    separates `q`. The edges of `S` missing from `K` and the deleted edge lie on the cycle of `d`
    (`RootedNetwork.single_switch_missing_on_cycle`, `RootedNetwork.single_raw_novel_cut_on_cycle`).
    If `v` were not on that cycle, it would remain connected to `a` or `b` and to `c` or `d`
-   (`path_outside_region_reachable`), and `q` would not be separated. So `v` lies on the cycle of
+   (`SimpleGraph.IsAcyclic.reachable_deleteEdges_of_not_mem`), and `q` would not be separated. So `v` lies on the cycle of
    `d` (`RootedNetwork.single_novel_pair_vertex_on_cycle`).
 4. Two such edges have cycles through `v`. The cycles of distinct non-tree edges of `N` are
    vertex-disjoint (`RootedNetwork.fundamentalCycles_disjoint`), so the edges are equal.
@@ -81,7 +81,7 @@ theorem separates_of_pair_connections (N : RootedNetwork) (q : Quartet)
 
 /-- Let `T` not induce `q = ab|cd`. Then a walk from `a` to `b` and a walk from `c` to `d` in the
 subdivided `T` (`{N with edges := S}`) have a common vertex: otherwise one edge of the tree
-separates `{a, b}` from `{c, d}` (`disjoint_paths_separating_edge`), and `T` induces `q`. -/
+separates `{a, b}` from `{c, d}` (`SimpleGraph.IsAcyclic.exists_separating_edge`), and `T` induces `q`. -/
 theorem nonbaseline_pair_paths_intersect {t : PhyloTree} (ht : t.WellLabelled)
     {N : RootedNetwork} (hN : N.RootedBinaryLevelOne) {S : Finset (ℕ × ℕ)}
     (H : SupportSubdivision t N S) (q : Quartet) (hqt : q.taxa ⊆ N.taxa)
@@ -99,7 +99,7 @@ theorem nonbaseline_pair_paths_intersect {t : PhyloTree} (ht : t.WellLabelled)
   have hc : c ∈ N.taxa := hqt (q.sides_subset_taxa.2 (by rw [hs]; simp))
   obtain ⟨w,hw,_⟩ := switching_existsUnique_path hN H.switching
     (hN.2.2.2.2.2.2.2.1 a ha).1 (hN.2.2.2.2.2.2.2.1 c hc).1
-  obtain ⟨e,he,hab,hcd,hac⟩ := disjoint_paths_separating_edge
+  obtain ⟨e,he,hab,hcd,hac⟩ := SimpleGraph.IsAcyclic.exists_separating_edge
     (switching_acyclic hN H.switching) p r hdis w hw
   have hraw : ({N with edges := S}).DisplaysQuartet q :=
     ⟨hqt,S,⟨Finset.Subset.refl _,H.switching.2⟩,e,he,
@@ -149,7 +149,7 @@ theorem single_novel_pair_vertex_on_cycle {t : PhyloTree} (ht : t.WellLabelled)
   have hC : ∀ x ∈ C, ∀ y ∈ C, ∃ w : ({N with edges := S}).underlying.Walk x y,
       w.IsPath ∧ ∀ z ∈ w.support, z ∈ C := by
     intro x hx y hy
-    obtain ⟨w,hw,hwS⟩ := path_between_chain_members
+    obtain ⟨w,hw,hwS⟩ := SimpleGraph.exists_isPath_support_subset_of_isChain
       (supportPath hN H.switching he).val.isChain_adj_support hx hy
     exact ⟨w,hw,hwS⟩
   let B : Set (Sym2 ℕ) := ((S \ K).image (fun g => s(g.1,g.2)) : Set (Sym2 ℕ)) ∪ {cut}
@@ -177,9 +177,9 @@ theorem single_novel_pair_vertex_on_cycle {t : PhyloTree} (ht : t.WellLabelled)
       · exact Or.inl (hkeep (x,y) h rfl)
       · exact Or.inr (hkeep (y,x) h Sym2.eq_swap)
     · exact fun h => hBxy (Or.inr h)
-  have hpa := path_outside_region_reachable (switching_acyclic hN H.switching)
+  have hpa := SimpleGraph.IsAcyclic.reachable_deleteEdges_of_not_mem (switching_acyclic hN H.switching)
     C hC B hB p hp hvp hvC
-  have hra := path_outside_region_reachable (switching_acyclic hN H.switching)
+  have hra := SimpleGraph.IsAcyclic.reachable_deleteEdges_of_not_mem (switching_acyclic hN H.switching)
     C hC B hB r hr hvr hvC
   have hside1 : ∃ x ∈ q.sides.1,
       (({N with edges := K}).underlying.deleteEdges {cut}).Reachable (N.leaf x) v := by

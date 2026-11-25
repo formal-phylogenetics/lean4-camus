@@ -5,6 +5,7 @@ public import Mathlib.Topology.Algebra.Order.Group
 public import Mathlib.Topology.Algebra.Ring.Real
 public import Mathlib.Topology.Order.OrderClosed
 public import Mathlib.Order.Filter.AtTopBot.Basic
+public import Camus.Basic.Data.Fin.Basic
 
 /-!
 # Section 3.4: Algorithm 1 on converging frequencies
@@ -169,12 +170,6 @@ theorem retainSecond_of_le {t p₁ p₂ p₃ : ℝ} (h₃ : 0 ≤ p₃) (h₂₃
     have ht' : 1 ≤ t := le_of_not_gt ht
     nlinarith
   nlinarith
-
-/-- Of three distinct topologies, every topology other than the third is one of the first two. -/
-theorem fin_three_cases {s₁ s₂ s₃ s : Fin 3} (h₁₂ : s₁ ≠ s₂) (h₁₃ : s₁ ≠ s₃) (h₂₃ : s₂ ≠ s₃)
-    (hs : s ≠ s₃) : s = s₁ ∨ s = s₂ := by
-  revert s₁ s₂ s₃ s
-  decide
 
 /-- Section 3.4: the pattern of the multispecies coalescent in the limit. Let `f n s` be the count
 of the topology `s` on four taxa among `n` genes, with relative frequencies `f n s / n → p s`. If

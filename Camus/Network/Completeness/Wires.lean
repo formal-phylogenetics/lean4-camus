@@ -2,6 +2,7 @@ module
 
 public import Camus.Network.Completeness.Cycles
 public import Mathlib.Data.List.Nodup
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # Wires of a support subdivision
@@ -28,39 +29,22 @@ outgoing switching edge.
 
 namespace Camus
 
-/-- The tails of the edges of a wire `l`, in order, form `l` without its last vertex. -/
-theorem wire_edges_map_fst (l : List ℕ) :
-    (l.zip l.tail).map Prod.fst = l.dropLast := by
-  induction l with
-  | nil => rfl
-  | cons x l ih =>
-    cases l with
-    | nil => rfl
-    | cons y l =>
-      simpa only [List.tail_cons, List.zip_cons_cons, List.map_cons,
-        List.dropLast_cons_cons] using congrArg (List.cons x) ih
-
-/-- The heads of the edges of a wire `l`, in order, form `l` without its first vertex. -/
-theorem wire_edges_map_snd (l : List ℕ) :
-    (l.zip l.tail).map Prod.snd = l.tail :=
-  List.map_snd_zip (by simp)
-
 /-- The tail of an edge of a wire `l` lies in `l.dropLast`. -/
 theorem wire_edge_source_mem {l : List ℕ} {e : ℕ × ℕ} (he : e ∈ wireEdges l) :
     e.1 ∈ l.dropLast := by
-  rw [← wire_edges_map_fst]
+  rw [← List.map_fst_zip_tail]
   exact List.mem_map.mpr ⟨e, List.mem_toFinset.mp he, rfl⟩
 
 /-- The head of an edge of a wire `l` lies in `l.tail`. -/
 theorem wire_edge_target_mem {l : List ℕ} {e : ℕ × ℕ} (he : e ∈ wireEdges l) :
     e.2 ∈ l.tail := by
-  rw [← wire_edges_map_snd]
+  rw [← List.map_snd_zip_tail]
   exact List.mem_map.mpr ⟨e, List.mem_toFinset.mp he, rfl⟩
 
 /-- Every vertex of `l.dropLast` is the tail of an edge of the wire `l`. -/
 theorem wire_edge_source_exists {l : List ℕ} {v : ℕ} (hv : v ∈ l.dropLast) :
     ∃ w, (v,w) ∈ wireEdges l := by
-  rw [← wire_edges_map_fst] at hv
+  rw [← List.map_fst_zip_tail] at hv
   obtain ⟨e, he, hv⟩ := List.mem_map.mp hv
   refine ⟨e.2, ?_⟩
   subst v
@@ -69,7 +53,7 @@ theorem wire_edge_source_exists {l : List ℕ} {v : ℕ} (hv : v ∈ l.dropLast)
 /-- Every vertex of `l.tail` is the head of an edge of the wire `l`. -/
 theorem wire_edge_target_exists {l : List ℕ} {v : ℕ} (hv : v ∈ l.tail) :
     ∃ u, (u,v) ∈ wireEdges l := by
-  rw [← wire_edges_map_snd] at hv
+  rw [← List.map_snd_zip_tail] at hv
   obtain ⟨e, he, hv⟩ := List.mem_map.mp hv
   refine ⟨e.1, ?_⟩
   subst v
@@ -79,7 +63,7 @@ theorem wire_edge_target_exists {l : List ℕ} {v : ℕ} (hv : v ∈ l.tail) :
 theorem wire_outgoing_unique {l : List ℕ} (hl : l.Nodup) {e f : ℕ × ℕ}
     (he : e ∈ wireEdges l) (hf : f ∈ wireEdges l) (hv : e.1 = f.1) : e = f := by
   have hm : ((l.zip l.tail).map Prod.fst).Nodup := by
-    rw [wire_edges_map_fst]
+    rw [List.map_fst_zip_tail]
     exact hl.sublist (List.dropLast_sublist _)
   exact List.inj_on_of_nodup_map hm (List.mem_toFinset.mp he)
     (List.mem_toFinset.mp hf) hv
@@ -88,7 +72,7 @@ theorem wire_outgoing_unique {l : List ℕ} (hl : l.Nodup) {e f : ℕ × ℕ}
 theorem wire_incoming_unique {l : List ℕ} (hl : l.Nodup) {e f : ℕ × ℕ}
     (he : e ∈ wireEdges l) (hf : f ∈ wireEdges l) (hv : e.2 = f.2) : e = f := by
   have hm : ((l.zip l.tail).map Prod.snd).Nodup := by
-    rw [wire_edges_map_snd]
+    rw [List.map_snd_zip_tail]
     exact hl.tail
   exact List.inj_on_of_nodup_map hm (List.mem_toFinset.mp he)
     (List.mem_toFinset.mp hf) hv
@@ -123,29 +107,6 @@ theorem wire_interior_mem_dropLast {l : List ℕ} {v : ℕ}
     | nil => simp [wireInterior] at hv
     | cons b l =>
       exact List.mem_cons_of_mem a (List.mem_toFinset.mp hv)
-
-/-- In a wire without repeated vertices, the first vertex does not occur again. -/
-theorem wire_head_not_mem_tail {l : List ℕ} (hl : l.Nodup) {v : ℕ}
-    (hv : l.head? = some v) : v ∉ l.tail := by
-  cases l with
-  | nil => simp at hv
-  | cons a l =>
-    simp only [List.head?_cons, Option.some.injEq] at hv
-    subst v
-    exact (List.nodup_cons.mp hl).1
-
-/-- In a wire with at least two vertices, the first vertex lies in `l.dropLast`. -/
-theorem wire_head_mem_dropLast {l : List ℕ} (hlen : 2 ≤ l.length) {v : ℕ}
-    (hv : l.head? = some v) : v ∈ l.dropLast := by
-  cases l with
-  | nil => simp at hlen
-  | cons a l =>
-    cases l with
-    | nil => simp at hlen
-    | cons b l =>
-      simp only [List.head?_cons, Option.some.injEq] at hv
-      subst v
-      simp
 
 namespace SupportSubdivision
 
@@ -196,7 +157,7 @@ theorem tail_wire_cases (H : SupportSubdivision t N S) {p : Address}
     (hp : p ∈ t.nodes) (hp0 : p ≠ []) {v : ℕ} (hv : v ∈ (H.wire p).tail) :
     v ∈ wireInterior (H.wire p) ∨ v = H.original p := by
   rcases wire_vertex_cases (List.mem_of_mem_tail hv) with hhead | hlast | hinner
-  · exact False.elim (wire_head_not_mem_tail (H.wire_laws p hp hp0).2.1 hhead hv)
+  · exact False.elim (List.not_mem_tail_of_head?_eq_some (H.wire_laws p hp hp0).2.1 hhead hv)
   · exact Or.inr (Option.some.inj (hlast.symm.trans (H.wire_laws p hp hp0).2.2.2.1))
   · exact Or.inl hinner
 
@@ -223,7 +184,7 @@ theorem wire_head_outgoing_exists (H : SupportSubdivision t N S) {p : Address}
     (hp : p ∈ t.nodes) (hp0 : p ≠ []) :
     ∃ v, (H.original (parent p),v) ∈ S ∧ v ∈ (H.wire p).tail := by
   have hw := H.wire_laws p hp hp0
-  obtain ⟨v,he⟩ := wire_edge_source_exists (wire_head_mem_dropLast hw.1 hw.2.2.1)
+  obtain ⟨v,he⟩ := wire_edge_source_exists (List.mem_dropLast_of_head?_eq_some hw.1 hw.2.2.1)
   exact ⟨v,H.wire_edge_mem_support hp hp0 he,wire_edge_target_mem he⟩
 
 /-- A vertex inside a wire is the tail of at most one switching edge. -/

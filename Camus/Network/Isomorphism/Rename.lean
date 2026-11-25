@@ -33,6 +33,11 @@ theorem sides_subset_taxa (q : Quartet) : q.sides.1 ⊆ q.taxa ∧ q.sides.2 ⊆
   simp only [sides]
   split_ifs <;> simp [taxa, Finset.subset_iff]
 
+/-- Both sides of the split of a quartet are nonempty. -/
+theorem sides_nonempty (q : Quartet) : q.sides.1.Nonempty ∧ q.sides.2.Nonempty := by
+  unfold sides
+  split_ifs <;> simp
+
 end Quartet
 
 namespace RootedNetwork

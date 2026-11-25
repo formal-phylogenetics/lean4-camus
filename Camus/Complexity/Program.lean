@@ -781,7 +781,7 @@ theorem enumerate_buckets {t : PhyloTree} {T : Tables} (hT : T.Correct t) (Q : M
       ∀ e ∈ A, EdgeAbove.Admissible t e → S.2 e = (weightScan T Q e).val
   have hinv : Inv (pairList t.preorder) S := by
     simp only [S, enumerate, val_forList]
-    apply foldl_invariant (pairList t.preorder) _ Inv
+    apply List.foldl_invariant (pairList t.preorder) _ Inv
     · refine ⟨fun v => List.nodup_nil, fun v e => ?_, fun e he => by simp at he⟩
       simp
     · intro A e B U hsplit hU
@@ -1062,7 +1062,7 @@ theorem fill_array {t : PhyloTree} {T : Tables} (hT : T.Correct t)
   have hMref : Array t (edgeWeight t Q) Mref := bottomUp_array t (edgeWeight t Q)
   have hinv : ∀ x ∈ t.preorder.reverse, (fill T B W t.preorder.reverse).val x = Mref x := by
     simp only [fill, val_forList]
-    refine foldl_invariant t.preorder.reverse (fun M v => (solveVertex T B W M v).val)
+    refine List.foldl_invariant t.preorder.reverse (fun M v => (solveVertex T B W M v).val)
       (fun (A : List Address) (M : Address → ℕ) => ∀ x ∈ A, M x = Mref x) (by simp) ?_
     · intro A v B' M hsplit hM
       have hv : v ∈ t.nodes := by
@@ -1129,7 +1129,7 @@ theorem time_pairValue {t : PhyloTree} {T : Tables} (hT : T.Correct t) {e : Addr
     (pairValue T W M e).time ≤ 10 + 9 * t.nodes.card := by
   have h1 := time_hangingList T e
   have h2 := length_hangingList hT he
-  simp only [pairValue, time_bind, time_step, val_step, time_sumList, sum_map_const_nat]
+  simp only [pairValue, time_bind, time_step, val_step, time_sumList, List.sum_map_const_eq_length_mul]
   omega
 
 /-- Section 2.3, step (iii): solving the subproblem at `v` takes `O(|Pairs(v)| · n)` time, besides
@@ -1147,7 +1147,7 @@ theorem time_solveVertex {t : PhyloTree} {T : Tables} (hT : T.Correct t)
       have hae := (Finset.mem_filter.mp (Finset.mem_filter.mp ((hB e).mp he)).1).2
       have := time_pairValue hT hae W M
       omega
-    rw [sum_map_const_nat] at this
+    rw [List.sum_map_const_eq_length_mul] at this
     omega
   unfold solveVertex
   cases hk : T.kind v with

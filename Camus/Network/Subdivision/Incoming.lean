@@ -2,6 +2,7 @@ module
 
 public import Camus.Network.Subdivision.Colors
 public import Camus.Network.Realization.Support
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # Switchings of a subdivision descend
@@ -26,30 +27,19 @@ its terminal arc is in `B`, and the active edges form a switching of `P`.
 
 namespace Camus
 
-theorem wire_last_not_mem_dropLast {L : List ℕ} (hL : L.Nodup) {v : ℕ}
-    (hv : L.getLast? = some v) : v ∉ L.dropLast := by
-  have hne : L ≠ [] := by intro h; simp [h] at hv
-  have hlast : L.getLast hne = v := Option.some.inj
-    ((List.getLast?_eq_some_getLast hne).symm.trans hv)
-  have hn : (L.dropLast ++ [v]).Nodup := by
-    rw [← hlast, List.dropLast_append_getLast hne]
-    exact hL
-  intro h
-  exact (List.nodup_append.mp hn).2.2 _ h _ (by simp) rfl
-
 /-- The source of an arc of a duplicate-free wire is its first vertex or an interior vertex. -/
 theorem wire_source_cases {L : List ℕ} (hL : L.Nodup) {f : ℕ × ℕ}
     (hf : f ∈ wireEdges L) : L.head? = some f.1 ∨ f.1 ∈ wireInterior L := by
   rcases wire_vertex_cases (List.mem_of_mem_dropLast (wire_edge_source_mem hf)) with h | h | h
   · exact Or.inl h
-  · exact (wire_last_not_mem_dropLast hL h (wire_edge_source_mem hf)).elim
+  · exact (List.not_mem_dropLast_of_getLast?_eq_some hL h (wire_edge_source_mem hf)).elim
   · exact Or.inr h
 
 /-- The target of an arc of a duplicate-free wire is its last vertex or an interior vertex. -/
 theorem wire_target_cases {L : List ℕ} (hL : L.Nodup) {f : ℕ × ℕ}
     (hf : f ∈ wireEdges L) : L.getLast? = some f.2 ∨ f.2 ∈ wireInterior L := by
   rcases wire_vertex_cases (List.mem_of_mem_tail (wire_edge_target_mem hf)) with h | h | h
-  · exact (wire_head_not_mem_tail hL h (wire_edge_target_mem hf)).elim
+  · exact (List.not_mem_tail_of_head?_eq_some hL h (wire_edge_target_mem hf)).elim
   · exact Or.inl h
   · exact Or.inr h
 
@@ -100,8 +90,8 @@ theorem terminal_exists (H : GraphSubdivision P N) {e : ℕ × ℕ} (he : e ∈ 
   have hlast : H.original e.2 ∈ H.wire e := List.mem_of_mem_getLast? (by rw [hl.2.2.2.1]; simp)
   have hheadne : (H.wire e).head? ≠ some (H.original e.2) := by
     intro h
-    have hboth : H.original e.2 ∈ (H.wire e).dropLast := wire_head_mem_dropLast hl.1 h
-    exact wire_last_not_mem_dropLast hl.2.1 hl.2.2.2.1 hboth
+    have hboth : H.original e.2 ∈ (H.wire e).dropLast := List.mem_dropLast_of_head?_eq_some hl.1 h
+    exact List.not_mem_dropLast_of_getLast?_eq_some hl.2.1 hl.2.2.2.1 hboth
   have htail : H.original e.2 ∈ (H.wire e).tail := by
     cases hw : H.wire e with
     | nil => simp [hw] at hl

@@ -5,6 +5,7 @@ public import Camus.Network.Baseline.Main
 public import Camus.Network.Completeness.Main
 public import Camus.Network.Isomorphism.Rename
 public import Camus.DP.Correctness
+public import Camus.Tree.Lemma2
 
 /-!
 # At most `n − 1` reticulations

@@ -2,6 +2,7 @@ module
 
 public import Camus.Network.Realization.CycleFootprint
 public import Mathlib.Combinatorics.SimpleGraph.Matching
+public import Camus.Basic.Combinatorics.SimpleGraph.Cycles
 
 /-!
 # The canonical network of an edge family: every cycle is a fundamental cycle
@@ -16,7 +17,7 @@ gives a cycle of the support tree, which is acyclic. So every cycle lies in the 
 fundamental cycles (`Realization.cyclicGraph`). These are vertex-disjoint
 (`Realization.fundamentalCycles_disjoint`), so in their union every non-isolated vertex has
 degree `2` (`Realization.cyclicGraph_isCycles`), and in such a graph two cycles through a common
-vertex have the same edges (`Realization.isCycles_cycle_edges_eq`). Hence every cycle of the
+vertex have the same edges (`SimpleGraph.IsCycles.edges_toFinset_eq`). Hence every cycle of the
 network has the edges of a fundamental cycle, and cycles with distinct edge sets are
 vertex-disjoint.
 
@@ -25,7 +26,7 @@ vertex-disjoint.
 * `Realization.cycle_edge_in_fundamental`: every edge of a cycle lies on a fundamental cycle.
 * `Realization.cyclicGraph_isCycles`: in the union of the fundamental cycles, every non-isolated
   vertex has degree `2`.
-* `Realization.isCycles_cycle_edges_eq`: in such a graph, two cycles through a common vertex
+* `SimpleGraph.IsCycles.edges_toFinset_eq`: in such a graph, two cycles through a common vertex
   have the same edges.
 * `Realization.cycles_disjoint`: cycles of `Realization.graph t E` with distinct edge sets are
   vertex-disjoint.
@@ -196,53 +197,6 @@ vertices of `Realization.graph t E`. -/
   · exact (graph_edge_endpoints t E hE.1 hf).2
   · exact (graph_edge_endpoints t E hE.1 hb).1
 
-private theorem isCycles_walk_support_subset {G : SimpleGraph ℕ} [G.LocallyFinite]
-    (hG : G.IsCycles) {z : ℕ} (d : G.Walk z z) (hd : d.IsCycle)
-    {u v : ℕ} (p : G.Walk u v) (hu : u ∈ d.support) : p.support ⊆ d.support := by
-  induction p with
-  | nil =>
-    intro w hw
-    exact List.mem_singleton.mp hw ▸ hu
-  | cons hadj p ih =>
-    intro w hw
-    rcases List.mem_cons.mp hw with rfl | htail
-    · exact hu
-    · have hdadj := (hd.adj_toSubgraph_iff_of_isCycles hG (d.mem_verts_toSubgraph.mpr hu) _).mpr
-        hadj
-      have hnext := SimpleGraph.Walk.mem_support_of_adj_toSubgraph hdadj.symm
-      exact ih hnext htail
-
-private theorem isCycles_walk_edges_subset {G : SimpleGraph ℕ} [G.LocallyFinite]
-    (hG : G.IsCycles) {z : ℕ} (d : G.Walk z z) (hd : d.IsCycle)
-    {u v : ℕ} (p : G.Walk u v) (hu : u ∈ d.support) : p.edges ⊆ d.edges := by
-  intro r hr
-  obtain ⟨a,b⟩ := r
-  have hamem := p.fst_mem_support_of_mem_edges hr
-  have hadj := p.adj_of_mem_edges hr
-  have ha := isCycles_walk_support_subset hG d hd p hu hamem
-  exact SimpleGraph.Walk.adj_toSubgraph_iff_mem_edges.mp
-    ((hd.adj_toSubgraph_iff_of_isCycles hG (d.mem_verts_toSubgraph.mpr ha) _).mpr hadj)
-
-/-- In a locally finite graph whose non-isolated vertices all have degree `2`, two cycles
-through a common vertex have the same edges. -/
-theorem isCycles_cycle_edges_eq {G : SimpleGraph ℕ} [G.LocallyFinite]
-    (hG : G.IsCycles) {u v x : ℕ} (c : G.Walk u u) (d : G.Walk v v)
-    (hc : c.IsCycle) (hd : d.IsCycle) (hxc : x ∈ c.support) (hxd : x ∈ d.support) :
-    c.edges.toFinset = d.edges.toFinset := by
-  have hcsub : c.edges ⊆ d.edges := by
-    intro r hr
-    apply isCycles_walk_edges_subset hG d hd (c.rotate x hxc) hxd
-    exact (c.rotate_edges x hxc).mem_iff.mpr hr
-  have hdsub : d.edges ⊆ c.edges := by
-    intro r hr
-    apply isCycles_walk_edges_subset hG c hc (d.rotate x hxd) hxc
-    exact (d.rotate_edges x hxd).mem_iff.mpr hr
-  apply Finset.Subset.antisymm
-  · intro r hr
-    exact List.mem_toFinset.mpr (hcsub (List.mem_toFinset.mp hr))
-  · intro r hr
-    exact List.mem_toFinset.mpr (hdsub (List.mem_toFinset.mp hr))
-
 /-- The level-1 condition for the canonical network: for a cycle-separated family `E`, two
 cycles of `Realization.graph t E` with distinct edge sets are vertex-disjoint. Both cycles lie in
 the union of the fundamental cycles, where two cycles through a common vertex have the same
@@ -278,7 +232,7 @@ theorem cycles_disjoint (t : PhyloTree) (E : Finset Pair)
   have hxdK : x ∈ dK.support := by
     simpa only [dK,SimpleGraph.Walk.support_transfer] using List.mem_toFinset.mp hxd
   -- There, two cycles through the common vertex `x` have the same edges.
-  have heq := isCycles_cycle_edges_eq (cyclicGraph_isCycles t E hE) cK dK hcK hdK hxcK hxdK
+  have heq := SimpleGraph.IsCycles.edges_toFinset_eq (cyclicGraph_isCycles t E hE) cK dK hcK hdK hxcK hxdK
   exact hne (by simpa only [cK,dK,SimpleGraph.Walk.edges_transfer] using heq)
 
 end Camus.Realization

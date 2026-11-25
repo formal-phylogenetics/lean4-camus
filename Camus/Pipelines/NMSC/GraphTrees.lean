@@ -1,6 +1,7 @@
 module
 
 public import Camus.Pipelines.NMSC.Switchings
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # The trees of a canonical network, switching by switching
@@ -159,7 +160,6 @@ theorem keptSwitching_switching (hE : E ⊆ EdgeAbove.candidates t) (hF : F ⊆ 
     rw [h1, h2, Finset.card_empty, add_zero, hS]
 
 end Realization
-
 
 namespace Realization
 
@@ -475,7 +475,6 @@ theorem fork_logic {F : Finset Pair} {p ℓ : Address} (hpℓ : p ≠ ℓ)
 
 end Realization
 
-
 namespace Realization
 
 variable {t : PhyloTree} {E F : Finset Pair}
@@ -588,7 +587,6 @@ theorem recipient_clade (ht : t.WellLabelled) (hE : EdgeAbove.CycleSeparated t E
     have h2 : a ∉ donorTaxa t F e₀.2 := fun h => ha (donorTaxa_subset_taxa _ h)
     have h3 : a ∉ t.taxaAt e₀.2 := fun h => ha (PhyloTree.taxaAt_subset t _ h)
     simp only [Finset.mem_union, h1, h2, h3, or_self]
-
 
 /-! ### The wires of the canonical network -/
 
@@ -708,14 +706,9 @@ theorem mem_keptSwitching {v x : ℕ} :
   simp only [keptSwitching, Finset.mem_union, Finset.mem_filter, Finset.mem_image,
     Prod.mk.injEq]
 
-
 /-- The taxa that the kept added edges of the ghost donors at `c` bring. -/
 def ghostTaxa (t : PhyloTree) (F : Finset Pair) (c : Address) : Finset ℕ :=
   (F.filter fun e => e.1 = c ∧ EdgeAbove.target e = c).biUnion fun e => t.taxaAt e.2
-
-/-- The head of a nonempty list is one of its elements. -/
-theorem headD_mem_append (L : List ℕ) (x d : ℕ) : (L ++ [x]).headD d ∈ L ++ [x] := by
-  cases L <;> simp
 
 /-- The first vertex below the upper end of the wire above `c` is a recipient of a kept added
 edge iff a kept added edge enters this wire. -/
@@ -725,7 +718,7 @@ theorem firstBelow_recipient_iff (hE : EdgeAbove.CycleSeparated t E) (hF : F ⊆
   constructor
   · rintro ⟨e, he, h⟩
     have hmem : firstBelow t E c ∈ outerEndpoints t E c ++ ghostEndpoints t E c ++
-        [Address.code c] := headD_mem_append _ _ _
+        [Address.code c] := List.headD_append_singleton_mem _ _ _
     simp only [List.mem_append, List.mem_singleton] at hmem
     rcases hmem with (hmem | hmem) | hmem
     · obtain ⟨f, hf, ⟨-, -, hd⟩ | ⟨hf2, hr⟩⟩ := mem_outerEndpoints.mp hmem
@@ -819,7 +812,6 @@ theorem cladeBelow_firstBelow (hF : F ⊆ E) {c : Address}
     have hfb : firstBelow t E c = w := by simp [firstBelow, ho]
     rw [hfb] at h ⊢
     exact h.2.1 c hc hc0 hwm
-
 
 /-- From the claims at the vertex after the outer endpoint of the wire above `c`, the clade below
 it. -/
@@ -961,7 +953,7 @@ theorem cladeBelow_keptSwitching (ht : t.WellLabelled) (hE : EdgeAbove.CycleSepa
       refine mem_keptSwitching.2 (Or.inl ⟨(mem_support_outer hE hc hc0 hv).2 rfl,
         fun e _ h' => ?_⟩)
       have hmem : afterOuter t E c ∈ ghostEndpoints t E c ++ [Address.code c] :=
-        headD_mem_append _ _ _
+        List.headD_append_singleton_mem _ _ _
       rcases List.mem_append.1 hmem with hmem | hmem
       · obtain ⟨f, -, -, -, hd⟩ := mem_ghostEndpoints.mp hmem
         exact donor_ne_recipient t f e (hd.symm.trans h')
@@ -1037,7 +1029,6 @@ theorem cladeBelow_keptSwitching (ht : t.WellLabelled) (hE : EdgeAbove.CycleSepa
         have hx : (donor t e, recipient t e) ∈ keptSwitching t E F :=
           mem_keptSwitching.2 (Or.inr ⟨e, he, rfl, rfl⟩)
         exact ⟨_, ⟨hx, rfl⟩, by rw [hrec e he hx]; exact hae⟩
-
 
 /-! ### The family of the clades and the switchings of the canonical network -/
 

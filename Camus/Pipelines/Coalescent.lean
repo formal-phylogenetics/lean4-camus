@@ -344,7 +344,7 @@ theorem filterBlock_keeps_second (G : ℕ → Ω → Finset (Finset L)) (hind : 
     exact measureReal_nonneg
   -- the two other topologies are `s₁` and `s₂`
   have hcases : ∀ s, s ≠ s₃ → s = s₁ ∨ s = s₂ :=
-    fun s hs => fin_three_cases h₁₂ h₁₃ h₂₃ hs
+    fun s hs => Fin.eq_or_eq_of_ne_of_three h₁₂ h₁₃ h₂₃ hs
   -- the test holds for the probabilities of `s₂`, hence of `s₁`, against `s₃`
   have hret₂ : retainSecond t (p s₂) (p s₃) :=
     (retainSecond_iff_ratio t _ _ (by linarith)).2 ht

@@ -3,6 +3,8 @@ module
 public import Camus.Network.RootAbove.Main
 public import Camus.Network.RootAbove.Transport
 public import Camus.DP.Theorem1
+public import Camus.Basic.Data.List.Basic
+public import Camus.Basic.Combinatorics.SimpleGraph.Cycles
 
 /-!
 # A network built on `T` whose root lies above the root of `T`
@@ -56,29 +58,6 @@ theorem rootAboveNet_nbrs {v w : ℕ} (h : rootAboveNet.underlying.Adj v w) :
       (v = 4 → w = 2) ∧ (v = 5 → w = 3) ∧ (v = 6 → w = 1) ∧ v ≤ 6 := by
   obtain ⟨_, h | h⟩ := h <;> simp [rootAboveNet] at h <;> omega
 
-/-- In a cycle, a vertex whose neighbours on the cycle are among `a ≠ b` is adjacent on the cycle
-to both. -/
-theorem rootAbove_cycle_adj_of_nbrs {G : SimpleGraph ℕ} {u v a b : ℕ} {c : G.Walk u u}
-    (hc : c.IsCycle)
-    (hv : v ∈ c.support) (hab : a ≠ b) (hsub : ∀ w, c.toSubgraph.Adj v w → w = a ∨ w = b) :
-    c.toSubgraph.Adj v a ∧ c.toSubgraph.Adj v b := by
-  have h2 := hc.ncard_neighborSet_toSubgraph_eq_two hv
-  have hs : c.toSubgraph.neighborSet v ⊆ {a, b} := fun w hw => hsub w hw
-  have heq := Set.eq_of_subset_of_ncard_le hs (by rw [Set.ncard_pair hab, h2]) (Set.toFinite _)
-  have ha : a ∈ c.toSubgraph.neighborSet v := heq ▸ Set.mem_insert a {b}
-  have hb : b ∈ c.toSubgraph.neighborSet v := heq ▸ Set.mem_insert_of_mem a rfl
-  exact ⟨ha, hb⟩
-
-/-- A vertex with at most one neighbour on a cycle does not lie on it. -/
-theorem rootAbove_cycle_not_mem_of_nbr {G : SimpleGraph ℕ} {u v a : ℕ} {c : G.Walk u u}
-    (hc : c.IsCycle) (hsub : ∀ w, c.toSubgraph.Adj v w → w = a) : v ∉ c.support := by
-  intro hv
-  have h2 := hc.ncard_neighborSet_toSubgraph_eq_two hv
-  have hs : c.toSubgraph.neighborSet v ⊆ {a} := fun w hw => hsub w hw
-  have hle := Set.ncard_le_ncard hs (Set.finite_singleton a)
-  rw [Set.ncard_singleton] at hle
-  omega
-
 /-- Every cycle of `rootAboveNet` is the cycle `0 - 1 - 2 - 3 - 0`: the leaves `4`, `5`, `6` have
 one neighbour each, and each of `0`, `1`, `2`, `3` has two neighbours other than leaves. -/
 theorem rootAboveNet_cycle_edges {u : ℕ} (c : rootAboveNet.underlying.Walk u u)
@@ -90,32 +69,32 @@ theorem rootAboveNet_cycle_edges {u : ℕ} (c : rootAboveNet.underlying.Walk u u
   have hmem : ∀ {v w}, c.toSubgraph.Adj v w → w ∈ c.support :=
     fun h => c.mem_verts_toSubgraph.mp (SimpleGraph.Subgraph.Adj.snd_mem h)
   -- the leaves are not on the cycle
-  have h4 : 4 ∉ c.support := rootAbove_cycle_not_mem_of_nbr hc
+  have h4 : 4 ∉ c.support := SimpleGraph.Walk.IsCycle.not_mem_support_of_neighbors_subset hc
     (fun w h => (rootAboveNet_nbrs (hnb h)).2.2.2.2.1 rfl)
-  have h5 : 5 ∉ c.support := rootAbove_cycle_not_mem_of_nbr hc
+  have h5 : 5 ∉ c.support := SimpleGraph.Walk.IsCycle.not_mem_support_of_neighbors_subset hc
     (fun w h => (rootAboveNet_nbrs (hnb h)).2.2.2.2.2.1 rfl)
-  have h6 : 6 ∉ c.support := rootAbove_cycle_not_mem_of_nbr hc
+  have h6 : 6 ∉ c.support := SimpleGraph.Walk.IsCycle.not_mem_support_of_neighbors_subset hc
     (fun w h => (rootAboveNet_nbrs (hnb h)).2.2.2.2.2.2.1 rfl)
   -- the neighbours on the cycle of `0`, `1`, `2`, `3`
   have hn0 : 0 ∈ c.support → c.toSubgraph.Adj 0 1 ∧ c.toSubgraph.Adj 0 3 := fun hv =>
-    rootAbove_cycle_adj_of_nbrs hc hv (by decide) (fun w h => (rootAboveNet_nbrs (hnb h)).1 rfl)
+    SimpleGraph.Walk.IsCycle.adj_of_neighbors_subset hc hv (by decide) (fun w h => (rootAboveNet_nbrs (hnb h)).1 rfl)
   have hn1 : 1 ∈ c.support → c.toSubgraph.Adj 1 0 ∧ c.toSubgraph.Adj 1 2 := by
     intro hv
-    refine rootAbove_cycle_adj_of_nbrs hc hv (by decide) (fun w h => ?_)
+    refine SimpleGraph.Walk.IsCycle.adj_of_neighbors_subset hc hv (by decide) (fun w h => ?_)
     rcases (rootAboveNet_nbrs (hnb h)).2.1 rfl with h' | h' | h'
     · exact Or.inl h'
     · exact Or.inr h'
     · exact absurd (h' ▸ hmem h) h6
   have hn2 : 2 ∈ c.support → c.toSubgraph.Adj 2 1 ∧ c.toSubgraph.Adj 2 3 := by
     intro hv
-    refine rootAbove_cycle_adj_of_nbrs hc hv (by decide) (fun w h => ?_)
+    refine SimpleGraph.Walk.IsCycle.adj_of_neighbors_subset hc hv (by decide) (fun w h => ?_)
     rcases (rootAboveNet_nbrs (hnb h)).2.2.1 rfl with h' | h' | h'
     · exact Or.inl h'
     · exact Or.inr h'
     · exact absurd (h' ▸ hmem h) h4
   have hn3 : 3 ∈ c.support → c.toSubgraph.Adj 3 0 ∧ c.toSubgraph.Adj 3 2 := by
     intro hv
-    refine rootAbove_cycle_adj_of_nbrs hc hv (by decide) (fun w h => ?_)
+    refine SimpleGraph.Walk.IsCycle.adj_of_neighbors_subset hc hv (by decide) (fun w h => ?_)
     rcases (rootAboveNet_nbrs (hnb h)).2.2.2.1 rfl with h' | h' | h'
     · exact Or.inl h'
     · exact Or.inr h'
@@ -276,15 +255,6 @@ theorem rootAbove_wire_mem_of_closed {E : Finset (ℕ × ℕ)} {R : Finset ℕ}
         exact ih rfl (hR _ (hE (Finset.mem_insert_self _ _)) hxR)
           (fun e he => hE (Finset.mem_insert_of_mem he)) v hv
 
-/-- A wire starts with its first vertex and a second one, joined by an edge of the wire. -/
-theorem rootAbove_wire_cons_cons {L : List ℕ} {x : ℕ} (hlen : 2 ≤ L.length)
-    (hx : L.head? = some x) :
-    ∃ b rest, L = x :: b :: rest := by
-  match L, hlen, hx with
-  | a :: b :: rest, _, hx =>
-    simp only [List.head?_cons, Option.some.injEq] at hx
-    exact ⟨b, rest, by rw [hx]⟩
-
 /-- The second vertex of a wire is its last vertex or an interior one. -/
 theorem rootAbove_second_interior_or_last (x b : ℕ) (rest : List ℕ) :
     b ∈ wireInterior (x :: b :: rest) ∨ (x :: b :: rest).getLast? = some b := by
@@ -315,7 +285,7 @@ theorem rootAboveNet_not_anchored : ¬rootAboveNet.AnchoredExtension cherryTree 
   -- the wire above `C` runs from `0` through `1`
   obtain ⟨hlenC, _, hheadC, hlastC, hdisC⟩ := H.wire_laws [true] (by decide) (by decide)
   rw [show parent [true] = [] from rfl, hroot] at hheadC
-  obtain ⟨bC, restC, hLC⟩ := rootAbove_wire_cons_cons hlenC hheadC
+  obtain ⟨bC, restC, hLC⟩ := List.exists_eq_cons_cons_of_head?_eq_some hlenC hheadC
   have hEC := hwireE [true] (by decide) (by decide)
   rw [hLC] at hEC hlastC hdisC
   have hbC : (0, bC) ∈ rootAboveNet.edges :=
@@ -345,7 +315,7 @@ theorem rootAboveNet_not_anchored : ¬rootAboveNet.AnchoredExtension cherryTree 
   -- the wire above the cherry runs from `0`
   obtain ⟨hlenF, _, hheadF, hlastF, hdisF⟩ := H.wire_laws [false] (by decide) (by decide)
   rw [show parent [false] = [] from rfl, hroot] at hheadF
-  obtain ⟨bF, restF, hLF⟩ := rootAbove_wire_cons_cons hlenF hheadF
+  obtain ⟨bF, restF, hLF⟩ := List.exists_eq_cons_cons_of_head?_eq_some hlenF hheadF
   have hEF := hwireE [false] (by decide) (by decide)
   rw [hLF] at hEF hlastF hdisF
   have hbF : (0, bF) ∈ rootAboveNet.edges :=

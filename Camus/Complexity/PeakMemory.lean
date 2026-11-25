@@ -3,6 +3,7 @@ module
 public import Camus.Complexity.Space
 public import Camus.Complexity.Memory
 public import Camus.Complexity.Backtracking
+public import Camus.Basic.Data.List.Foldl
 
 /-!
 # Section 2.3: the peak memory of CAMUS
@@ -517,16 +518,6 @@ theorem run_backtrackS (T : Tables) (B : Address → List (Address × Address))
           simp only [Spaced.run_bind, Spaced.run_build, Spaced.run_withAlloc, Spaced.run_forList,
             hfun]
 
-/-- The length of a list grown by prepending in a loop. -/
-theorem length_foldl_prepend {α β : Type} (f : α → List β) (L : List α) (a : List β) :
-    (L.foldl (fun acc r => f r ++ acc) a).length =
-      a.length + (L.map fun r => (f r).length).sum := by
-  induction L generalizing a with
-  | nil => simp
-  | cons r L ih =>
-    simp only [List.foldl_cons, ih, List.length_append, List.map_cons, List.sum_cons]
-    omega
-
 /-- With correct tables and buckets, the backtracking from `v` finds at most one pair per vertex
 of `T_v`. -/
 theorem length_backtrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
@@ -580,7 +571,7 @@ theorem length_backtrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
             exact backtrack_acc T B W M n r acc
           simp only [backtrack, val_bind, val_step, hk', val_steps, hs, decide_false,
             Bool.false_eq_true, ↓reduceIte, hf, val_forList, hfun]
-          rw [length_foldl_prepend]
+          rw [List.length_foldl_prepend]
           have hsum : ((hangingList T e).val.map
               fun r => (backtrack T B W M n r []).val.length).sum ≤
                 ((cone t v).erase v).card := by

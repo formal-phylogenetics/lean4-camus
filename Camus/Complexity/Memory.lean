@@ -63,24 +63,24 @@ theorem preprocess_support (t : PhyloTree) :
     exact hp (h ▸ (PhyloTree.mem_preorder t q).mp hq)
   refine ⟨fun p hp => ?_, fun p hp => ?_, fun p hp => ?_, fun a ha => ?_, fun x hx => ?_⟩
   · simp only [T, hrec, hpar, T₀, foldl_record_parent]
-    exact foldl_update_of_not_mem Entry.addr Entry.parent _ _ (hout p hp)
+    exact List.foldl_update_of_forall_ne Entry.addr Entry.parent _ _ (hout p hp)
   · simp only [T, hrec, hdep, T₀, foldl_record_depth]
-    exact foldl_update_of_not_mem Entry.addr Entry.depth _ _ (hout p hp)
+    exact List.foldl_update_of_forall_ne Entry.addr Entry.depth _ _ (hout p hp)
   · simp only [T, hrec, hkind, T₀, foldl_record_kind]
-    exact foldl_update_of_not_mem Entry.addr Entry.kind _ _ (hout p hp)
+    exact List.foldl_update_of_forall_ne Entry.addr Entry.kind _ _ (hout p hp)
   · cases h : T.leafOf a with
     | none => rfl
     | some p =>
       exact (ha (List.mem_toFinset.mpr (PhyloTree.leaf_label_mem (hT.leafOf_sound a p h)))).elim
   · -- the entries of the table of lowest common ancestors are written at pairs of vertices
     simp only [T, hrec, lcaTable, val_forList]
-    refine foldl_invariant t.preorder _ (fun _ (U : Tables) => U.lca x = []) ?_ ?_
+    refine List.foldl_invariant t.preorder _ (fun _ (U : Tables) => U.lca x = []) ?_ ?_
     · simp only [T₀, foldl_record_lca]
       rfl
     · intro A p B U hsplit hU
       have hp : p ∈ t.nodes := (PhyloTree.mem_preorder t p).mp (by rw [hsplit]; simp)
       simp only [lcaRow, val_forList]
-      refine foldl_invariant t.preorder _ (fun _ (V : Tables) => V.lca x = []) hU ?_
+      refine List.foldl_invariant t.preorder _ (fun _ (V : Tables) => V.lca x = []) hU ?_
       intro A' q B' V hsplit' hV
       have hq : q ∈ t.nodes := (PhyloTree.mem_preorder t q).mp (by rw [hsplit']; simp)
       have hne : (p, q) ≠ x := fun h => hx (h ▸ Finset.mem_product.mpr ⟨hp, hq⟩)
@@ -111,7 +111,7 @@ theorem enumerate_support {t : PhyloTree} {T : Tables} (hT : T.Correct t) (Q : M
     exact hv (htarget ▸ EdgeAbove.target_mem_nodes (Finset.mem_filter.mp hc).2)
   · -- the weights are written at admissible pairs only
     simp only [S, enumerate, val_forList]
-    refine foldl_invariant (pairList t.preorder) _
+    refine List.foldl_invariant (pairList t.preorder) _
       (fun _ (U : Buckets) => U.2 e = 0) rfl ?_
     intro A f B U hsplit hU
     rw [val_visitPair]
@@ -135,7 +135,7 @@ theorem fill_support {t : PhyloTree} (T : Tables) (B : Address → List (Address
     (W : Address × Address → ℕ) : SupportedIn (fill T B W t.preorder.reverse).val 0 t.nodes := by
   intro x hx
   simp only [fill, val_forList]
-  refine foldl_invariant t.preorder.reverse _ (fun _ (M : Address → ℕ) => M x = 0) rfl ?_
+  refine List.foldl_invariant t.preorder.reverse _ (fun _ (M : Address → ℕ) => M x = 0) rfl ?_
   intro A v B' M hsplit hM
   have hv : v ∈ t.nodes := by
     rw [← PhyloTree.mem_preorder, ← List.mem_reverse, hsplit]; simp

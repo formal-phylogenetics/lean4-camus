@@ -1,6 +1,7 @@
 module
 
 public import Camus.Pipelines.NMSC.AnomalyGeneral
+public import Camus.Basic.MeasureTheory.Measure.Tendsto
 
 /-!
 # Section 3.3: Quartet Filtering on the boundary of the anomaly zone
@@ -38,7 +39,7 @@ the anomaly zone (`NMSC.anomalous_drop_iff`).
 If, almost surely, for all large `n`, Algorithm 1 keeps exactly the copies of the displayed quartet
 tree `d`, then `d` is eventually a most frequent quartet tree (Algorithm 1 keeps all the copies of
 a most frequent one), so the probability `P(A_n^d)` that it is a most frequent one tends to `1`
-(`NMSC.tendsto_prob_of_ae_eventually`). The quartet trees of the gene trees on the four taxa are
+(`MeasureTheory.tendsto_measure_of_ae_eventually`). The quartet trees of the gene trees on the four taxa are
 independent and uniform on the three, so `P(A_n^u)` is the same for the three quartet trees `u`:
 the law of the first `n` of them is invariant under any permutation of the three
 (`NMSC.card_maxLabels`). Then the probability that the three are most frequent at once tends to
@@ -388,7 +389,6 @@ theorem card_strictLabels_succ (n : ℕ) (u : Fin 3) : 3 ^ n ≤ 3 * #(strictLab
   rw [pow_succ] at huniv
   omega
 
-
 section Genes
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
@@ -500,29 +500,6 @@ theorem prob_counts_eq {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : Quarte
     P (labels k G n ⁻¹' ↑(maxLabels n u)) = #(maxLabels n u) * (1 / 3 : ENNReal) ^ n :=
   prob_labels_mem hN hk hthird G hind hid hlaw n _
 
-/-- If almost surely, for all large `n`, the event `A n` holds, its probability tends to `1`. -/
-theorem tendsto_prob_of_ae_eventually {A : ℕ → Set Ω} (h : ∀ᵐ ω ∂P, ∀ᶠ n in atTop, ω ∈ A n) :
-    Tendsto (fun n => P (A n)) atTop (𝓝 1) := by
-  set B : ℕ → Set Ω := fun m => {ω | ∀ n, m ≤ n → ω ∈ A n} with hB
-  have hBmono : Monotone B := fun m m' hmm' ω hω n hn => hω n (hmm'.trans hn)
-  have hnull : P (⋃ m, B m)ᶜ = 0 := by
-    have h' : ∀ᵐ ω ∂P, ω ∈ ⋃ m, B m := by
-      filter_upwards [h] with ω hω
-      obtain ⟨m, hm⟩ := eventually_atTop.1 hω
-      exact Set.mem_iUnion.2 ⟨m, hm⟩
-    exact ae_iff.1 h'
-  have hBU : P (⋃ m, B m) = 1 := by
-    refine le_antisymm prob_le_one ?_
-    calc (1 : ENNReal) = P Set.univ := measure_univ.symm
-      _ = P ((⋃ m, B m) ∪ (⋃ m, B m)ᶜ) := by rw [Set.union_compl_self]
-      _ ≤ P (⋃ m, B m) + P (⋃ m, B m)ᶜ := measure_union_le _ _
-      _ = P (⋃ m, B m) := by rw [hnull, add_zero]
-  have hlimB : Tendsto (fun m => P (B m)) atTop (𝓝 1) := by
-    have := tendsto_measure_iUnion_atTop (μ := P) hBmono
-    rwa [hBU] at this
-  exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlimB tendsto_const_nhds
-    (fun m => measure_mono fun ω hω => hω m le_rfl) (fun n => prob_le_one)
-
 /-- Algorithm 1 keeps all the copies of a most frequent quartet tree: if it returns on the four taxa
 `k` exactly the copies of `k.quartet d`, then `d` is a most frequent quartet tree on `k`. -/
 private theorem bd_max_of_exact {t : ℝ} {Q : Multiset Quartet} {k : QuartetKey} {d : Fin 3}
@@ -600,7 +577,7 @@ theorem not_ae_filterQuartets_of_equal {N : Phylogenetics.Net L} (hN : N.WellFor
     rw [hn u']
     simp only [hdisp]
   -- so the probability that `d` is most frequent tends to `1`
-  have hlimA : Tendsto (fun n => P (A n)) atTop (𝓝 1) := tendsto_prob_of_ae_eventually H2
+  have hlimA : Tendsto (fun n => P (A n)) atTop (𝓝 1) := MeasureTheory.tendsto_measure_of_ae_eventually H2
   -- but for `n ≡ 1 (mod 3)` its probability is at most `2/3`
   have hvalue : ∀ n, (P (A n)).toReal = #(maxLabels n d) * (1 / 3 : ℝ) ^ n := fun n => by
     rw [hA]
@@ -676,7 +653,7 @@ theorem not_ae_drop_of_equal {N : Phylogenetics.Net L} (hN : N.WellFormed) {k : 
     have := hlt u hu
     rw [hn] at htop
     omega
-  have hlimA : Tendsto (fun n => P (A n)) atTop (𝓝 1) := tendsto_prob_of_ae_eventually H2
+  have hlimA : Tendsto (fun n => P (A n)) atTop (𝓝 1) := MeasureTheory.tendsto_measure_of_ae_eventually H2
   -- but `d` is strictly most frequent with probability at least `1/9`
   have hvalue : ∀ n, (P (A n)).toReal =
       (3 ^ n - #(strictLabels n d) : ℝ) * (1 / 3 : ℝ) ^ n := fun n => by

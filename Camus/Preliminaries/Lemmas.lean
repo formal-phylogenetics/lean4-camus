@@ -11,6 +11,7 @@ public import Camus.Defs
 public import Camus.Network.Code
 public import Camus.Score
 public import Camus.Preliminaries.Lemma1.Unique
+public import Camus.Tree.Lemma2
 
 /-!
 # Lemmas 1 and 2: attributing satisfied quartets to non-tree edges

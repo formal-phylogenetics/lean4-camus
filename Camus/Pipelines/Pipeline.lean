@@ -71,7 +71,7 @@ the true network (`pipeline_outgroup_tendsto`, `pipeline_outgroup_meets_hypothes
    identifiability under inclusion and the tie-break, `recovery`.
 
 The events of steps 1 and 3 hold together, almost surely for all large numbers of sites, so the
-probability of their intersection tends to 1 (`External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually`, which
+probability of their intersection tends to 1 (`MeasureTheory.tendsto_measure_of_ae_eventually`, which
 needs no measurability of the events).
 -/
 
@@ -498,7 +498,7 @@ theorem pipeline_tendsto [Nontrivial σ] (t : PhyloTree) (ht : t.WellLabelled) {
       ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa T → T.RootedAt o →
         ∀ P : RootedNetwork, CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T P →
           Nonempty (P.Iso N)}) atTop (𝓝 1) :=
-  External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually
+  MeasureTheory.tendsto_measure_of_ae_eventually
     (pipeline_ae_eventually t ht hto N hN identifiable M hcond X hind hid hlaw)
 
 /-- Section 3.2, the SNP pipeline in WTE's model, corrected, for a selection rule: let `tree m ω`
@@ -643,7 +643,7 @@ theorem pipeline_outgroup_tendsto [Nontrivial σ]
           CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T Counterexamples.outgroupDeepNet ∧
             IsEmpty (Counterexamples.outgroupDeepNet.Iso Counterexamples.outgroupShallowNet)})
       atTop (𝓝 1) := by
-  refine External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually ?_
+  refine MeasureTheory.tendsto_measure_of_ae_eventually ?_
   filter_upwards [ae_eventually_mostFrequent M Counterexamples.outgroupShallowNet_anchored.1
       Counterexamples.outgroupTree hcond X hind hid hlaw,
     ae_eventually_support M Counterexamples.outgroupShallowNet_anchored.1 X hind hid hlaw]

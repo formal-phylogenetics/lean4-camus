@@ -1,6 +1,7 @@
 module
 
 public import Camus.Network.Reticulations
+public import Camus.Tree.Lemma2
 
 /-!
 # Section 2.4: with `n − 1` reticulations every cycle is a triangle

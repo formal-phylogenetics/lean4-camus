@@ -4,6 +4,7 @@ public import Camus.Network.Reticulations
 public import Mathlib.Tactic.Linarith
 public import Mathlib.Tactic.Ring
 public import Mathlib.Data.Fintype.Prod
+public import Camus.Network.Quartets
 
 /-!
 # Section 2.3: counting lemmas and memory
@@ -90,19 +91,6 @@ theorem candidates_bound (t : PhyloTree) :
 /-- At most `|V(T)|` subtrees hang off a cycle `γ(u, w)`. -/
 theorem hanging_bound (t : PhyloTree) (e : Pair) :
     (hanging t e).card ≤ t.nodes.card := Finset.card_filter_le _ _
-
-/-- A quartet as the tuple of its four labels and its split index. -/
-def quartetKey (q : Quartet) : ℕ × (ℕ × (ℕ × (ℕ × Fin 3))) :=
-  (q.a,q.b,q.c,q.d,q.split)
-
-/-- A quartet is determined by its four labels and its split. -/
-theorem quartetKey_injective : Function.Injective quartetKey := by
-  intro q r h
-  cases q
-  cases r
-  simp only [quartetKey,Prod.mk.injEq] at h
-  rcases h with ⟨rfl,rfl,rfl,rfl,rfl⟩
-  rfl
 
 /-- Section 2.3: if every quartet of `Q` uses only taxa of `T`, then `Q` has at most `3n⁴` distinct
 quartets (four labels and one of three splits), so `Q` is stored in `O(n⁴)` space. -/

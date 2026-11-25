@@ -1,6 +1,7 @@
 module
 
 public import Camus.Network.Realization.Cycles
+public import Camus.Tree.Lemma2
 
 /-!
 # The canonical network of an edge family: wires on a cycle

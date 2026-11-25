@@ -2,6 +2,7 @@ module
 
 public import Camus.Complexity.Timed
 public import Camus.Complexity.Counts
+public import Camus.Basic.Data.List.Foldl
 
 /-!
 # Section 2.3: the preprocessing tables
@@ -347,31 +348,6 @@ section Lemmas
 
 variable {α κ β : Type} [DecidableEq κ]
 
-/-- After a loop of updates, a key that no element updates keeps its value. -/
-theorem foldl_update_of_not_mem (key : α → κ) (v : α → β) (l : List α) (f : κ → β) {k : κ}
-    (hk : ∀ a ∈ l, key a ≠ k) :
-    (l.foldl (fun f a => Function.update f (key a) (v a)) f) k = f k := by
-  induction l generalizing f with
-  | nil => rfl
-  | cons a l ih =>
-    simp only [List.foldl_cons]
-    rw [ih _ (fun b hb => hk b (by simp [hb]))]
-    exact Function.update_of_ne (hk a (by simp)).symm _ _
-
-/-- After a loop of updates with distinct keys, the key of `x` holds the value of `x`. -/
-theorem foldl_update_of_mem (key : α → κ) (v : α → β) (l : List α) (f : κ → β)
-    (hl : (l.map key).Nodup) {x : α} (hx : x ∈ l) :
-    (l.foldl (fun f a => Function.update f (key a) (v a)) f) (key x) = v x := by
-  induction l generalizing f with
-  | nil => simp at hx
-  | cons a l ih =>
-    simp only [List.map_cons, List.nodup_cons, List.mem_map] at hl
-    simp only [List.foldl_cons]
-    rcases List.mem_cons.mp hx with rfl | hx
-    · rw [foldl_update_of_not_mem key v l _ (fun b hb h => hl.1 ⟨b, hb, h⟩)]
-      simp
-    · exact ih _ hl.2 hx
-
 end Lemmas
 
 /-- The table of parents after recording a list of entries. -/
@@ -478,13 +454,13 @@ theorem record_correct (t : PhyloTree) :
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro p hp
     simp only [T, foldl_record_parent]
-    exact foldl_update_of_mem Entry.addr Entry.parent _ _ hkeys (hmem p hp)
+    exact List.foldl_update_of_mem Entry.addr Entry.parent _ _ hkeys (hmem p hp)
   · intro p hp
     simp only [T, foldl_record_depth]
-    exact foldl_update_of_mem Entry.addr Entry.depth _ _ hkeys (hmem p hp)
+    exact List.foldl_update_of_mem Entry.addr Entry.depth _ _ hkeys (hmem p hp)
   · intro p hp
     simp only [T, foldl_record_kind]
-    exact foldl_update_of_mem Entry.addr Entry.kind _ _ hkeys (hmem p hp)
+    exact List.foldl_update_of_mem Entry.addr Entry.kind _ _ hkeys (hmem p hp)
   · intro a p h
     simp only [T, foldl_record_leafOf] at h
     rcases setLeaf_sound _ _ a p h with h0 | ⟨x, hx, hk, ha⟩
@@ -545,7 +521,7 @@ theorem lcaTable_correct (t : PhyloTree) (T : Tables)
       ∀ p ∈ A, ∀ q ∈ t.preorder, U.lca (p, q) = lca p q
   have hout : Out t.preorder T' := by
     simp only [T', lcaTable, val_forList]
-    apply foldl_invariant t.preorder _ Out
+    apply List.foldl_invariant t.preorder _ Out
     · exact ⟨rfl, rfl, rfl, rfl, by simp⟩
     · intro A p B U hsplit hU
       obtain ⟨hpar, hdep, hkind, hleaf, hrows⟩ := hU
@@ -561,7 +537,7 @@ theorem lcaTable_correct (t : PhyloTree) (T : Tables)
           ∀ q ∈ A', V.lca (p, q) = lca p q
       have hin : In t.preorder ((lcaRow t.preorder U p).val) := by
         simp only [lcaRow, val_forList]
-        apply foldl_invariant t.preorder _ In
+        apply List.foldl_invariant t.preorder _ In
         · exact ⟨hpar, hdep, hkind, hleaf, hrows, by simp⟩
         · intro A' q B' V hsplit' hV
           obtain ⟨vpar, vdep, vkind, vleaf, vrows, vrow⟩ := hV
@@ -664,7 +640,7 @@ theorem preprocess_time (t : PhyloTree) : (preprocess t).time ≤ 20 * t.nodes.c
     calc
       _ ≤ ((t.preorder.map (entryAt t)).map fun _ => 5 + 1).sum :=
         time_forList_le _ _ _ (fun _ => 5) (fun T x _ => by simp [record])
-      _ = _ := by rw [sum_map_const_nat]; simp [hlen]; ring
+      _ = _ := by rw [List.sum_map_const_eq_length_mul]; simp [hlen]; ring
   have hmap : (mapList (fun x => (pure x.addr : Timed Address))
       (t.preorder.map (entryAt t))).time = t.nodes.card := by
     simp [Function.comp_def, hlen]

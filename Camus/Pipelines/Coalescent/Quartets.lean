@@ -3,6 +3,8 @@ module
 public import Camus.Pipelines.Algorithm1
 public import Camus.External.AllmanDegnanRhodes2011.FourTaxa
 public import Phylogenetics.MSC.Marginal
+public import Camus.Basic.Data.Finset.Basic
+public import Camus.Basic.Algebra.BigOperators.Fintype
 
 /-!
 # Section 3.3: quartet trees of gene trees under the multispecies coalescent
@@ -208,23 +210,6 @@ theorem disjoint_image_map_iff (A : Finset L) (I : Finset (Fin 4)) :
   simp only [disjoint_left, forall_mem_image, mem_filter, mem_univ, true_and,
     keyLabel_mem_map_iff k hk]
 
-/-- `D` contains `C` and avoids its complement iff `D = C`. -/
-theorem subset_and_disjoint_compl_iff {α : Type*} [Fintype α] [DecidableEq α] (C D : Finset α) :
-    C ⊆ D ∧ Disjoint Cᶜ D ↔ D = C := by
-  constructor
-  · rintro ⟨h1, h2⟩
-    refine Subset.antisymm (fun i hi => ?_) h1
-    by_contra hc
-    exact disjoint_left.1 h2 (mem_compl.2 hc) hi
-  · rintro rfl
-    exact ⟨Subset.rfl, disjoint_compl_left⟩
-
-/-- `D` contains the complement of `C` and avoids `C` iff `D = Cᶜ`. -/
-theorem compl_subset_and_disjoint_iff {α : Type*} [Fintype α] [DecidableEq α] (C D : Finset α) :
-    Cᶜ ⊆ D ∧ Disjoint C D ↔ D = Cᶜ := by
-  have h := subset_and_disjoint_compl_iff Cᶜ D
-  rwa [compl_compl] at h
-
 /-- A set `A` of taxa cuts the topology `s` on the four taxa of `k` iff its pattern on them, the set
 of the indices `i` with `keyTaxon k hk i ∈ A`, is `side s` or its complement. -/
 theorem cutBy_iff (A : Finset L) (s : Fin 3) :
@@ -232,7 +217,7 @@ theorem cutBy_iff (A : Finset L) (s : Fin 3) :
       (univ.filter fun i => keyTaxon k hk i ∈ A) = side s ∨
         (univ.filter fun i => keyTaxon k hk i ∈ A) = (side s)ᶜ := by
   simp only [Quartet.cutBy, decide_eq_true_eq, sides_quartet, image_subset_map_iff k hk,
-    disjoint_image_map_iff k hk, subset_and_disjoint_compl_iff, compl_subset_and_disjoint_iff]
+    disjoint_image_map_iff k hk, Finset.subset_and_disjoint_compl_iff, Finset.compl_subset_and_disjoint_iff]
 
 /-- A side `C` of a split of `Fin 4` is in the quartet tree that `T` induces on the four taxa
 (`restrictUnrooted`) iff it is the trace of a side of a split of `T`. -/
@@ -361,24 +346,6 @@ theorem quartetSpeciesTree_isBinary {σ : SpeciesTree L} (hσ : σ.IsBinary) (k 
 
 /-! ### The probabilities of the three topologies -/
 
-/-- Regrouping a sum over gene trees by their image under `R`. -/
-theorem sum_ite_comp {α β : Type*} [Fintype α] [Fintype β] [DecidableEq β] (R : α → β)
-    (P : β → Prop) [DecidablePred P] (μ : α → ℝ) :
-    ∑ a, (if P (R a) then μ a else 0) =
-      ∑ b, if P b then ∑ a, (if R a = b then μ a else 0) else 0 := by
-  rw [← Finset.sum_fiberwise univ R]
-  refine Finset.sum_congr rfl fun b _ => ?_
-  rw [Finset.sum_filter]
-  split_ifs with hb
-  · refine Finset.sum_congr rfl fun a _ => ?_
-    by_cases ha : R a = b
-    · rw [ite_eq_left ha, ite_eq_left ha, ite_eq_left (ha ▸ hb)]
-    · rw [ite_eq_right ha, ite_eq_right ha]
-  · refine Finset.sum_eq_zero fun a _ => ?_
-    by_cases ha : R a = b
-    · rw [ite_eq_left ha, ite_eq_right (ha ▸ hb)]
-    · rw [ite_eq_right ha]
-
 /-- The bridge to the quartet trees of lean4-phylogenetics. The probability that the gene tree of
 the MSC on `σ` induces the topology `s` on the four taxa `a < b < c < d` of `k` is the probability of the quartet
 tree `treeOfClusters {side s}` (AB|CD, AC|BD, AD|BC for `s = 0, 1, 2`) under the MSC on the quartet
@@ -392,7 +359,7 @@ theorem quartetProb_eq (σ : SpeciesTree L) (k : QuartetKey) (hk : keyTaxa k ⊆
     simp_rw [quartetSpeciesTree_unrootedDist]
     unfold quartetProb
     simp_rw [induces_iff k hk]
-    exact sum_ite_comp (restrictUnrooted (keyTaxon k hk)) (fun T' => side s ∈ T' ∨ (side s)ᶜ ∈ T')
+    exact Fintype.sum_ite_comp (restrictUnrooted (keyTaxon k hk)) (fun T' => side s ∈ T' ∨ (side s)ᶜ ∈ T')
       (σ.unrootedDist id)
   rw [hregroup]
   -- only the three quartet trees have positive probability, and only one has the split of `s`

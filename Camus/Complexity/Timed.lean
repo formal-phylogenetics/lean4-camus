@@ -4,6 +4,7 @@ public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Data.Finset.Lattice.Fold
 public import Mathlib.Tactic.Ring
+public import Camus.Basic.Data.List.Foldl
 
 /-!
 # A cost monad for Section 2.3
@@ -46,7 +47,7 @@ needs hashing.
   running times (`time_forList_le`, ...).
 * `Complexity.Timed.sumOver`: the sum over a finite set, the same as the loop over any
   enumeration of the set (`sumList_eq_sumOver`).
-* `Complexity.foldl_invariant`: induction along a loop.
+* `List.foldl_invariant`: induction along a loop.
 -/
 
 @[expose] public section
@@ -145,11 +146,6 @@ theorem time_forList_eq (f : σ → α → Timed σ) (l : List α) (s : σ) (c :
     have hl := ih (f s a).val (fun s b hb => h s b (by simp [hb]))
     omega
 
-theorem sum_map_const_nat (l : List α) (c : ℕ) : (l.map fun _ => c).sum = l.length * c := by
-  induction l with
-  | nil => simp
-  | cons a l ih => simp only [List.map_cons, List.sum_cons, ih, List.length_cons]; ring
-
 /-- `mapList f l` applies `f` to the elements of `l` in order and lists the results, with one
 operation per element. -/
 def mapList (f : α → Timed β) : List α → Timed (List β)
@@ -178,15 +174,9 @@ def mapList (f : α → Timed β) : List α → Timed (List β)
 def sumList (f : α → Timed ℕ) (l : List α) : Timed ℕ :=
   forList (fun acc a => do let x ← f a; step (acc + x)) l 0
 
-theorem foldl_add_eq (g : α → ℕ) (l : List α) (s : ℕ) :
-    l.foldl (fun acc a => acc + g a) s = s + (l.map g).sum := by
-  induction l generalizing s with
-  | nil => simp
-  | cons a l ih => simp only [List.foldl_cons, ih, List.map_cons, List.sum_cons]; omega
-
 @[simp] theorem val_sumList (f : α → Timed ℕ) (l : List α) :
     (sumList f l).val = (l.map fun a => (f a).val).sum := by
-  simp [sumList, foldl_add_eq]
+  simp [sumList, List.foldl_add_eq_add_sum]
 
 @[simp] theorem time_sumList (f : α → Timed ℕ) (l : List α) :
     (sumList f l).time = (l.map fun a => (f a).time + 2).sum := by
@@ -198,18 +188,10 @@ one comparison per element. -/
 def maxList (f : α → Timed ℕ) (l : List α) : Timed ℕ :=
   forList (fun acc a => do let x ← f a; step (max acc x)) l 0
 
-theorem foldl_max_eq [DecidableEq α] (g : α → ℕ) (l : List α) (s : ℕ) :
-    l.foldl (fun acc a => max acc (g a)) s = max s (l.toFinset.sup g) := by
-  induction l generalizing s with
-  | nil => simp
-  | cons a l ih =>
-    simp only [List.foldl_cons, ih, List.toFinset_cons, Finset.sup_insert]
-    simp only [max_assoc]
-
 /-- The result of `maxList` is the supremum over the set of the elements of the list. -/
 @[simp] theorem val_maxList [DecidableEq α] (f : α → Timed ℕ) (l : List α) :
     (maxList f l).val = l.toFinset.sup fun a => (f a).val := by
-  simp [maxList, foldl_max_eq]
+  simp [maxList, List.foldl_max_eq_max_sup]
 
 @[simp] theorem time_maxList (f : α → Timed ℕ) (l : List α) :
     (maxList f l).time = (l.map fun a => (f a).time + 2).sum := by
@@ -249,21 +231,5 @@ theorem time_sumOver_le (s : Finset α) (f : α → Timed ℕ) (c : ℕ)
     _ = _ := by simp
 
 end Timed
-
-/-- Induction along a loop: if `P` holds before the loop, and each iteration on an element `a` of
-`l = A ++ a :: B` takes a state satisfying `P A` to one satisfying `P (A ++ [a])`, then the state
-after the loop satisfies `P l`. -/
-theorem foldl_invariant {α σ : Type*} (l : List α) (step : σ → α → σ) (P : List α → σ → Prop)
-    {s : σ} (h0 : P [] s)
-    (hstep : ∀ A a B s, l = A ++ a :: B → P A s → P (A ++ [a]) (step s a)) :
-    P l (l.foldl step s) := by
-  have key : ∀ (B A : List α) (s : σ), l = A ++ B → P A s → P l (B.foldl step s) := by
-    intro B
-    induction B with
-    | nil => intro A s hl hs; simpa [hl] using hs
-    | cons a B ih =>
-      intro A s hl hs
-      exact ih (A ++ [a]) (step s a) (by simp [hl]) (hstep A a B s hl hs)
-  exact key l [] s (by simp) h0
 
 end Camus.Complexity

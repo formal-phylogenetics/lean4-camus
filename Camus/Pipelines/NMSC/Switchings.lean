@@ -1,6 +1,7 @@
 module
 
 public import Camus.Pipelines.NMSC.Trees
+public import Camus.Basic.Logic.Relation
 
 /-!
 # The trees of a network by the clades below the vertices of its switchings
@@ -162,55 +163,6 @@ theorem Switching.reach_total (hN : N.RootedBinaryLevelOne) {S : Finset (ℕ × 
 
 variable {S : Finset (ℕ × ℕ)} {g d : ℕ × ℕ}
 
-/-- After the exchange of `g` for `d`, the vertices reached from the common head `d.2` are those
-reached before: a path from `d.2` never uses an edge into `d.2`. -/
-theorem reach_exchange_head (hgd : g.2 = d.2) {x : ℕ} :
-    Relation.ReflTransGen (fun u v => (u, v) ∈ insert d (S.erase g)) d.2 x ↔
-      Relation.ReflTransGen (fun u v => (u, v) ∈ S) d.2 x := by
-  constructor
-  · intro h
-    induction h with
-    | refl => exact .refl
-    | @tail y x _ hyx ih =>
-      rcases Finset.mem_insert.1 hyx with h | h
-      · obtain rfl : x = d.2 := congrArg Prod.snd h
-        exact .refl
-      · exact ih.tail (Finset.mem_of_mem_erase h)
-  · intro h
-    induction h with
-    | refl => exact .refl
-    | @tail y x _ hyx ih =>
-      by_cases hg' : (y, x) = g
-      · obtain rfl : x = d.2 := (congrArg Prod.snd hg').trans hgd
-        exact .refl
-      · exact ih.tail (Finset.mem_insert_of_mem (Finset.mem_erase.2 ⟨hg', hyx⟩))
-
-/-- After the exchange of `g` for `d`, a vertex not reached from `d.2` is reached from `v` iff it
-was before: a path to it uses neither edge into `d.2`. -/
-theorem reach_exchange_outside (hgd : g.2 = d.2) {v x : ℕ}
-    (hx : ¬Relation.ReflTransGen (fun u v => (u, v) ∈ S) d.2 x) :
-    Relation.ReflTransGen (fun u v => (u, v) ∈ insert d (S.erase g)) v x ↔
-      Relation.ReflTransGen (fun u v => (u, v) ∈ S) v x := by
-  constructor
-  · intro h
-    induction h with
-    | refl => exact .refl
-    | @tail y x _ hyx ih =>
-      rcases Finset.mem_insert.1 hyx with h | h
-      · obtain rfl : x = d.2 := congrArg Prod.snd h
-        exact absurd .refl hx
-      · have hyS := Finset.mem_of_mem_erase h
-        exact (ih fun hy => hx (hy.tail hyS)).tail hyS
-  · intro h
-    induction h with
-    | refl => exact .refl
-    | @tail y x _ hyx ih =>
-      by_cases hg' : (y, x) = g
-      · obtain rfl : x = d.2 := (congrArg Prod.snd hg').trans hgd
-        exact absurd .refl hx
-      · exact (ih fun hy => hx (hy.tail hyx)).tail
-          (Finset.mem_insert_of_mem (Finset.mem_erase.2 ⟨hg', hyx⟩))
-
 /-- In a switching `S`, a vertex `v` not below the head `r` of the edge `g ∈ S` reaches a vertex
 below `r` iff it reaches the tail of `g`. -/
 theorem Switching.reach_below_iff (hN : N.RootedBinaryLevelOne) (hS : N.Switching S)
@@ -250,13 +202,13 @@ theorem cladeBelow_exchange (hN : N.RootedBinaryLevelOne) (hS : N.Switching S) (
     false_of_reach_of_edge hN hS.1 h hdN
   -- `v` is not below `d.2` after the exchange either
   have hv' : ¬Relation.ReflTransGen (fun u v => (u, v) ∈ insert d (S.erase g)) d.2 v :=
-    fun h => hv ((reach_exchange_head hgd).1 h)
+    fun h => hv ((Relation.reflTransGen_exchange_head hgd).1 h)
   ext a
   by_cases ha : Relation.ReflTransGen (fun u v => (u, v) ∈ S) d.2 (N.leaf a)
   -- a taxon below `d.2` is below `v` iff `v` reaches the tail of `d`
   · have ha' : Relation.ReflTransGen (fun u v => (u, v) ∈ insert d (S.erase g)) d.2
-        (N.leaf a) := (reach_exchange_head hgd).2 ha
-    have hiff := (hS'.reach_below_iff hN hd' hv' ha').trans (reach_exchange_outside hgd hd1)
+        (N.leaf a) := (Relation.reflTransGen_exchange_head hgd).2 ha
+    have hiff := (hS'.reach_below_iff hN hd' hv' ha').trans (Relation.reflTransGen_exchange_outside hgd hd1)
     split_ifs with h
     · simp only [RootedNetwork.mem_cladeBelow, Finset.mem_union, Finset.mem_sdiff, hiff]
       tauto
@@ -264,7 +216,7 @@ theorem cladeBelow_exchange (hN : N.RootedBinaryLevelOne) (hS : N.Switching S) (
         Finset.notMem_empty, or_false, hiff]
       tauto
   -- a taxon not below `d.2` is below `v` iff it was
-  · have hiff := reach_exchange_outside (S := S) (v := v) hgd ha
+  · have hiff := Relation.reflTransGen_exchange_outside (S := S) (v := v) hgd ha
     split_ifs with h
     · simp only [RootedNetwork.mem_cladeBelow, Finset.mem_union, Finset.mem_sdiff, hiff]
       tauto
@@ -280,7 +232,7 @@ theorem cladeBelow_exchange_below (hN : N.RootedBinaryLevelOne) (hS : N.Switchin
   have hS' := hS.exchange hg hd hgd
   have hdN : (d.1, d.2) ∈ N.edges := by rw [Prod.mk.eta]; exact (Finset.mem_sdiff.1 hd).1
   have hgN : (g.1, g.2) ∈ N.edges := by rw [Prod.mk.eta]; exact hS.1 hg
-  have hv' := (reach_exchange_head hgd).2 hv
+  have hv' := (Relation.reflTransGen_exchange_head hgd).2 hv
   -- a path from `v` does not use `d`, which would close a cycle through `d.2`
   have h₁ : ∀ {x : ℕ}, Relation.ReflTransGen (fun u v => (u, v) ∈ insert d (S.erase g)) v x →
       Relation.ReflTransGen (fun u v => (u, v) ∈ S) v x := by

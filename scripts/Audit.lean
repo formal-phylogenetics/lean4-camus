@@ -13,6 +13,17 @@ public meta import Lean.DocString
 --   for p in Phylogenetics Allman2011; do (cd .lake/packages/$p && find $p -name '*.lean'); done |
 --     sed 's/\.lean$//; s#/#.#g; s/^/import all /' | sort
 -- and `import all PhyloNetwork`, the hub's library, which has no module under `PhyloNetwork/` yet.
+import all Camus.Basic.Algebra.BigOperators.Fintype
+import all Camus.Basic.Combinatorics.SimpleGraph.Acyclic
+import all Camus.Basic.Combinatorics.SimpleGraph.Cycles
+import all Camus.Basic.Combinatorics.SimpleGraph.Paths
+import all Camus.Basic.Data.Fin.Basic
+import all Camus.Basic.Data.Finset.Basic
+import all Camus.Basic.Data.List.Basic
+import all Camus.Basic.Data.List.Foldl
+import all Camus.Basic.Data.List.Lattice
+import all Camus.Basic.Logic.Relation
+import all Camus.Basic.MeasureTheory.Measure.Tendsto
 import all Camus.Complexity.Backtracking
 import all Camus.Complexity.BudgetBacktracking
 import all Camus.Complexity.BudgetProgram
@@ -81,6 +92,7 @@ import all Camus.Network.Completeness.Wires
 import all Camus.Network.Cuts
 import all Camus.Network.Isomorphism.Invariance
 import all Camus.Network.Isomorphism.Rename
+import all Camus.Network.Quartets
 import all Camus.Network.Realization.Basic
 import all Camus.Network.Realization.Binary
 import all Camus.Network.Realization.Cactus
@@ -180,6 +192,7 @@ import all Camus.Score
 import all Camus.Solution
 import all Camus.Tree.Forest
 import all Camus.Tree.Geometry
+import all Camus.Tree.Lemma2
 import all Phylogenetics.Coalescent.Absorption
 import all Phylogenetics.Coalescent.BinaryForest
 import all Phylogenetics.Coalescent.Defs

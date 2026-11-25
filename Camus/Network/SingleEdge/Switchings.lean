@@ -2,6 +2,8 @@ module
 
 public import Camus.Network.Clades
 public import Camus.Preliminaries.Lemmas
+public import Camus.Basic.Logic.Relation
+public import Camus.Basic.Data.Finset.Basic
 
 /-!
 # The two switchings of `T + e`
@@ -34,47 +36,6 @@ regrafting it on the edge above `u`. -/
 noncomputable def switchedEdges (t : PhyloTree) (e : Pair) : Finset (ℕ × ℕ) :=
   insert (donor t e, recipient t e)
     ((supportEdges t {e}).erase (Address.code (parent e.2), recipient t e))
-
-/-- If the only edge of `S` into `v` comes from `p`, then `v` is reached from `y` along `S` iff
-`y = v` or `p` is reached from `y`. -/
-theorem reach_iff_of_incoming {S : Finset (ℕ × ℕ)} {v p : ℕ}
-    (hin : ∀ z, (z, v) ∈ S ↔ z = p) (y : ℕ) :
-    Relation.ReflTransGen (fun a b => (a, b) ∈ S) y v ↔
-      y = v ∨ Relation.ReflTransGen (fun a b => (a, b) ∈ S) y p := by
-  constructor
-  · intro h
-    rcases h.cases_tail with h | ⟨c, hc, hcv⟩
-    · exact Or.inl h.symm
-    · exact Or.inr ((hin c).mp hcv ▸ hc)
-  · rintro (rfl | h)
-    · exact .refl
-    · exact h.tail ((hin p).mpr rfl)
-
-/-- If no edge of `S` enters `v`, then `v` is reached from `y` along `S` only if `y = v`. -/
-theorem reach_iff_of_no_incoming {S : Finset (ℕ × ℕ)} {v : ℕ}
-    (hin : ∀ z, (z, v) ∉ S) (y : ℕ) :
-    Relation.ReflTransGen (fun a b => (a, b) ∈ S) y v ↔ y = v := by
-  constructor
-  · intro h
-    rcases h.cases_tail with h | ⟨c, _, hcv⟩
-    · exact h.symm
-    · exact absurd hcv (hin c)
-  · rintro rfl
-    exact .refl
-
-/-- If the only edge of `S` into `v` comes from `p`, then exactly one edge of `S` enters `v`. -/
-theorem incoming_card_of_incoming {S : Finset (ℕ × ℕ)} {v p : ℕ}
-    (hin : ∀ z, (z, v) ∈ S ↔ z = p) : (S.filter (fun f => f.2 = v)).card = 1 := by
-  rw [Finset.card_eq_one]
-  refine ⟨(p, v), ?_⟩
-  ext f
-  obtain ⟨z, v'⟩ := f
-  simp only [Finset.mem_filter, Finset.mem_singleton, Prod.mk.injEq]
-  constructor
-  · rintro ⟨hf, rfl⟩
-    exact ⟨(hin z).mp hf, rfl⟩
-  · rintro ⟨rfl, rfl⟩
-    exact ⟨(hin z).mpr rfl, rfl⟩
 
 /-- A vertex is an ancestor of the non-root vertex `x` iff it is `x` or an ancestor of
 `parent x`. -/
@@ -291,8 +252,8 @@ theorem support_reach_code (he : EdgeAbove.Admissible t e) {x : Address}
   have hwu : ¬e.2 <+: e.1 := he.2.2.2.2
   have hne : e.1 ≠ e.2 := fun h => hwu (h ▸ List.prefix_refl _)
   have hdr := donor_ne_recipient t e e
-  have hdonor := reach_iff_of_incoming (support_incoming_donor he)
-  have hrecipient := reach_iff_of_incoming (support_incoming_recipient he)
+  have hdonor := Relation.reflTransGen_mem_iff_of_incoming (support_incoming_donor he)
+  have hrecipient := Relation.reflTransGen_mem_iff_of_incoming (support_incoming_recipient he)
   suffices h : ∀ n, ∀ x ∈ t.nodes, x.length = n →
       (∀ p ∈ t.nodes, Relation.ReflTransGen (fun a b => (a, b) ∈ supportEdges t {e})
           (Address.code p) (Address.code x) ↔ p <+: x) ∧
@@ -306,7 +267,7 @@ theorem support_reach_code (he : EdgeAbove.Admissible t e) {x : Address}
   intro x hx hlen
   by_cases hx0 : x = []
   · subst x
-    have hroot := reach_iff_of_no_incoming (support_incoming_root he)
+    have hroot := Relation.reflTransGen_mem_iff_of_no_incoming (support_incoming_root he)
     refine ⟨fun p _ => ?_, ?_, ?_⟩
     · rw [hroot, Address.code_injective.eq_iff, List.prefix_nil]
     · rw [hroot, List.prefix_nil]
@@ -315,7 +276,7 @@ theorem support_reach_code (he : EdgeAbove.Admissible t e) {x : Address}
       exact iff_of_false (recipient_ne_code e t.root_mem_nodes) hw0
   have hpx := t.nodes_prefix_closed hx (parent_prefix x)
   obtain ⟨ihp, ihd, ihr⟩ := ih _ (hlen ▸ parent_length_lt hx0) (parent x) hpx rfl
-  have hstep := reach_iff_of_incoming (support_incoming_code he hx hx0)
+  have hstep := Relation.reflTransGen_mem_iff_of_incoming (support_incoming_code he hx hx0)
   have hdx := donor_ne_code e hx
   have hrx := recipient_ne_code e hx
   by_cases hxu : x = e.1
@@ -379,7 +340,7 @@ theorem switched_reach_code_outside (he : EdgeAbove.Admissible t e) {x : Address
   have hu0 : e.1 ≠ [] := he.2.2.1
   have hwu : ¬e.2 <+: e.1 := he.2.2.2.2
   have hdr := donor_ne_recipient t e e
-  have hdonor := reach_iff_of_incoming (switched_incoming_donor he)
+  have hdonor := Relation.reflTransGen_mem_iff_of_incoming (switched_incoming_donor he)
   suffices h : ∀ n, ∀ x ∈ t.nodes, x.length = n → ¬e.2 <+: x →
       (∀ p ∈ t.nodes, Relation.ReflTransGen (fun a b => (a, b) ∈ switchedEdges t e)
           (Address.code p) (Address.code x) ↔ p <+: x) ∧
@@ -393,7 +354,7 @@ theorem switched_reach_code_outside (he : EdgeAbove.Admissible t e) {x : Address
   intro x hx hlen hwx
   by_cases hx0 : x = []
   · subst x
-    have hroot := reach_iff_of_no_incoming (switched_incoming_root he)
+    have hroot := Relation.reflTransGen_mem_iff_of_no_incoming (switched_incoming_root he)
     refine ⟨fun p _ => ?_, ?_, ?_⟩
     · rw [hroot, Address.code_injective.eq_iff, List.prefix_nil]
     · rw [hroot, List.prefix_nil]
@@ -403,7 +364,7 @@ theorem switched_reach_code_outside (he : EdgeAbove.Admissible t e) {x : Address
   have hpx := t.nodes_prefix_closed hx (parent_prefix x)
   have hwpx : ¬e.2 <+: parent x := fun h => hwx (h.trans (parent_prefix x))
   obtain ⟨ihp, ihd, ihr⟩ := ih _ (hlen ▸ parent_length_lt hx0) (parent x) hpx rfl hwpx
-  have hstep := reach_iff_of_incoming (switched_incoming_code he hx hx0)
+  have hstep := Relation.reflTransGen_mem_iff_of_incoming (switched_incoming_code he hx hx0)
   have hdx := donor_ne_code e hx
   have hrx := recipient_ne_code e hx
   have hxw : x ≠ e.2 := fun h => hwx (h ▸ List.prefix_refl _)
@@ -456,8 +417,8 @@ theorem switched_reach_code_inside (he : EdgeAbove.Admissible t e) {x : Address}
   have hwu : ¬e.2 <+: e.1 := he.2.2.2.2
   have hne : e.1 ≠ e.2 := fun h => hwu (h ▸ List.prefix_refl _)
   have hdr := donor_ne_recipient t e e
-  have hdonor := reach_iff_of_incoming (switched_incoming_donor he)
-  have hrecipient := reach_iff_of_incoming (switched_incoming_recipient he)
+  have hdonor := Relation.reflTransGen_mem_iff_of_incoming (switched_incoming_donor he)
+  have hrecipient := Relation.reflTransGen_mem_iff_of_incoming (switched_incoming_recipient he)
   have hpu := t.nodes_prefix_closed hu (parent_prefix e.1)
   have hwpu : ¬e.2 <+: parent e.1 := fun h => hwu (h.trans (parent_prefix e.1))
   obtain ⟨hpu_code, _, _⟩ := switched_reach_code_outside he hpu hwpu
@@ -476,7 +437,7 @@ theorem switched_reach_code_inside (he : EdgeAbove.Admissible t e) {x : Address}
     rintro rfl
     exact hw0 (List.prefix_nil.mp hwx)
   have hxu : x ≠ e.1 := fun h => hwu (h ▸ hwx)
-  have hstep := reach_iff_of_incoming (switched_incoming_code he hx hx0)
+  have hstep := Relation.reflTransGen_mem_iff_of_incoming (switched_incoming_code he hx hx0)
   by_cases hxw : x = e.2
   · -- `x = w`: its edge comes from w′, whose edge comes from u′, whose edge comes from
     -- `parent(u)`
@@ -579,9 +540,9 @@ theorem switched_switching (he : EdgeAbove.Admissible t e) :
     · have hx0 : x ≠ [] := by
         rintro rfl
         exact hvr rfl
-      exact incoming_card_of_incoming (switched_incoming_code he hx hx0)
-    · exact incoming_card_of_incoming (switched_incoming_donor he)
-    · exact incoming_card_of_incoming (switched_incoming_recipient he)
+      exact Finset.card_filter_snd_eq_one (switched_incoming_code he hx hx0)
+    · exact Finset.card_filter_snd_eq_one (switched_incoming_donor he)
+    · exact Finset.card_filter_snd_eq_one (switched_incoming_recipient he)
 
 /-- `T + e` has two switchings: the subdivided `T` (`Realization.supportEdges t {e}`) and the
 second switching (`Realization.switchedEdges t e`). Every vertex other than the root and w′ has

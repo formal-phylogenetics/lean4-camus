@@ -2,6 +2,7 @@ module
 
 public import Camus.Network.RootAbove.Defs
 public import Mathlib.Combinatorics.SimpleGraph.Connectivity.Subgraph
+public import Camus.Basic.Data.Finset.Basic
 
 /-!
 # Adding an outgroup
@@ -38,15 +39,6 @@ def withOutgroup (N : RootedNetwork) (z ρ ℓ : ℕ) : RootedNetwork where
 
 variable {N : RootedNetwork} {z ρ ℓ : ℕ}
 
-/-- Counting the elements of `insert a s` with a property. -/
-theorem withOutgroup_card_filter_insert {α : Type*} [DecidableEq α] {s : Finset α} {a : α}
-    (ha : a ∉ s) (p : α → Prop) [DecidablePred p] :
-    ((insert a s).filter p).card = (s.filter p).card + if p a then 1 else 0 := by
-  rw [Finset.filter_insert]
-  split_ifs with h
-  · exact Finset.card_insert_of_notMem (fun hm => ha (Finset.mem_filter.mp hm).1)
-  · simp
-
 /-- The edges of `N⁺`: the two edges out of the new root, and the edges of `N`. -/
 theorem withOutgroup_mem_edges {x y : ℕ} :
     (x, y) ∈ (N.withOutgroup z ρ ℓ).edges ↔
@@ -77,7 +69,7 @@ theorem withOutgroup_filter_in (hN : N.RootedBinaryLevelOne) (hρ : ρ ∉ N.ver
       (X.filter (fun e => e.2 = v)).card + (if ℓ = v then 1 else 0) +
         (if N.root = v then 1 else 0) := by
   obtain ⟨h1, h2⟩ := withOutgroup_new_notMem hN hρ hℓ hX
-  rw [withOutgroup_card_filter_insert h1, withOutgroup_card_filter_insert h2]
+  rw [Finset.card_filter_insert_eq h1, Finset.card_filter_insert_eq h2]
 
 /-- The edges out of `v` of a subset `X` of the edges of `N`, with the two new edges added. -/
 theorem withOutgroup_filter_out (hN : N.RootedBinaryLevelOne) (hρ : ρ ∉ N.vertices)
@@ -86,7 +78,7 @@ theorem withOutgroup_filter_out (hN : N.RootedBinaryLevelOne) (hρ : ρ ∉ N.ve
       (X.filter (fun e => e.1 = v)).card + (if ρ = v then 1 else 0) +
         (if ρ = v then 1 else 0) := by
   obtain ⟨h1, h2⟩ := withOutgroup_new_notMem hN hρ hℓ hX
-  rw [withOutgroup_card_filter_insert h1, withOutgroup_card_filter_insert h2]
+  rw [Finset.card_filter_insert_eq h1, Finset.card_filter_insert_eq h2]
 
 /-- The indegrees of `N⁺`: those of `N`, plus one at the root of `N` and at the new leaf. -/
 theorem withOutgroup_indegree (hN : N.RootedBinaryLevelOne) (hρ : ρ ∉ N.vertices)

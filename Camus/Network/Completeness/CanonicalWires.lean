@@ -3,6 +3,7 @@ module
 public import Camus.Network.Completeness.Order
 public import Camus.Network.Realization.CycleWires
 public import Mathlib.Data.List.Permutation
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # The wires of N are the canonical wires
@@ -22,23 +23,6 @@ outer endpoint followed by at most one ghost donor, and the reverse order cannot
 @[expose] public section
 
 namespace Camus
-
-/-- A list of length at least two with first element `a` and last element `b` is
-`a :: (l.tail.dropLast ++ [b])`. -/
-theorem wire_decompose {l : List ℕ} (hlen : 2 ≤ l.length) {a b : ℕ}
-    (hhead : l.head? = some a) (hlast : l.getLast? = some b) :
-    l = a :: (l.tail.dropLast ++ [b]) := by
-  cases l with
-  | nil => simp at hlen
-  | cons x l =>
-    cases l with
-    | nil => simp at hlen
-    | cons y l =>
-      simp only [List.head?_cons,Option.some.injEq] at hhead
-      subst x
-      have htail : (y :: l).getLast? = some b := by simpa using hlast
-      exact congrArg (List.cons a) (List.dropLast_append_getLast? b (htail ▸ Option.mem_some_self
-          b)).symm
 
 namespace SupportSubdivision
 
@@ -118,7 +102,7 @@ theorem encoded_ghost_before_outer_impossible (H : SupportSubdivision t N S)
     rcases hout with ⟨hfu,hft,hoc⟩ | ⟨hfw,hoc⟩
     · exact hft hgt
     · exact H.deleted_anchors_ne hN he (hgu.trans hfw.symm)
-  have hwire := wire_decompose (H.wire_laws p hp hp0).1
+  have hwire := List.eq_cons_tail_dropLast_append (H.wire_laws p hp hp0).1
     (H.wire_laws p hp hp0).2.2.1 (H.wire_laws p hp hp0).2.2.2.1
   rw [hmid,huEq,hvEq] at hwire
   exact H.no_ghost_before_endpoint hN he hf hef hp hp0 hgt hw hwire
@@ -187,7 +171,7 @@ theorem map_wire_eq (H : SupportSubdivision t N S)
       · simpa only [ho,hg,List.singleton_append] using hgood
       · exact False.elim (H.encoded_ghost_before_outer_impossible hN hpairs hp hp0
           (by change g ∈ G; rw [hg]; simp) (by change o ∈ O; rw [ho]; simp) hbad)
-  have hdecomp := wire_decompose (H.wire_laws p hp hp0).1
+  have hdecomp := List.eq_cons_tail_dropLast_append (H.wire_laws p hp hp0).1
     (H.wire_laws p hp hp0).2.2.1 (H.wire_laws p hp hp0).2.2.2.1
   have hmap := congrArg (List.map H.encode) hdecomp
   have hpParent := t.nodes_prefix_closed hp (parent_prefix p)

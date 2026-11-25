@@ -1,6 +1,7 @@
 module
 
 public import Camus.Complexity.Program
+public import Camus.Basic.Data.List.Foldl
 
 /-!
 # Section 2.2: backtracking, within the running time of Section 2.3
@@ -151,28 +152,6 @@ def backtrack (T : Tables) (B : Address → List (Address × Address)) (W : Addr
                 let L ← hangingList T e
                 forList (fun acc r => backtrack T B W M n r acc) L (e :: acc)
 
-/-- Prepending in a loop. -/
-theorem foldl_prepend {α β : Type} (f : α → List β) (L : List α) (a c : List β) :
-    L.foldl (fun acc r => f r ++ acc) (a ++ c) = L.foldl (fun acc r => f r ++ acc) a ++ c := by
-  induction L generalizing a with
-  | nil => rfl
-  | cons r L ih =>
-    simp only [List.foldl_cons]
-    rw [← List.append_assoc, ih]
-
-theorem toFinset_foldl_prepend {α β : Type} [DecidableEq α] [DecidableEq β] (f : α → List β)
-    (L : List α) (a : List β) :
-    (L.foldl (fun acc r => f r ++ acc) a).toFinset =
-      a.toFinset ∪ L.toFinset.biUnion fun r => (f r).toFinset := by
-  induction L generalizing a with
-  | nil => simp
-  | cons r L ih =>
-    simp only [List.foldl_cons, ih, List.toFinset_append, List.toFinset_cons,
-      Finset.biUnion_insert]
-    ext x
-    simp only [Finset.mem_union]
-    tauto
-
 /-- The backtracking only puts pairs in front of the accumulator. -/
 theorem backtrack_acc (T : Tables) (B : Address → List (Address × Address))
     (W : Address × Address → ℕ) (M : Address → ℕ) :
@@ -198,7 +177,7 @@ theorem backtrack_acc (T : Tables) (B : Address → List (Address × Address))
         | some e =>
           simp only [backtrack, val_bind, val_step, hk, val_steps, hs, decide_false,
             Bool.false_eq_true, ↓reduceIte, hf, val_forList, hfun]
-          rw [show e :: acc = [e] ++ acc from rfl, foldl_prepend]
+          rw [show e :: acc = [e] ++ acc from rfl, List.foldl_prepend_append]
 
 /-- Section 2.2: if `M` satisfies the recurrence, the backtracking from a vertex `v`, with fuel
 larger than the height of `T_v`, returns a backtracking trace of `M` from `v`
@@ -277,7 +256,7 @@ theorem backtrack_trace {t : PhyloTree} {T : Tables} (hT : T.Correct t)
         have hL : (hangingList T e).val.toFinset = hanging t e := by
           ext r
           simp [hmem]
-        rw [hval, toFinset_foldl_prepend, hL]
+        rw [hval, List.toFinset_foldl_prepend, hL]
         have hset : ([e] : List (Address × Address)).toFinset ∪
             (hanging t e).biUnion (fun r => (backtrack T B W M n r []).val.toFinset) =
               insert e ((hanging t e).biUnion
@@ -393,7 +372,7 @@ theorem time_backtrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
                 (Finset.mem_filter.mp ((hB v e).mp he)).1).2
               have := time_pairValue hT hae W M
               omega
-            _ = _ := by rw [sum_map_const_nat]
+            _ = _ := by rw [List.sum_map_const_eq_length_mul]
         cases hf : (findPair T W M (M v) (B v)).val with
         | none =>
           simp only [backtrack, time_bind, time_step, val_step, hk', time_steps, val_steps, hs,
@@ -421,7 +400,7 @@ theorem time_backtrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
                 exact ih r acc' (Finset.mem_filter.mp hrh).1
               _ = (hangingList T e).val.length +
                   ∑ r ∈ hanging t e, ∑ x ∈ cone t r, ownCost t B x := by
-                rw [List.sum_map_add, sum_map_const_nat, ← List.sum_toFinset _ hnd]
+                rw [List.sum_map_add, List.sum_map_const_eq_length_mul, ← List.sum_toFinset _ hnd]
                 have hL : (hangingList T e).val.toFinset = hanging t e := by
                   ext r; simp [hmem]
                 rw [hL]
@@ -500,7 +479,7 @@ theorem camusNetwork_optimal {t : PhyloTree} (ht : t.WellLabelled) (Q : Multiset
 theorem time_count (l : List Address) :
     (forList (fun c _ => step (c + 1)) l 0).time = 2 * l.length := by
   rw [time_forList_eq _ _ _ (fun _ => 1) (fun _ _ _ => rfl)]
-  simp only [sum_map_const_nat]
+  simp only [List.sum_map_const_eq_length_mul]
   ring
 
 /-- The backtracking from the root spends `O(n + |candidates| · n)` operations in all: each

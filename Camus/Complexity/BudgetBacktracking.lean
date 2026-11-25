@@ -3,6 +3,7 @@ module
 public import Camus.Complexity.BudgetProgram
 public import Camus.Complexity.Backtracking
 public import Camus.Restriction.Backtracking
+public import Camus.Basic.Data.List.Foldl
 
 /-!
 # Section 2.4: backtracking through the matrix, within the running time
@@ -251,7 +252,7 @@ theorem time_findSplit (A B : ℕ → WithBot ℕ) (x : WithBot ℕ) (k : ℕ) :
   calc
     _ ≤ ((List.range (k + 1)).map fun _ => 5 + 1).sum :=
       time_findList_le _ (fun _ => 5) _ (fun i _ => le_of_eq (time_splitTest A B x k i))
-    _ = _ := by simp only [sum_map_const_nat, List.length_range]; ring
+    _ = _ := by simp only [List.sum_map_const_eq_length_mul, List.length_range]; ring
 
 /-- The split found is at most the budget. -/
 theorem findSplit_le {A B : ℕ → WithBot ℕ} {x : WithBot ℕ} {k i : ℕ}
@@ -296,24 +297,6 @@ def knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Address) (j : �
       pure (i, F)) L (0, F₀)
   pure S.2
 
-/-- A loop of updates at the keys `(c, 0), …, (c, j)` writes the value of each of them and leaves
-the other keys unchanged. -/
-theorem foldl_update_row {β : Type} (c : ℕ) (f : ℕ → β) (F : ℕ × ℕ → β) (j : ℕ) (x : ℕ × ℕ) :
-    ((List.range (j + 1)).foldl (fun F b => Function.update F (c, b) (f b)) F) x =
-      if x.1 = c ∧ x.2 ≤ j then f x.2 else F x := by
-  have hnd : ((List.range (j + 1)).map fun b => (c, b)).Nodup :=
-    List.nodup_range.map (fun a b h => (Prod.mk.inj h).2)
-  split_ifs with hx
-  · obtain ⟨x1, x2⟩ := x
-    obtain ⟨rfl, hx2⟩ := hx
-    exact foldl_update_of_mem (fun b => (x1, b)) f _ F hnd
-      (List.mem_range.mpr (Nat.lt_succ_of_le hx2))
-  · apply foldl_update_of_not_mem (fun b => (c, b)) f
-    intro b hb h
-    apply hx
-    rw [← h]
-    exact ⟨rfl, Nat.lt_succ_iff.mp (List.mem_range.mp hb)⟩
-
 /-- The rows of the knapsack table: row `i ≤ |L|` at the budget `b ≤ j` is the value of the
 knapsack (`BudgetDP.forest`) over the first `i` subtrees of `L`, in reverse order, as for
 `knapsack` (`Complexity.val_knapsack`). -/
@@ -326,13 +309,13 @@ theorem val_knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Address
       Function.update F (0, b) (if b = 0 then (0 : WithBot ℕ) else ⊥)) fun _ => ⊥) (0, b) =
         rowMax (forest Mr [] b) := by
     intro b hb
-    rw [foldl_update_row 0 (fun b => if b = 0 then (0 : WithBot ℕ) else ⊥) _ j (0, b)]
+    rw [List.foldl_update_range_pair 0 (fun b => if b = 0 then (0 : WithBot ℕ) else ⊥) _ j (0, b)]
     simp only [true_and, hb, ↓reduceIte]
     by_cases h : b = 0 <;> simp [h, forest, rowMax]
   -- the invariant of the loop over the subtrees
   intro i hi b hb
   simp only [knapsackTable, val_bind, val_forList, val_steps, val_pure, val_step]
-  refine (foldl_invariant L _ (fun (P : List Address) (S : ℕ × (ℕ × ℕ → WithBot ℕ)) =>
+  refine (List.foldl_invariant L _ (fun (P : List Address) (S : ℕ × (ℕ × ℕ → WithBot ℕ)) =>
       S.1 = P.length ∧
         ∀ i ≤ P.length, ∀ b ≤ j, S.2 (i, b) = rowMax (forest Mr (P.take i).reverse b))
       ⟨rfl, fun i hi b hb => ?_⟩ ?_).2 i hi b hb
@@ -343,7 +326,7 @@ theorem val_knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Address
     obtain ⟨hS1, hS2⟩ := hS
     refine ⟨by simp [hS1], fun i hi b hb => ?_⟩
     dsimp only
-    rw [foldl_update_row]
+    rw [List.foldl_update_range_pair]
     simp only [List.length_append, List.length_singleton] at hi
     rcases Nat.lt_or_eq_of_le hi with hi | rfl
     · -- an earlier row is unchanged
@@ -555,13 +538,6 @@ def budgetBacktrack (T : Tables) (B : Address → List (Address × Address))
                       let b ← step (bud r)
                       budgetBacktrack T B W R n r b acc) L (e :: acc)
 
-/-- Counting the elements of a list in a loop. -/
-theorem foldl_count {α : Type} (l : List α) (c : ℕ) :
-    l.foldl (fun s _ => s + 1) c = c + l.length := by
-  induction l generalizing c with
-  | nil => simp
-  | cons a l ih => simp only [List.foldl_cons, ih, List.length_cons]; omega
-
 /-- The backtracking only puts pairs in front of the accumulator. -/
 theorem budgetBacktrack_acc (T : Tables) (B : Address → List (Address × Address))
     (W : Address × Address → ℕ) (R : Address × ℕ → WithBot ℕ) :
@@ -594,7 +570,7 @@ theorem budgetBacktrack_acc (T : Tables) (B : Address → List (Address × Addre
             exact ih r (bud r) acc
           simp only [budgetBacktrack, val_bind, val_step, val_steps, hk, hs, hf, val_forList,
             hfun]
-          rw [show e :: acc = [e] ++ acc from rfl, foldl_prepend]
+          rw [show e :: acc = [e] ++ acc from rfl, List.foldl_prepend_append]
 
 /-- The knapsack of a pair with target `v`, computed from the cells: if the cells of the subtrees
 hanging off the cycle of `e` hold the values of the rows of `A` up to the budget `j`, the knapsack
@@ -781,9 +757,9 @@ theorem budgetBacktrack_trace {t : PhyloTree} {T : Tables} (hT : T.Correct t)
         have hval : (budgetBacktrack T B W R (n + 1) v k []).val =
             L.foldl (fun acc y => (budgetBacktrack T B W R n y (bud y) []).val ++ acc) [e] := by
           simp only [budgetBacktrack, val_bind, val_step, val_steps, hk', hs, hk0, ↓reduceIte,
-            hfound, val_forList, val_reverseList, foldl_count, Nat.zero_add]
+            hfound, val_forList, val_reverseList, List.foldl_add_one, Nat.zero_add]
           rw [← hL, ← hF, ← List.length_reverse, ← hbud, hfun]
-        rw [hval, toFinset_foldl_prepend, hLset]
+        rw [hval, List.toFinset_foldl_prepend, hLset]
         have hset : ([e] : List (Address × Address)).toFinset ∪ (hanging t e).biUnion
             (fun y => (budgetBacktrack T B W R n y (bud y) []).val.toFinset) =
               insert e ((hanging t e).biUnion
@@ -803,7 +779,7 @@ theorem time_knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Addres
       (if b = 0 then (0 : WithBot ℕ) else ⊥))) (List.range (j + 1)) F).time = 3 * (j + 1) := by
     intro F
     rw [time_forList_eq _ _ _ (fun _ => 2) (fun _ _ _ => rfl)]
-    simp only [sum_map_const_nat, List.length_range]
+    simp only [List.sum_map_const_eq_length_mul, List.length_range]
     ring
   have hrow : ∀ (S : ℕ × (ℕ × ℕ → WithBot ℕ)) (r : Address) (i : ℕ), (forList (fun F b => do
       let c ← convAt (fun i => R (r, i)) (fun i => S.2 (S.1, i)) b
@@ -817,7 +793,7 @@ theorem time_knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Addres
         have := List.mem_range.mp hb
         simp only [time_bind, time_convAt, time_step]
         nlinarith
-      _ = _ := by simp only [sum_map_const_nat, List.length_range]
+      _ = _ := by simp only [List.sum_map_const_eq_length_mul, List.length_range]
   have hmain : ∀ S : ℕ × (ℕ × ℕ → WithBot ℕ), (forList (fun (S : ℕ × (ℕ × ℕ → WithBot ℕ)) r => do
       let i ← step (S.1 + 1)
       let F ← forList (fun F b => do
@@ -832,7 +808,7 @@ theorem time_knapsackTable (R : Address × ℕ → WithBot ℕ) (L : List Addres
         simp only [time_bind, time_step, time_pure, val_step]
         have := hrow S' r (S'.1 + 1)
         omega
-      _ = _ := by simp only [sum_map_const_nat]; ring
+      _ = _ := by simp only [List.sum_map_const_eq_length_mul]; ring
   simp only [knapsackTable, time_bind, time_pure]
   have h1 := hinit fun _ => ⊥
   have h2 := hmain (0, (forList (fun F b => steps 2 (Function.update F (0, b)
@@ -954,7 +930,7 @@ theorem time_budgetBacktrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
                 Nat.mul_le_mul hL hkm
               omega
             _ ≤ (B v).length * (13 + 3 * m + 7 * N + P) := by
-              rw [sum_map_const_nat]
+              rw [List.sum_map_const_eq_length_mul]
               exact Nat.mul_le_mul (by split_ifs <;> simp) (by omega)
         cases hf : (findList (gallTest T W R (R (v, k)) (k - 1))
             (if k = 0 then [] else B v)).val with
@@ -1017,7 +993,7 @@ theorem time_budgetBacktrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
                 simp only [time_bind, time_step, val_step]
                 omega
               _ = 2 * L.length + ∑ r ∈ hanging t e, ∑ x ∈ cone t r, ownCostBudget t B m x := by
-                rw [List.sum_map_add, List.sum_map_add, sum_map_const_nat,
+                rw [List.sum_map_add, List.sum_map_add, List.sum_map_const_eq_length_mul,
                   ← List.sum_toFinset _ hnd]
                 have hLs : L.toFinset = hanging t e := by ext r; simp [hmem]
                 rw [hLs]
@@ -1081,7 +1057,7 @@ theorem val_budgetNetworks (T : Tables) (B : Address → List (Address × Addres
     (hx : R ([], k) ≠ ⊥) :
     (budgetNetworks T B W R N m).val k = (budgetBacktrack T B W R N [] k []).val := by
   simp only [budgetNetworks, val_forList]
-  refine (foldl_invariant (List.range (m + 1)) _
+  refine (List.foldl_invariant (List.range (m + 1)) _
     (fun (K : List ℕ) (E : ℕ → List (Address × Address)) =>
       k ∈ K → E k = (budgetBacktrack T B W R N [] k []).val) (by simp) ?_)
     (List.mem_range.mpr (by omega))
@@ -1122,7 +1098,7 @@ theorem time_budgetNetworks {t : PhyloTree} {T : Tables} (hT : T.Correct t)
       · simp only [time_bind, time_step, val_step, hx, decide_false, Bool.false_eq_true,
           ↓reduceIte, time_pure]
         omega
-    _ = _ := by simp only [sum_map_const_nat, List.length_range]
+    _ = _ := by simp only [List.sum_map_const_eq_length_mul, List.length_range]
 
 /-- **Section 2.4 with backtracking**, as a program: the matrix of `camusBudget`, with the budget
 columns `0, …, m`, then, for each budget `k ≤ m` whose cell at the root is not `⊥` (whose row is

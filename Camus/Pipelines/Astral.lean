@@ -1,6 +1,7 @@
 module
 
 public import Camus.External.WarnowTabatabaeeEvans.Sampling
+public import Camus.Score
 public import Camus.Pipelines.Algorithm1
 
 /-!
@@ -48,7 +49,7 @@ so maximizing over well-labelled `PhyloTree`s on the taxa is ASTRAL's problem.
 1. For every four taxa, the quartet that `t` induces is the most frequent quartet on them, with
    probability tending to 1: by the strong law of large numbers each frequency converges to the
    per-site probability (`External.WarnowTabatabaeeEvans.eventually_count_lt`), and there are finitely many sets of four
-   taxa (`External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually`).
+   taxa (`MeasureTheory.tendsto_measure_of_ae_eventually`).
 2. Then the score of `t` is larger than the score of any other tree: the score of a tree is the
    sum, over the sets of four taxa, of the number of copies of the one quartet it induces on them
    (`quartetSupport_eq_sum_keys`), and the terms of `t` are at least those of any tree, and larger
@@ -509,7 +510,7 @@ theorem mostFrequent_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel N σ)
     rw [Filter.eventually_all_finset]
     exact hω q hq
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually (A := fun m => {ω | _}) hall) tendsto_const_nhds
+    (MeasureTheory.tendsto_measure_of_ae_eventually (A := fun m => {ω | _}) hall) tendsto_const_nhds
     (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   intro q hq s hs
   exact hω q (hK q hq) s (Finset.mem_filter.mpr ⟨Finset.mem_univ s, hs⟩)

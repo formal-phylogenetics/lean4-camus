@@ -452,7 +452,7 @@ theorem length_budgetBacktrack {t : PhyloTree} {T : Tables} (hT : T.Correct t)
             exact budgetBacktrack_acc T B W R n r (bud r) acc
           simp only [budgetBacktrack, val_bind, val_step, val_steps, hk', hs, hf, val_forList,
             hfun]
-          rw [length_foldl_prepend]
+          rw [List.length_foldl_prepend]
           have hsum : ∀ bud : Address → ℕ, ((hangingList T e).val.map
               fun r => (budgetBacktrack T B W R n r (bud r) []).val.length).sum ≤
                 ((cone t v).erase v).card := by
@@ -640,12 +640,12 @@ theorem budgetFill_support (T : Tables) (B : Address → List (Address × Addres
     SupportedIn (budgetFill T B W m order).val ⊥ (order.toFinset ×ˢ Finset.range (m + 1)) := by
   intro x hx
   simp only [budgetFill, val_forList]
-  refine foldl_invariant (List.range (m + 1)) _
+  refine List.foldl_invariant (List.range (m + 1)) _
     (fun _ (R : Address × ℕ → WithBot ℕ) => R x = ⊥) rfl ?_
   intro K k K' R hsplit hR
   have hk : k ∈ Finset.range (m + 1) := by
     rw [Finset.mem_range, ← List.mem_range, hsplit]; simp
-  refine foldl_invariant order _ (fun _ (R : Address × ℕ → WithBot ℕ) => R x = ⊥) hR ?_
+  refine List.foldl_invariant order _ (fun _ (R : Address × ℕ → WithBot ℕ) => R x = ⊥) hR ?_
   intro V v V' U hsplit' hU
   have hv : v ∈ order.toFinset := by rw [List.mem_toFinset, hsplit']; simp
   have hne : x ≠ (v, k) := fun h => hx (h ▸ Finset.mem_product.mpr ⟨hv, hk⟩)
@@ -663,20 +663,20 @@ theorem knapsackTable_support (R : Address × ℕ → WithBot ℕ) (L : List Add
   have h0 : ((List.range (j + 1)).foldl (fun (F : ℕ × ℕ → WithBot ℕ) b =>
       Function.update F (0, b) (if b = 0 then (0 : WithBot ℕ) else ⊥)) fun _ => ⊥) x = ⊥ ∨
       (x.1 = 0 ∧ x.2 ≤ j) := by
-    rw [foldl_update_row]
+    rw [List.foldl_update_range_pair]
     by_cases h : x.1 = 0 ∧ x.2 ≤ j
     · exact Or.inr h
     · left
       simp only [h, ↓reduceIte]
   -- the rows written so far are those of the subtrees processed
-  refine (foldl_invariant L _ (fun (P : List Address) (S : ℕ × (ℕ × ℕ → WithBot ℕ)) =>
+  refine (List.foldl_invariant L _ (fun (P : List Address) (S : ℕ × (ℕ × ℕ → WithBot ℕ)) =>
       S.1 = P.length ∧ (S.2 x = ⊥ ∨ (x.1 ≤ P.length ∧ x.2 ≤ j))) ⟨rfl, h0.imp_right
         fun h => ⟨by simp [h.1], h.2⟩⟩ ?_).2.resolve_right ?_
   · intro P r P' S hsplit hS
     obtain ⟨hS1, hS2⟩ := hS
     refine ⟨by simp [hS1], ?_⟩
     dsimp only
-    rw [foldl_update_row]
+    rw [List.foldl_update_range_pair]
     by_cases h : x.1 = S.1 + 1 ∧ x.2 ≤ j
     · exact Or.inr ⟨by simp [h.1, hS1], h.2⟩
     · simp only [h, ↓reduceIte]

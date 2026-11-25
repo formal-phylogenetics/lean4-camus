@@ -2,6 +2,7 @@ module
 
 public import Camus.Network.Baseline.Cuts
 public import Camus.Network.Isomorphism.Rename
+public import Camus.Basic.Data.Finset.Basic
 
 /-!
 # Edge cuts of `T` and its clades
@@ -104,11 +105,6 @@ end Camus.PhyloTree
 
 namespace Camus.Quartet
 
-/-- Both sides of the split of a quartet are nonempty. -/
-theorem sides_nonempty (q : Quartet) : q.sides.1.Nonempty ∧ q.sides.2.Nonempty := by
-  unfold sides
-  split_ifs <;> simp
-
 /-- A set containing all four taxa of `q` does not induce the split of `q`. So the clade of the
 whole tree, which `PhyloTree.clades` lists, induces no quartet. -/
 theorem cutBy_not_whole (q : Quartet) (S : Finset ℕ) (hq : q.taxa ⊆ S) : q.cutBy S ≠ true := by
@@ -124,37 +120,6 @@ theorem cutBy_not_whole (q : Quartet) (S : Finset ℕ) (hq : q.taxa ⊆ S) : q.c
 end Camus.Quartet
 
 namespace Camus.Realization
-
-/-- For nonempty sets `A`, `B` and a predicate `P`: `P` is constant on `A` and on `B`, with
-different values on the two, if and only if `P` holds on `A` and fails on `B`, or the reverse. -/
-theorem side_partition_iff {A B : Finset ℕ} (hA : A.Nonempty) (hB : B.Nonempty)
-    (P : ℕ → Prop) :
-    ((∀ a ∈ A, ∀ b ∈ A, P a ↔ P b) ∧
-      (∀ a ∈ B, ∀ b ∈ B, P a ↔ P b) ∧
-      (∀ a ∈ A, ∀ b ∈ B, ¬(P a ↔ P b))) ↔
-    ((∀ a ∈ A, P a) ∧ (∀ b ∈ B, ¬P b) ∨
-      (∀ a ∈ A, ¬P a) ∧ (∀ b ∈ B, P b)) := by
-  classical
-  obtain ⟨a, ha⟩ := hA
-  obtain ⟨b, hb⟩ := hB
-  constructor
-  · rintro ⟨hAA, hBB, hAB⟩
-    by_cases hPa : P a
-    · have hPb : ¬P b := fun hPb => hAB a ha b hb ⟨fun _ => hPb, fun _ => hPa⟩
-      exact Or.inl ⟨fun x hx => (hAA a ha x hx).mp hPa,
-        fun x hx hPx => hPb ((hBB x hx b hb).mp hPx)⟩
-    · have hPb : P b := by
-        by_contra h
-        exact hAB a ha b hb ⟨fun h => (hPa h).elim, fun h' => (h h').elim⟩
-      exact Or.inr ⟨fun x hx hPx => hPa ((hAA x hx a ha).mp hPx),
-        fun x hx => (hBB b hb x hx).mp hPb⟩
-  · rintro (⟨hA, hB⟩ | ⟨hA, hB⟩)
-    · exact ⟨fun a ha b hb => ⟨fun _ => hA b hb, fun _ => hA a ha⟩,
-        fun a ha b hb => ⟨fun h => (hB a ha h).elim, fun h => (hB b hb h).elim⟩,
-        fun a ha b hb h => hB b hb (h.mp (hA a ha))⟩
-    · exact ⟨fun a ha b hb => ⟨fun h => (hA a ha h).elim, fun h => (hA b hb h).elim⟩,
-        fun a ha b hb => ⟨fun _ => hB b hb, fun _ => hB a ha⟩,
-        fun a ha b hb h => hA a ha (h.mpr (hB b hb))⟩
 
 /-- Let `t` be well-labelled, `sub` its subtree at `p`, and `q` a quartet on taxa of `t`. Deleting
 the edge above `p` from `T` separates the two pairs of `q` if and only if the clade of `sub` induces
@@ -178,7 +143,7 @@ theorem baselineCut_separates_iff {t sub : PhyloTree} (ht : t.WellLabelled)
         (∀ a ∈ q.sides.1, a ∉ sub.taxa) ∧ (∀ b ∈ q.sides.2, b ∈ sub.taxa)) := by
     simp only [Quartet.cutBy, decide_eq_true_eq, Finset.subset_iff, Finset.disjoint_left]
     tauto
-  rw [hbool, ← side_partition_iff q.sides_nonempty.1 q.sides_nonempty.2 (· ∈ sub.taxa)]
+  rw [hbool, ← Finset.iff_partition_of_nonempty q.sides_nonempty.1 q.sides_nonempty.2 (· ∈ sub.taxa)]
   constructor
   · rintro ⟨hAA, hBB, hAB⟩
     exact ⟨fun a ha b hb => (reach a b (hfirst a ha) (hfirst b hb)).mp (hAA a ha b hb),

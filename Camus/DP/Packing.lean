@@ -3,6 +3,7 @@ module
 public import Camus.Defs
 public import Camus.Network.Code
 public import Camus.Score
+public import Camus.Tree.Lemma2
 
 /-!
 # Feasible families of pairs: combining and splitting

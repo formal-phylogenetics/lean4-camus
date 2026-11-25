@@ -8,14 +8,13 @@ public import Mathlib.Data.Finset.Prod
 public import Mathlib.Tactic.SplitIfs
 
 /-!
-# Lemma 2: one non-tree edge per target
+# The geometry of addresses
 
 A vertex of `T` is its address, the path from the root. The ancestor order is the prefix order
 `p <+: q`, and `lca` is the longest common prefix. This file proves the basic geometry of
 addresses (the vertices of `T` are closed under ancestors, and `lca p q` is the least common
-ancestor of `p` and `q`), and then the paper's Lemma 2 in the form used by the dynamic program:
-for a network given by its family of added edges, at most one added edge has a given target.
-The form for an arbitrary level-1 network built on `T`, `lemma2`, is derived from it.
+ancestor of `p` and `q`), and that the target of an added edge lies on its cycle, the step of the
+paper's Lemma 2 that `Camus/Tree/Lemma2.lean` uses.
 
 ## Main results
 
@@ -23,13 +22,6 @@ The form for an arbitrary level-1 network built on `T`, `lemma2`, is derived fro
 * `lca_prefix_left`, `lca_prefix_right`, `prefix_lca`: `lca p q` is a common ancestor of `p` and
   `q`, and every common ancestor is an ancestor of it.
 * `EdgeAbove.target_mem_footprint`: the target lca(u, w) lies on the cycle γ(u, w).
-* `EdgeAbove.target_unique`: Lemma 2.
-
-## Proof (the paper's)
-
-If two distinct added edges had the same target v, each of their cycles would contain v
-(`EdgeAbove.target_mem_footprint`), so the two cycles would share a vertex, contradicting
-level-1 (`EdgeAbove.target_unique`).
 -/
 
 @[expose] public section
@@ -150,26 +142,6 @@ theorem target_mem_footprint (t : PhyloTree) (e : Address × Address)
   have hne : lca e.1 e.2 ≠ e.2 := by
     intro h; exact he.2.2.2.2 ((lca_eq_right_iff _ _).mp h)
   exact Finset.mem_filter.mpr ⟨hnode, List.prefix_refl _, Or.inr ⟨hp, hne⟩⟩
-
-/-- **Lemma 2** (`mthst4`), for a network given by its family of added edges. Let `E` be a
-cycle-separated family of pairs (`EdgeAbove.CycleSeparated`): the cycles γ(u, w) of distinct pairs
-of `E` are vertex-disjoint, i.e. `Realization.graph t E` is level-1. If two pairs of `E` have the
-same target, they are equal: at most one added edge has a given target.
-
-The proof is the paper's: the common target lies on both cycles
-(`EdgeAbove.target_mem_footprint`), so the cycles of two distinct pairs would share it. -/
-theorem target_unique (t : PhyloTree) (E : Finset (Address × Address))
-    (hE : CycleSeparated t E) {e f : Address × Address}
-    (he : e ∈ E) (hf : f ∈ E) (ht : target e = target f) : e = f := by
-  -- if e ≠ f, the cycles γ(e) and γ(f) are disjoint, yet both contain the common target
-  by_contra hne
-  have ha := (Finset.mem_filter.mp (hE.1 he)).2
-  have hb := (Finset.mem_filter.mp (hE.1 hf)).2
-  have hdis := hE.2 he hf hne
-  have hxe := target_mem_footprint t e ha
-  have hxf := target_mem_footprint t f hb
-  rw [← ht] at hxf
-  exact Finset.disjoint_left.mp hdis hxe hxf
 
 end EdgeAbove
 end Camus

@@ -1,6 +1,7 @@
 module
 
 public import Camus.Network.TreeBased.Main
+public import Camus.Basic.Data.List.Basic
 
 /-!
 # When the tree of a switching keeps the root
@@ -46,18 +47,6 @@ every switching (`RootedNetwork.exists_support_of_outgroup`,
 @[expose] public section
 
 namespace Camus
-
-/-- A list without repetition whose first and last elements are `x` is `[x]`. -/
-theorem eq_singleton_of_head?_getLast? {L : List ℕ} (hL : L.Nodup) {x : ℕ}
-    (hh : L.head? = some x) (hl : L.getLast? = some x) : L = [x] := by
-  match L, hL, hh, hl with
-  | [a], _, hh, _ =>
-    simp only [List.head?_cons, Option.some.injEq] at hh
-    rw [hh]
-  | a :: b :: rest, hL, hh, hl =>
-    simp only [List.head?_cons, Option.some.injEq] at hh
-    rw [List.getLast?_cons_cons] at hl
-    exact absurd (hh ▸ List.mem_of_getLast? hl) (List.nodup_cons.mp hL).1
 
 namespace SupportSubdivision
 
@@ -173,7 +162,7 @@ theorem original_nil_eq_root (H : DisplayedSubdivision t N S) (hN : N.RootedBina
 /-- If the root of `T` is the root of `N`, the root wire is the root of `N` alone. -/
 theorem rootWire_eq_of_original (H : DisplayedSubdivision t N S)
     (h : H.original [] = N.root) : H.rootWire = [N.root] :=
-  eq_singleton_of_head?_getLast? H.rootWire_laws.1 H.rootWire_laws.2.1
+  List.eq_singleton_of_head?_eq_getLast? H.rootWire_laws.1 H.rootWire_laws.2.1
     (h ▸ H.rootWire_laws.2.2.1)
 
 /-- The root of `T` is the root of `N` iff the switching keeps the edges out of the root of `N`. -/

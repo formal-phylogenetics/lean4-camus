@@ -24,9 +24,9 @@ Section 2.4 (`BudgetDP.reticulation_restriction`, `BudgetDP.exists_array`,
 
 @[expose] public section
 
-namespace Camus.Challenge
+namespace CamusChallenge
 
-open DynamicProgramming
+open Camus Camus.DynamicProgramming
 
 /-- **Theorem 1.** Let `T` be a well-labelled tree and `Q` a multiset of quartets. For every `M`
 satisfying the recurrence of Equations (2)–(5) with the weights of Equation (1), and every family
@@ -193,4 +193,4 @@ theorem recovery_needs_identifiable :
     Counterexamples.deepArray_array, {Counterexamples.deepPair}, Counterexamples.trace_deepPair,
     hopt, hfew, Counterexamples.deep_not_iso_shallow⟩
 
-end Camus.Challenge
+end CamusChallenge

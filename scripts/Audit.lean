@@ -2,9 +2,17 @@ module
 
 public meta import Lean.Elab.Command
 public meta import Lean.DocString
--- One `import all` line per module of the library, so that proofs are visible to the dependency
--- traversal (the module system hides them from a plain `import`). Generate the lines with
---   find Camus -name '*.lean' | sort | sed 's/\.lean$//; s#/#.#g; s/^/import all /'
+-- One `import all` line per module of the libraries, so that proofs are visible to the dependency
+-- traversal (the module system hides them from a plain `import`): every module of `Camus/`
+-- (`Basic/`, `External/` and the paper's library) and the paper's Solution in `palomar/`, but not
+-- the Challenge, which holds a copy of the definitions of `Camus/Defs.lean`; then every module of
+-- the libraries that this repository requires, `Phylogenetics`, `PhyloNetwork` and `Allman2011`
+-- (lean4-phylogenetics, docs/CONVENTIONS.md, Section 3). Generate the lines with
+--   { find Camus -name '*.lean'; cd palomar && find . -name Solution.lean; } |
+--     sed 's#^\./##; s/\.lean$//; s#/#.#g; s/^/import all /' | sort
+--   for p in Phylogenetics Allman2011; do (cd .lake/packages/$p && find $p -name '*.lean'); done |
+--     sed 's/\.lean$//; s#/#.#g; s/^/import all /' | sort
+-- and `import all PhyloNetwork`, the hub's library, which has no module under `PhyloNetwork/` yet.
 import all Camus.Complexity.Backtracking
 import all Camus.Complexity.BudgetBacktracking
 import all Camus.Complexity.BudgetProgram
@@ -41,7 +49,6 @@ import all Camus.External.NMSC.ThreeCycle
 import all Camus.External.WarnowTabatabaeeEvans.Observation2
 import all Camus.External.WarnowTabatabaeeEvans.Sampling
 import all Camus.External.WarnowTabatabaeeEvans.SiteModel
-import all Camus.External.WarnowTabatabaeeEvans.Theorem6
 import all Camus.Galled.Basic
 import all Camus.Galled.Bounds
 import all Camus.Galled.Counterexamples
@@ -149,6 +156,7 @@ import all Camus.Pipelines.Recovery
 import all Camus.Pipelines.SNP
 import all Camus.Pipelines.SNPCondition
 import all Camus.Pipelines.Statistical
+import all Camus.Pipelines.Theorem6Gap
 import all Camus.Pipelines.Uniqueness
 import all Camus.Preliminaries.Figure1
 import all Camus.Preliminaries.Lemma1.Cuts
@@ -169,9 +177,185 @@ import all Camus.Restriction.Saturation
 import all Camus.Restriction.StoppingRule
 import all Camus.Restriction.Witness
 import all Camus.Score
+import all Camus.Solution
 import all Camus.Tree.Forest
 import all Camus.Tree.Geometry
-import all Solution
+import all Phylogenetics.Coalescent.Absorption
+import all Phylogenetics.Coalescent.BinaryForest
+import all Phylogenetics.Coalescent.Defs
+import all Phylogenetics.Coalescent.Factorization
+import all Phylogenetics.Coalescent.Forest
+import all Phylogenetics.Coalescent.Lump
+import all Phylogenetics.Coalescent.Outcome
+import all Phylogenetics.Coalescent.PMF
+import all Phylogenetics.Coalescent.Relabel
+import all Phylogenetics.Coalescent.Tavare
+import all Phylogenetics.Coalescent.Trace
+import all Phylogenetics.Computation.Caterpillar5
+import all Phylogenetics.Computation.Codes
+import all Phylogenetics.Computation.Engine
+import all Phylogenetics.Computation.FiveTaxa
+import all Phylogenetics.Computation.FourTaxa
+import all Phylogenetics.Computation.ThreeTaxa
+import all Phylogenetics.Computation.Toolkit
+import all Phylogenetics.ForMathlib.Analysis.MatrixExponential
+import all Phylogenetics.ForMathlib.MeasureTheory.HaarPreimage
+import all Phylogenetics.Graph.Basic
+import all Phylogenetics.Graph.Blobs
+import all Phylogenetics.Graph.BridgeCutLaminar
+import all Phylogenetics.Graph.Connectivity
+import all Phylogenetics.Graph.CutUniqueness
+import all Phylogenetics.Graph.Defs
+import all Phylogenetics.Graph.Degree
+import all Phylogenetics.Graph.Tree
+import all Phylogenetics.Hierarchy.Basic
+import all Phylogenetics.Hierarchy.Counts
+import all Phylogenetics.Hierarchy.Defs
+import all Phylogenetics.Hierarchy.Quartets
+import all Phylogenetics.Hierarchy.RootLocation
+import all Phylogenetics.Hierarchy.SpeciesTree
+import all Phylogenetics.MSC.Basic
+import all Phylogenetics.MSC.Classify
+import all Phylogenetics.MSC.Contract
+import all Phylogenetics.MSC.Defs
+import all Phylogenetics.MSC.History
+import all Phylogenetics.MSC.Marginal
+import all Phylogenetics.MSC.MultiSample
+import all Phylogenetics.MSC.Relabel
+import all Phylogenetics.MSC.Shapes
+import all Phylogenetics.MSC.Small
+import all Phylogenetics.NMSC.Analytic
+import all Phylogenetics.NMSC.Basic
+import all Phylogenetics.NMSC.Defs
+import all Phylogenetics.NMSC.DisplayedTreeModel
+import all Phylogenetics.NMSC.Exchangeability
+import all Phylogenetics.NMSC.Factor
+import all Phylogenetics.NMSC.Glue
+import all Phylogenetics.NMSC.History
+import all Phylogenetics.NMSC.Induced
+import all Phylogenetics.NMSC.InducedAbove
+import all Phylogenetics.NMSC.InducedParams
+import all Phylogenetics.NMSC.InducedRestrict
+import all Phylogenetics.NMSC.InducedSuppress
+import all Phylogenetics.NMSC.Inheritance
+import all Phylogenetics.NMSC.Level1.Arms
+import all Phylogenetics.NMSC.Level1.Basic
+import all Phylogenetics.NMSC.Level1.Consistency
+import all Phylogenetics.NMSC.Level1.Context
+import all Phylogenetics.NMSC.Level1.Cycle
+import all Phylogenetics.NMSC.Level1.Defs
+import all Phylogenetics.NMSC.Level1.Displays
+import all Phylogenetics.NMSC.Level1.GeneTrees
+import all Phylogenetics.NMSC.Level1.General
+import all Phylogenetics.NMSC.Level1.MetricCycle.Basic
+import all Phylogenetics.NMSC.Level1.MetricCycle.Instance
+import all Phylogenetics.NMSC.Level1.MetricCycle.RationalLengths
+import all Phylogenetics.NMSC.Level1.MetricCycle.Realization
+import all Phylogenetics.NMSC.Level1.MetricCycle.Reflection
+import all Phylogenetics.NMSC.Level1.Process
+import all Phylogenetics.NMSC.Level1.Sampling
+import all Phylogenetics.NMSC.Level1.Symmetry
+import all Phylogenetics.NMSC.Marginal
+import all Phylogenetics.NMSC.SpeciesTree
+import all Phylogenetics.NMSC.Symmetry
+import all Phylogenetics.NMSC.TreeCF
+import all Phylogenetics.NMSC.Witness
+import all Phylogenetics.Network.AncestralRestriction
+import all Phylogenetics.Network.Basic
+import all Phylogenetics.Network.CutHierarchy
+import all Phylogenetics.Network.Cuts
+import all Phylogenetics.Network.Defs
+import all Phylogenetics.Network.DeletedArcs
+import all Phylogenetics.Network.Induced
+import all Phylogenetics.Network.InducedMetric
+import all Phylogenetics.Network.Level1.CyclicOrder
+import all Phylogenetics.Network.Level1.Defs
+import all Phylogenetics.Network.Level1.Digraph.Basic
+import all Phylogenetics.Network.Level1.Digraph.Complete
+import all Phylogenetics.Network.Level1.Digraph.CompleteCycle
+import all Phylogenetics.Network.Level1.Digraph.CompleteDesc
+import all Phylogenetics.Network.Level1.Digraph.CompleteEmbed
+import all Phylogenetics.Network.Level1.Digraph.Correspondence
+import all Phylogenetics.Network.Level1.Digraph.CycleHybrid
+import all Phylogenetics.Network.Level1.Digraph.Defs
+import all Phylogenetics.Network.Level1.Digraph.Invariance
+import all Phylogenetics.Network.Level1.Digraph.Invariant
+import all Phylogenetics.Network.Level1.Digraph.InvariantCycle
+import all Phylogenetics.Network.Level1.Digraph.InvariantSide
+import all Phylogenetics.Network.Level1.Digraph.InvariantTree
+import all Phylogenetics.Network.Level1.Digraph.OfNet
+import all Phylogenetics.Network.Level1.Digraph.Sound
+import all Phylogenetics.Network.Level1.LevelOne
+import all Phylogenetics.Network.Level1.ToRootedNetwork
+import all Phylogenetics.Network.OfHierarchy
+import all Phylogenetics.Network.PendantCuts
+import all Phylogenetics.Network.Quartets
+import all Phylogenetics.Network.Semidirected
+import all Phylogenetics.Network.TreeOfBlobs
+import all Phylogenetics.Tree.AstralDP
+import all Phylogenetics.Tree.Defs
+import all Phylogenetics.Tree.Detach
+import all Phylogenetics.Tree.FourPoint
+import all Phylogenetics.Tree.GeneTree.AnchorNode
+import all Phylogenetics.Tree.GeneTree.Annotate
+import all Phylogenetics.Tree.GeneTree.Basic
+import all Phylogenetics.Tree.Metric
+import all Phylogenetics.Tree.NeighborJoining
+import all Phylogenetics.Tree.Splice
+import all Phylogenetics.Tree.Splits
+import all Phylogenetics.Tree.SplitsEquivalence
+import all Phylogenetics.Tree.XTree
+import all Allman2011.AppendixA
+import all Allman2011.AppendixC.Ac1Classes
+import all Allman2011.AppendixC.FiveTaxa
+import all Allman2011.AppendixC.Shapes
+import all Allman2011.AppendixC.StarOneSplit
+import all Allman2011.AppendixC.Tables
+import all Allman2011.AppendixC.TwoSplits
+import all Allman2011.Basic.Algebra.BigOperators.Group.List
+import all Allman2011.Basic.Analysis.SpecialFunctions.Exp
+import all Allman2011.Basic.Data.Fin.Basic
+import all Allman2011.Basic.Data.Finset.Basic
+import all Allman2011.Basic.Data.Fintype.Sigma
+import all Allman2011.Basic.Data.Nat.Bitwise
+import all Allman2011.Basic.Order.Interval.Finset.Nat
+import all Allman2011.Bridge
+import all Allman2011.Defs
+import all Allman2011.Discussion
+import all Allman2011.External.Cayley1857.Shapes
+import all Allman2011.External.Steel1992.Quartets
+import all Allman2011.External.Tavare1984.Formula
+import all Allman2011.FiveTaxa.Balanced
+import all Allman2011.FiveTaxa.Basic
+import all Allman2011.FiveTaxa.Caterpillar
+import all Allman2011.FiveTaxa.Explanations
+import all Allman2011.FiveTaxa.Lemma4
+import all Allman2011.FiveTaxa.Pseudocaterpillar
+import all Allman2011.FourTaxa.Analysis
+import all Allman2011.FourTaxa.Formulas
+import all Allman2011.FourTaxa.Proposition3
+import all Allman2011.Identifiability.Corollary10
+import all Allman2011.Identifiability.Corollary6
+import all Allman2011.Identifiability.FiveTaxa.Binary
+import all Allman2011.Identifiability.FiveTaxa.Classes
+import all Allman2011.Identifiability.FiveTaxa.Common
+import all Allman2011.Identifiability.Lemma5
+import all Allman2011.Identifiability.Proposition8
+import all Allman2011.Identifiability.Quartets
+import all Allman2011.Identifiability.Theorem9
+import all Allman2011.Introduction.Equation1
+import all Allman2011.Introduction.Proposition1
+import all Allman2011.Model
+import all Allman2011.Nonbinary.FourTaxa
+import all Allman2011.Nonbinary.Limits
+import all Allman2011.Nonbinary.Proposition11
+import all Allman2011.Nonbinary.Theorem9
+import all Allman2011.Nonbinary.Triples
+import all Allman2011.Nonbinary.Unrooted
+import all Allman2011.Rootings.Proofs
+import all Allman2011.Rootings.Statements
+import all Allman2011.Rootings.Support
+import all PhyloNetwork
 
 /-!
 # Axiom and dependency audit
@@ -179,12 +363,11 @@ import all Solution
 Run with `lake env lean scripts/Audit.lean` after `lake build`.
 
 For every numbered result of the paper, this prints the axioms it depends on and the results from
-prior work (`Camus/External/`) that it uses, whether proved there or, in a conditional
-formalization, assumed as hypotheses of its statement. It then checks every declaration
-of the library and the theorems that Palomar's comparator checks. The run fails if any of them
-depends on an axiom other than Lean's standard `propext`, `Classical.choice` and `Quot.sound` (a
-`sorry` shows up as the axiom `sorryAx`). Its table of results is the source of the report's
-dependency table.
+prior work (`External/`) that it uses, whether proved there or, in a conditional formalization,
+assumed as hypotheses of its statement. It then checks every declaration of the library and the
+theorems that Palomar's comparator checks. The run fails if any of them depends on an axiom other
+than Lean's standard `propext`, `Classical.choice` and `Quot.sound` (a `sorry` shows up as the
+axiom `sorryAx`). Its table of results is the source of the report's dependency table.
 
 It also writes the *route* of every numbered result to `.lake/route_deps.tsv`: the other
 numbered results that its proof uses, found by following the proof through the library's helper
@@ -197,22 +380,28 @@ available: the module system does not export them otherwise. The traversal tests
 precomputed set of the library's constants; looking up each constant's module instead
 (`Environment.getModuleIdxFor?`) makes the interpreted script take minutes.
 
-To adapt: generate the `import all` lines, fill in the three lists, and set the library's root
-name in `isLibraryModule`. Keep one `import all` line per module of the library, each on its own
-line: a module that is missing is still imported through the others, but without its proofs, and
-the audit then misses the axioms and the routes inside them. The CI template checks the list.
+The libraries are this project's modules, every module under the root `Camus` but the Challenge,
+and the libraries it requires (`isLibraryModule`), so that one run checks every axiom that a result
+depends on. Keep one `import all` line per module of the libraries, each on its own line: a module
+that is missing is still imported through the others, but without its proofs, and the audit then
+misses the axioms and the routes inside them. CI checks the list.
 -/
 
 open Lean Elab Command
 
 namespace Audit
 
-/-- The results from prior work in `Camus/External/`, with a short label: the theorems proved
-there. The traversal stops at them. -/
+/-- The results from prior work, with a short label: the theorems proved in `Camus/External/`, and
+the result of lean4-phylogenetics that the paper takes from Baños (2019). The traversal stops at
+them. -/
 meta def externalResults : List (String × Name) :=
-  [("Observation 2 (Warnow, Tabatabaee, Evans 2025)", ``Camus.External.observation2),
+  [("Observation 2 (Warnow, Tabatabaee, Evans 2025)", ``External.WarnowTabatabaeeEvans.observation2),
    ("Support of the SNP quartets (Warnow, Tabatabaee, Evans 2025, Theorem 6)",
-    ``Camus.External.support_tendsto),
+    ``External.WarnowTabatabaeeEvans.support_tendsto),
+   ("Quartet trees of a binary species tree on four taxa (Allman, Degnan, Rhodes 2011, Section 4.1)",
+    ``External.AllmanDegnanRhodes2011.four_unrootedDist_of_mem),
+   ("The two other quartet trees (Allman, Degnan, Rhodes 2011, Section 4.1)",
+    ``External.AllmanDegnanRhodes2011.four_unrootedDist_of_ne_of_isBinary),
    ("Quartet CFs of the components of a cycle under the NMSC (Banos 2019)",
     ``Phylogenetics.nmsc_quartetCF),
    ("Quartet CFs of four taxa in four components of a cycle under the NMSC (Banos 2019)",
@@ -314,22 +503,27 @@ meta def paperResults : List (String × Name) :=
     ``Camus.Coalescent.msc_filterQuartets_genes),
    ("Sec 3.4, filtering keeps q2 when p2 > p3", ``Camus.Coalescent.filterBlock_keeps_second)]
 
-/-- The theorems that Palomar's comparator checks (`theorem_names` of `comparator.json`). -/
+/-- The theorems that Palomar's comparator checks (`theorem_names` of
+`palomar/Camus/comparator.json`), as the Solution restates them. -/
 meta def solutionResults : List Name :=
-  [``Camus.Challenge.theorem1, ``Camus.Challenge.exists_array_trace,
-   ``Camus.Challenge.tree_displays_iff, ``Camus.Challenge.edgeWeight_eq,
-   ``Camus.Challenge.definition1_reduction, ``Camus.Challenge.builtOn_not_anchored,
-   ``Camus.Challenge.reticulation_restriction, ``Camus.Challenge.exists_budget_traces,
-   ``Camus.Challenge.not_exactCountMonotone, ``Camus.Challenge.not_exactStoppingRule,
-   ``Camus.Challenge.not_atMostStoppingRule, ``Camus.Challenge.not_uniqueOptimum,
-   ``Camus.Challenge.recovery, ``Camus.Challenge.tree_identifiable,
-   ``Camus.Challenge.recovery_needs_identifiable]
+  [``CamusChallenge.theorem1, ``CamusChallenge.exists_array_trace,
+   ``CamusChallenge.tree_displays_iff, ``CamusChallenge.edgeWeight_eq,
+   ``CamusChallenge.definition1_reduction, ``CamusChallenge.builtOn_not_anchored,
+   ``CamusChallenge.reticulation_restriction, ``CamusChallenge.exists_budget_traces,
+   ``CamusChallenge.not_exactCountMonotone, ``CamusChallenge.not_exactStoppingRule,
+   ``CamusChallenge.not_atMostStoppingRule, ``CamusChallenge.not_uniqueOptimum,
+   ``CamusChallenge.recovery, ``CamusChallenge.tree_identifiable,
+   ``CamusChallenge.recovery_needs_identifiable]
 
 /-- Lean's standard axioms. -/
 meta def standardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
 
-/-- Whether `m` is a module of the library. -/
-meta def isLibraryModule (m : Name) : Bool := (`Camus).isPrefixOf m
+/-- Whether `m` is a module of the libraries: under the root `Camus` (`Basic/`, `External/`, the
+paper's library and the Solution), but not the Challenge; and the libraries that this repository
+requires, lean4-phylogenetics, lean4-phylo-network and lean4-allman2011. -/
+meta def isLibraryModule (m : Name) : Bool :=
+  ((`Camus).isPrefixOf m && m != `Camus.Challenge) || (`Phylogenetics).isPrefixOf m ||
+    (`PhyloNetwork).isPrefixOf m || (`Allman2011).isPrefixOf m
 
 /-- The constants declared in the library. -/
 meta def libraryConstants (env : Environment) : NameSet := Id.run do

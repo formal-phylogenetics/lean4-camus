@@ -12,32 +12,32 @@ Section 3.2 of the paper builds the multiset `Q` from an alignment of SNPs: ever
 copy of each quartet `ab|cd` with `a`, `b` in one state and `c`, `d` in the other. It then claims,
 "according to the theory given in Warnow et al. (2025)", that as the number of sites grows the
 support of `Q` equals `Q(N_r)` with probability tending to 1. This file proves that claim inside
-the single site model of Warnow, Tabatabaee and Evans (WTE; `External.SiteModel`), for sites
+the single site model of Warnow, Tabatabaee and Evans (WTE; `External.WarnowTabatabaeeEvans.SiteModel`), for sites
 `X 0, X 1, ...` that are independent with the law of the model: with `Q_m` the multiset
-sum of the quartets of the SNPs among the first `m` sites (`External.sampleQuartets`), the
+sum of the quartets of the SNPs among the first `m` sites (`External.WarnowTabatabaeeEvans.sampleQuartets`), the
 probability that the quartets of `Q_m` are exactly those displayed by `N` tends to 1
-(`External.support_tendsto`). WTE prove that the SNPs cover the clades of `N` with probability
+(`External.WarnowTabatabaeeEvans.support_tendsto`). WTE prove that the SNPs cover the clades of `N` with probability
 tending to 1 (Theorem 6, with the bound of Theorem 7), and, without the ancestral states, that
 they cover its bipartitions, "and hence cover Q(N_r)" (Theorem 8, whose proof "follows as for the
 rooted case"); the proof here is theirs, for quartets. The file also gives the law of large
-numbers for the frequency of a quartet (`External.frequency_tendsto`), which the ASTRAL step of
+numbers for the frequency of a quartet (`External.WarnowTabatabaeeEvans.frequency_tendsto`), which the ASTRAL step of
 the pipeline uses, and shows that independent sites with the law of the model exist
-(`External.SiteModel.sites`).
+(`External.WarnowTabatabaeeEvans.SiteModel.sites`).
 
 ## Main results
 
-* `External.sampleQuartets`: the multiset `Q_m`.
-* `External.displays_of_mem_sampleQuartets`: every quartet of `Q_m` is displayed by `N`.
-* `External.support_tendsto`: the probability that the support of `Q_m` is the set of quartets
+* `External.WarnowTabatabaeeEvans.sampleQuartets`: the multiset `Q_m`.
+* `External.WarnowTabatabaeeEvans.displays_of_mem_sampleQuartets`: every quartet of `Q_m` is displayed by `N`.
+* `External.WarnowTabatabaeeEvans.support_tendsto`: the probability that the support of `Q_m` is the set of quartets
   displayed by `N` tends to 1.
-* `External.frequency_tendsto`: the frequency of a quartet in `Q_m` converges almost surely to
+* `External.WarnowTabatabaeeEvans.frequency_tendsto`: the frequency of a quartet in `Q_m` converges almost surely to
   the probability that a site contributes it.
-* `External.eventually_count_lt`: a quartet that a site contributes with smaller probability is
+* `External.WarnowTabatabaeeEvans.eventually_count_lt`: a quartet that a site contributes with smaller probability is
   eventually less frequent, almost surely.
-* `External.tendsto_measure_of_ae_eventually`: events that hold eventually, almost surely, have
+* `External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually`: events that hold eventually, almost surely, have
   probability tending to 1.
-* `External.SiteModel.sites`, `External.SiteModel.sites_iIndepFun`,
-  `External.SiteModel.sites_identDistrib`, `External.SiteModel.sites_law`: independent sites with
+* `External.WarnowTabatabaeeEvans.SiteModel.sites`, `External.WarnowTabatabaeeEvans.SiteModel.sites_iIndepFun`,
+  `External.WarnowTabatabaeeEvans.SiteModel.sites_identDistrib`, `External.WarnowTabatabaeeEvans.SiteModel.sites_law`: independent sites with
   the law of the model, on the infinite product space.
 
 ## Proof (WTE's, Theorems 6 and 7)
@@ -45,8 +45,8 @@ the pipeline uses, and shows that independent sites with the law of the model ex
 WTE (Theorem 6): "every clade in N has strictly positive probability of appearing as a clade for
 an SNP. Hence, as the number of sites increases, with probability converging to 1, the set of
 clades for the SNPs converges to Clades(N)." For quartets: every quartet of an SNP is displayed by
-`N` (`External.SiteHistory.displays_of_mem_quartets`), and every quartet `q` displayed by `N` is
-contributed by a site with a probability `p_q > 0` (`External.SiteModel.quartetProb_pos`). By
+`N` (`External.WarnowTabatabaeeEvans.SiteHistory.displays_of_mem_quartets`), and every quartet `q` displayed by `N` is
+contributed by a site with a probability `p_q > 0` (`External.WarnowTabatabaeeEvans.SiteModel.quartetProb_pos`). By
 independence, `q` is missing from `Q_m` with probability `(1 - p_q)^m`; WTE (Theorem 7) bound the
 probability that some clade is missing by Boole's inequality, here
 `∑_q (1 - p_q)^m`, a finite sum over the quartets on the taxa of `N`, which tends to 0.
@@ -57,12 +57,14 @@ probability that some clade is missing by Boole's inequality, here
 open MeasureTheory ProbabilityTheory Filter Topology
 open scoped NNReal ENNReal
 
-namespace Camus.External
+namespace External.WarnowTabatabaeeEvans
+
+open Camus
 
 variable {N : RootedNetwork} {σ : Type*} [DecidableEq σ] {Ω : Type*}
 
 /-- Section 3.2: the multiset `Q_m` built from the first `m` sites: one copy of each quartet of
-each SNP among them (`External.SiteHistory.quartets`; a quartet "will be added only once for a
+each SNP among them (`External.WarnowTabatabaeeEvans.SiteHistory.quartets`; a quartet "will be added only once for a
 given SNP, but more than one SNP can produce the same quartet tree"). -/
 noncomputable def sampleQuartets (X : ℕ → Ω → SiteHistory N σ) (m : ℕ) (ω : Ω) :
     Multiset Quartet :=
@@ -282,4 +284,4 @@ theorem sites_law (M : SiteModel N σ) (hN : N.RootedBinaryLevelOne) :
 
 end SiteModel
 
-end Camus.External
+end External.WarnowTabatabaeeEvans

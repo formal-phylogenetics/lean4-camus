@@ -24,7 +24,7 @@ paper is the canonical network `Realization.graph t {H.pairOf d}`, obtained from
 edge above `(u, w)` (Definition 3). A quartet is satisfied by a network if the network displays it
 and `T` does not induce it. The proof of Lemma 1 uses Observation 2 of Warnow, Tabatabaee and Evans
 (2025), proved in `Camus/External/WarnowTabatabaeeEvans/Observation2.lean`
-(`External.observation2`).
+(`External.WarnowTabatabaeeEvans.observation2`).
 
 ## Main results
 

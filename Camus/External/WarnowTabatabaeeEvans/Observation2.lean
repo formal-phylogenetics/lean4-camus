@@ -13,14 +13,14 @@ Q(N_r) if and only if a, b is separated from c, d as the result of deleting eith
 or
 deleting two edges from a cycle, where one of the edges is incident with the bottom node of the
 cycle." This file states it (`WarnowTabatabaeeEvansObservation2`) and proves it
-(`External.observation2`).
+(`External.WarnowTabatabaeeEvans.observation2`).
 
 ## Main results
 
-* `External.observation2_forward`: a displayed quartet is separated by a cut edge or by a cut of
+* `External.WarnowTabatabaeeEvans.observation2_forward`: a displayed quartet is separated by a cut edge or by a cut of
   two edges of one cycle, one of them entering the cycle's reticulation.
-* `External.observation2_backward`: the converse.
-* `External.observation2`: Observation 2.
+* `External.WarnowTabatabaeeEvans.observation2_backward`: the converse.
+* `External.WarnowTabatabaeeEvans.observation2`: Observation 2.
 
 ## Proof
 
@@ -57,7 +57,9 @@ incoming edges, so the two readings agree.
 
 @[expose] public section
 
-namespace Camus.External
+namespace External.WarnowTabatabaeeEvans
+
+open Camus
 
 /-- The statement of Observation 2 of Tandy Warnow, Yasamin Tabatabaee and Steven N. Evans,
 "Advances in Estimating Level-1 Phylogenetic Networks from Unrooted SNPs", J. Comput. Biol.
@@ -66,7 +68,7 @@ quartet whose taxa are taxa of `N`. Then `N` displays `q` (q ∈ Q(N_r)) if and 
 of `q` are separated by deleting either one cut edge of `N` (`RootedNetwork.CutEdgeSeparates`) or
 two distinct edges of one cycle of `N`, at least one of them incident to the reticulation of that
 cycle, its vertex of indegree 2 (`RootedNetwork.CycleSeparates`). It is proved by
-`External.observation2`. -/
+`External.WarnowTabatabaeeEvans.observation2`. -/
 def WarnowTabatabaeeEvansObservation2 : Prop :=
   ∀ N : RootedNetwork, N.RootedBinaryLevelOne →
     ∀ q : Quartet, q.taxa ⊆ N.taxa →
@@ -187,4 +189,4 @@ cycle one of which is incident to the cycle's reticulation, separates its two pa
 theorem observation2 : WarnowTabatabaeeEvansObservation2 :=
   fun _ hN q hqt => ⟨observation2_forward hN q, observation2_backward hN q hqt⟩
 
-end Camus.External
+end External.WarnowTabatabaeeEvans

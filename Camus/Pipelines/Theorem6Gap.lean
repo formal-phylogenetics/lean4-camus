@@ -10,22 +10,22 @@ The proof of Theorem 6 of Warnow, Tabatabaee and Evans (2025) ("WTE") shows that
 the network `N` appears as the clade of an SNP with positive probability: for a tree edge `e`
 of a displayed tree `T`, "it is easy to see that the probability that c changes on e and no other
 edge in T is strictly positive". Section 3.2 of the paper relies on the same step for quartets.
-With the constraints that WTE list in their Section 4.2 (`External.SiteParameters`) the step
+With the constraints that WTE list in their Section 4.2 (`External.WarnowTabatabaeeEvans.SiteParameters`) the step
 fails: if some tree edge `f` of `T` other than `e` has `p(f, s, s) = 0`, every character changes
 on `f`, so none changes on `e` alone. WTE's Theorem 7 assumes `0 < p_on ≤ p(e, s, s)`, and
-`External.SiteModel` assumes it as `stay_pos`.
+`External.WarnowTabatabaeeEvans.SiteModel` assumes it as `stay_pos`.
 
-The counterexample is the tree `((A,B),C),D` (`External.Theorem6Gap.caterpillar`), as a network
+The counterexample is the tree `((A,B),C),D` (`Camus.Theorem6Gap.caterpillar`), as a network
 with no reticulation, with two states and a substitution that always changes the state on the
-edge from the root to the parent of `(A,B)` and `C` (`External.Theorem6Gap.alwaysChange`). Every
+edge from the root to the parent of `(A,B)` and `C` (`Camus.Theorem6Gap.alwaysChange`). Every
 SNP whose clade is `{A, B}` has probability 0, although `{A, B}` is a clade of the network; and
 every SNP that contributes the quartet `AB|CD`, which the network displays, has probability 0
-(`External.theorem6_step_needs_stay`).
+(`Camus.theorem6_step_needs_stay`).
 
 ## Main results
 
-* `External.Theorem6Gap.alwaysChange`: parameters that meet WTE's constraints of Section 4.2.
-* `External.theorem6_step_needs_stay`: under them, the clade `{A, B}` and the quartet `AB|CD`
+* `Camus.Theorem6Gap.alwaysChange`: parameters that meet WTE's constraints of Section 4.2.
+* `Camus.theorem6_step_needs_stay`: under them, the clade `{A, B}` and the quartet `AB|CD`
   never come from an SNP of positive probability.
 -/
 
@@ -33,7 +33,9 @@ every SNP that contributes the quartet `AB|CD`, which the network displays, has 
 
 open scoped NNReal
 
-namespace Camus.External
+namespace Camus
+
+open External.WarnowTabatabaeeEvans
 
 namespace Theorem6Gap
 
@@ -212,4 +214,4 @@ theorem theorem6_step_needs_stay :
       exact weight_eq_zero hch
     · exact absurd hq (Finset.notMem_empty _)
 
-end Camus.External
+end Camus

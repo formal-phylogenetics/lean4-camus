@@ -839,9 +839,9 @@ end Camus
 
 -- END SHARED DEFINITIONS
 
-namespace Camus.Challenge
+namespace CamusChallenge
 
-open DynamicProgramming
+open Camus Camus.DynamicProgramming
 
 /-- **Theorem 1.** Let `T` be a well-labelled tree and `Q` a multiset of quartets. For every `M`
 satisfying the recurrence of Equations (2)–(5) with the weights of Equation (1), and every family
@@ -991,4 +991,4 @@ theorem recovery_needs_identifiable :
         IsEmpty ((Realization.graph t E).Iso N) := by
   sorry
 
-end Camus.Challenge
+end CamusChallenge

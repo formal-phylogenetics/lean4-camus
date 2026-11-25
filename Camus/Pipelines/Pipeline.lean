@@ -12,10 +12,10 @@ Section 3.2 of the paper runs a pipeline on an alignment of SNPs: the multiset `
 of the SNPs is given to ASTRAL, which returns a tree `T` maximizing the quartet support score; `T`
 "will be rooted using the outgroup and then passed to CAMUS", which returns a network built on `T`
 optimal for `Q`. The section argues that, in the model of Warnow, Tabatabaee and Evans
-(`External.SiteModel`), this pipeline returns the true network `N` with probability tending to 1
+(`External.WarnowTabatabaeeEvans.SiteModel`), this pipeline returns the true network `N` with probability tending to 1
 when some tree `t` displayed by `N` induces the most probable quartet on every four taxa. The
 library proves the steps separately, in probability: ASTRAL's step (`astral_maximizer_tendsto`),
-the support of `Q` (`External.support_tendsto`), and CAMUS's step, corrected
+the support of `Q` (`External.WarnowTabatabaeeEvans.support_tendsto`), and CAMUS's step, corrected
 (`snp_recovery_tendsto`). This file states the pipeline as one theorem (`pipeline_tendsto`). Its
 proof does not compose these three theorems: it derives steps 1 and 3 almost surely, for all large
 numbers of sites (`ae_eventually_mostFrequent`, `ae_eventually_support`), so that the two events
@@ -71,7 +71,7 @@ the true network (`pipeline_outgroup_tendsto`, `pipeline_outgroup_meets_hypothes
    identifiability under inclusion and the tie-break, `recovery`.
 
 The events of steps 1 and 3 hold together, almost surely for all large numbers of sites, so the
-probability of their intersection tends to 1 (`External.tendsto_measure_of_ae_eventually`, which
+probability of their intersection tends to 1 (`External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually`, which
 needs no measurability of the events).
 -/
 
@@ -365,13 +365,13 @@ variable {N : RootedNetwork} {σ : Type*} [Fintype σ] [DecidableEq σ] {Ω : Ty
 most probable quartet tree". Under `MostProbableQuartets`, almost surely, for all large numbers
 `m` of sites, the quartet that `t` induces on every four of its taxa has more copies in `Q_m` than
 the two other quartets on them. -/
-theorem ae_eventually_mostFrequent (M : External.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
+theorem ae_eventually_mostFrequent (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
     (t : PhyloTree) (hcond : MostProbableQuartets M t) {P : Measure Ω} [IsProbabilityMeasure P]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X P)
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X P)
     (hid : ∀ n, IdentDistrib (X n) (X 0) P P) (hlaw : P.map (X 0) = M.law hN) :
     ∀ᵐ ω ∂P, ∀ᶠ m in atTop, ∀ q : Quartet, q.induced t = true → ∀ s : Fin 3, s ≠ q.split →
-      (External.sampleQuartets X m ω).count (q.key.quartet s) <
-        (External.sampleQuartets X m ω).count q := by
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := by
   classical
   let K := (Quartet.onTaxa t.taxa).filter fun q => q.induced t = true
   let S : Quartet → Finset (Fin 3) := fun q => Finset.univ.filter (· ≠ q.split)
@@ -382,18 +382,18 @@ theorem ae_eventually_mostFrequent (M : External.SiteModel N σ) (hN : N.RootedB
     exact hq.1
   -- each of the finitely many comparisons holds eventually, almost surely, by the strong law
   have hae : ∀ᵐ ω ∂P, ∀ q ∈ K, ∀ s ∈ S q, ∀ᶠ m in atTop,
-      (External.sampleQuartets X m ω).count (q.key.quartet s) <
-        (External.sampleQuartets X m ω).count q := by
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := by
     rw [Filter.eventually_all_finset]
     intro q hq
     rw [Filter.eventually_all_finset]
     intro s hs
-    exact External.eventually_count_lt M hN X hind hid hlaw
+    exact External.WarnowTabatabaeeEvans.eventually_count_lt M hN X hind hid hlaw
       (hcond q (Finset.mem_filter.mp hq).2 s (Finset.mem_filter.mp hs).2)
   filter_upwards [hae] with ω hω
   have hev : ∀ᶠ m in atTop, ∀ q ∈ K, ∀ s ∈ S q,
-      (External.sampleQuartets X m ω).count (q.key.quartet s) <
-        (External.sampleQuartets X m ω).count q := by
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := by
     rw [Filter.eventually_all_finset]
     intro q hq
     rw [Filter.eventually_all_finset]
@@ -402,24 +402,24 @@ theorem ae_eventually_mostFrequent (M : External.SiteModel N σ) (hN : N.RootedB
   exact hm q (hK q hq) s (Finset.mem_filter.mpr ⟨Finset.mem_univ s, hs⟩)
 
 /-- Section 3.2, "according to the theory given in Warnow et al. (2025)", in the almost sure form
-of `External.support_tendsto`: almost surely, for all large numbers `m` of sites, the quartets of
+of `External.WarnowTabatabaeeEvans.support_tendsto`: almost surely, for all large numbers `m` of sites, the quartets of
 `Q_m` are exactly those displayed by `N`. Every quartet displayed by `N` is contributed by a site
-with positive probability (`External.SiteModel.quartetProb_pos`), so its frequency in `Q_m`
-converges almost surely to a positive limit (`External.frequency_tendsto`). -/
-theorem ae_eventually_support (M : External.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
+with positive probability (`External.WarnowTabatabaeeEvans.SiteModel.quartetProb_pos`), so its frequency in `Q_m`
+converges almost surely to a positive limit (`External.WarnowTabatabaeeEvans.frequency_tendsto`). -/
+theorem ae_eventually_support (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
     [Nontrivial σ] {P : Measure Ω} [IsProbabilityMeasure P]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X P)
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X P)
     (hid : ∀ n, IdentDistrib (X n) (X 0) P P) (hlaw : P.map (X 0) = M.law hN) :
-    ∀ᵐ ω ∂P, ∀ᶠ m in atTop, ∀ q, q ∈ External.sampleQuartets X m ω ↔ N.DisplaysQuartet q := by
+    ∀ᵐ ω ∂P, ∀ᶠ m in atTop, ∀ q, q ∈ External.WarnowTabatabaeeEvans.sampleQuartets X m ω ↔ N.DisplaysQuartet q := by
   classical
   let D := (Quartet.onTaxa N.taxa).filter N.DisplaysQuartet
   -- each of the finitely many quartets displayed by `N` is eventually in `Q_m`
-  have hae : ∀ᵐ ω ∂P, ∀ q ∈ D, ∀ᶠ m in atTop, q ∈ External.sampleQuartets X m ω := by
+  have hae : ∀ᵐ ω ∂P, ∀ q ∈ D, ∀ᶠ m in atTop, q ∈ External.WarnowTabatabaeeEvans.sampleQuartets X m ω := by
     rw [Filter.eventually_all_finset]
     intro q hq
     have hpos : (0 : ℝ) < M.quartetProb q := by
       exact_mod_cast M.quartetProb_pos hN (Finset.mem_filter.mp hq).2
-    filter_upwards [External.frequency_tendsto M hN X hind hid hlaw q] with ω hω
+    filter_upwards [External.WarnowTabatabaeeEvans.frequency_tendsto M hN X hind hid hlaw q] with ω hω
     filter_upwards [hω.eventually (lt_mem_nhds hpos)] with m hm
     by_contra hnot
     rw [Multiset.count_eq_zero.mpr hnot] at hm
@@ -427,7 +427,7 @@ theorem ae_eventually_support (M : External.SiteModel N σ) (hN : N.RootedBinary
   filter_upwards [hae] with ω hω
   filter_upwards [(Filter.eventually_all_finset D).mpr hω] with m hm q
   -- every quartet of `Q_m` is displayed by `N`
-  refine ⟨External.displays_of_mem_sampleQuartets hN, fun hq => ?_⟩
+  refine ⟨External.WarnowTabatabaeeEvans.displays_of_mem_sampleQuartets hN, fun hq => ?_⟩
   exact hm q (Finset.mem_filter.mpr ⟨Quartet.mem_onTaxa.mpr hq.1, hq⟩)
 
 /-- Section 3.2, the SNP pipeline in WTE's model, corrected, almost surely. Let the true network
@@ -446,15 +446,15 @@ theorem pipeline_ae_eventually [Nontrivial σ] (t : PhyloTree) (ht : t.WellLabel
     (identifiable : ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ q, N.DisplaysQuartet q → P.DisplaysQuartet q) →
       P.reticulationCount ≤ N.reticulationCount → Nonempty (P.Iso N))
-    (M : External.SiteModel N σ) (hcond : MostProbableQuartets M t)
-    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.SiteHistory N σ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hcond : MostProbableQuartets M t)
+    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ)
     (hind : iIndepFun X μ) (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law hN.1) :
     ∀ᵐ ω ∂μ, ∀ᶠ m in atTop,
-      (AstralOutput (External.sampleQuartets X m ω) N.taxa t ∧
-        CamusOutput (External.sampleQuartets X m ω) t N) ∧
-      ∀ T : PhyloTree, AstralOutput (External.sampleQuartets X m ω) N.taxa T → T.RootedAt o →
-        ∀ P : RootedNetwork, CamusOutput (External.sampleQuartets X m ω) T P →
+      (AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa t ∧
+        CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) t N) ∧
+      ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa T → T.RootedAt o →
+        ∀ P : RootedNetwork, CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T P →
           Nonempty (P.Iso N) := by
   -- steps 1 and 3 hold together, almost surely for all large `m`
   filter_upwards [ae_eventually_mostFrequent M hN.1 t hcond X hind hid hlaw,
@@ -488,17 +488,17 @@ theorem pipeline_tendsto [Nontrivial σ] (t : PhyloTree) (ht : t.WellLabelled) {
     (identifiable : ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ q, N.DisplaysQuartet q → P.DisplaysQuartet q) →
       P.reticulationCount ≤ N.reticulationCount → Nonempty (P.Iso N))
-    (M : External.SiteModel N σ) (hcond : MostProbableQuartets M t)
-    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.SiteHistory N σ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hcond : MostProbableQuartets M t)
+    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ)
     (hind : iIndepFun X μ) (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law hN.1) :
     Tendsto (fun m => μ {ω |
-      (AstralOutput (External.sampleQuartets X m ω) N.taxa t ∧
-        CamusOutput (External.sampleQuartets X m ω) t N) ∧
-      ∀ T : PhyloTree, AstralOutput (External.sampleQuartets X m ω) N.taxa T → T.RootedAt o →
-        ∀ P : RootedNetwork, CamusOutput (External.sampleQuartets X m ω) T P →
+      (AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa t ∧
+        CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) t N) ∧
+      ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa T → T.RootedAt o →
+        ∀ P : RootedNetwork, CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T P →
           Nonempty (P.Iso N)}) atTop (𝓝 1) :=
-  External.tendsto_measure_of_ae_eventually
+  External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually
     (pipeline_ae_eventually t ht hto N hN identifiable M hcond X hind hid hlaw)
 
 /-- Section 3.2, the SNP pipeline in WTE's model, corrected, for a selection rule: let `tree m ω`
@@ -514,14 +514,14 @@ theorem pipeline_output_tendsto [Nontrivial σ] (t : PhyloTree) (ht : t.WellLabe
     (identifiable : ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ q, N.DisplaysQuartet q → P.DisplaysQuartet q) →
       P.reticulationCount ≤ N.reticulationCount → Nonempty (P.Iso N))
-    (M : External.SiteModel N σ) (hcond : MostProbableQuartets M t)
-    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.SiteHistory N σ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hcond : MostProbableQuartets M t)
+    {μ : Measure Ω} [IsProbabilityMeasure μ] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ)
     (hind : iIndepFun X μ) (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law hN.1) (tree : ℕ → Ω → PhyloTree)
-    (htree : ∀ m ω, AstralOutput (External.sampleQuartets X m ω) N.taxa (tree m ω) ∧
+    (htree : ∀ m ω, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) N.taxa (tree m ω) ∧
       (tree m ω).RootedAt o)
     (output : ℕ → Ω → RootedNetwork)
-    (hout : ∀ m ω, CamusOutput (External.sampleQuartets X m ω) (tree m ω) (output m ω)) :
+    (hout : ∀ m ω, CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (tree m ω) (output m ω)) :
     Tendsto (fun m => μ {ω | Nonempty ((output m ω).Iso N)}) atTop (𝓝 1) := by
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
     (pipeline_tendsto t ht hto N hN identifiable M hcond X hind hid hlaw) tendsto_const_nhds
@@ -589,7 +589,7 @@ Take for `t` the tree `(O,((A,B),(C,(F,(D,E)))))`, well-labelled and rooted at t
 `O = 6`, and for the true network `t` itself, with no added edge: it is built on `t`, and it is
 identifiable under inclusion (`tree_identifiable`). Under some site model with two states on it,
 `t` induces the most probable quartet on every four taxa (`Realization.exists_mostProbable`), and
-for independent sites with the law of this model (`External.SiteModel.sites`), the conclusion of
+for independent sites with the law of this model (`External.WarnowTabatabaeeEvans.SiteModel.sites`), the conclusion of
 `pipeline_tendsto` holds. -/
 theorem pipeline_tendsto_tree :
     outgroupTree.WellLabelled ∧ outgroupTree.RootedAt 6 ∧
@@ -598,16 +598,16 @@ theorem pipeline_tendsto_tree :
         (∀ q, (Realization.graph outgroupTree ∅).DisplaysQuartet q → P.DisplaysQuartet q) →
         P.reticulationCount ≤ (Realization.graph outgroupTree ∅).reticulationCount →
         Nonempty (P.Iso (Realization.graph outgroupTree ∅))) ∧
-      ∃ M : External.SiteModel (Realization.graph outgroupTree ∅) Bool,
+      ∃ M : External.WarnowTabatabaeeEvans.SiteModel (Realization.graph outgroupTree ∅) Bool,
         MostProbableQuartets M outgroupTree ∧
         Tendsto (fun m => M.sites outgroupTree_anchored.1 {ω |
-          (AstralOutput (External.sampleQuartets (fun n ω => ω n) m ω)
+          (AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
               (Realization.graph outgroupTree ∅).taxa outgroupTree ∧
-            CamusOutput (External.sampleQuartets (fun n ω => ω n) m ω) outgroupTree
+            CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω) outgroupTree
               (Realization.graph outgroupTree ∅)) ∧
-          ∀ T : PhyloTree, AstralOutput (External.sampleQuartets (fun n ω => ω n) m ω)
+          ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
               (Realization.graph outgroupTree ∅).taxa T → T.RootedAt 6 →
-            ∀ P : RootedNetwork, CamusOutput (External.sampleQuartets (fun n ω => ω n) m ω) T P →
+            ∀ P : RootedNetwork, CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω) T P →
               Nonempty (P.Iso (Realization.graph outgroupTree ∅))}) atTop (𝓝 1) := by
   have hident := tree_identifiable outgroupTree outgroupTree_wellLabelled
   obtain ⟨M, hM⟩ := Realization.exists_mostProbable outgroupTree outgroupTree_wellLabelled ∅
@@ -616,7 +616,7 @@ theorem pipeline_tendsto_tree :
     ?_⟩
   exact pipeline_tendsto outgroupTree outgroupTree_wellLabelled outgroupTree_rootedAt _
     outgroupTree_anchored hident M hM
-    (fun n (ω : ℕ → External.SiteHistory (Realization.graph outgroupTree ∅) Bool) => ω n)
+    (fun n (ω : ℕ → External.WarnowTabatabaeeEvans.SiteHistory (Realization.graph outgroupTree ∅) Bool) => ω n)
     (M.sites_iIndepFun outgroupTree_anchored.1) (M.sites_identDistrib outgroupTree_anchored.1)
     (M.sites_law outgroupTree_anchored.1)
 
@@ -630,20 +630,20 @@ tree, and for every tree `T` that ASTRAL may return, rooted at the outgroup, CAM
 hypothesis of `pipeline_tendsto` that fails is identifiability under inclusion
 (`Counterexamples.outgroup_not_identifiable`, `pipeline_outgroup_meets_hypotheses`). -/
 theorem pipeline_outgroup_tendsto [Nontrivial σ]
-    (M : External.SiteModel Counterexamples.outgroupShallowNet σ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel Counterexamples.outgroupShallowNet σ)
     (hcond : MostProbableQuartets M Counterexamples.outgroupTree) {μ : Measure Ω}
-    [IsProbabilityMeasure μ] (X : ℕ → Ω → External.SiteHistory Counterexamples.outgroupShallowNet σ)
+    [IsProbabilityMeasure μ] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory Counterexamples.outgroupShallowNet σ)
     (hind : iIndepFun X μ) (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law Counterexamples.outgroupShallowNet_anchored.1) :
     Tendsto (fun m => μ {ω |
-      AstralOutput (External.sampleQuartets X m ω) Counterexamples.outgroupShallowNet.taxa
+      AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) Counterexamples.outgroupShallowNet.taxa
           Counterexamples.outgroupTree ∧
-        ∀ T : PhyloTree, AstralOutput (External.sampleQuartets X m ω)
+        ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
             Counterexamples.outgroupShallowNet.taxa T → T.RootedAt 6 →
-          CamusOutput (External.sampleQuartets X m ω) T Counterexamples.outgroupDeepNet ∧
+          CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T Counterexamples.outgroupDeepNet ∧
             IsEmpty (Counterexamples.outgroupDeepNet.Iso Counterexamples.outgroupShallowNet)})
       atTop (𝓝 1) := by
-  refine External.tendsto_measure_of_ae_eventually ?_
+  refine External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually ?_
   filter_upwards [ae_eventually_mostFrequent M Counterexamples.outgroupShallowNet_anchored.1
       Counterexamples.outgroupTree hcond X hind hid hlaw,
     ae_eventually_support M Counterexamples.outgroupShallowNet_anchored.1 X hind hid hlaw]
@@ -658,7 +658,7 @@ is well-labelled and rooted at the outgroup `O = 6`; the true network `outgroupS
 on `t`, and the leaf of `O` is a child of its root ("provided we have an outgroup"); it is not
 identifiable under inclusion (`outgroup_not_identifiable`); and under some site model with two
 states on it, `t` induces the most probable quartet on every four taxa. For independent sites with
-the law of this model (`External.SiteModel.sites`), with probability tending to 1, ASTRAL may
+the law of this model (`External.WarnowTabatabaeeEvans.SiteModel.sites`), with probability tending to 1, ASTRAL may
 return `t`, and on every tree that ASTRAL may return, rooted at the outgroup, CAMUS may return
 `outgroupDeepNet`, which is not isomorphic to the true network. -/
 theorem pipeline_outgroup_meets_hypotheses :
@@ -669,23 +669,23 @@ theorem pipeline_outgroup_meets_hypotheses :
         (∀ q, outgroupShallowNet.DisplaysQuartet q → P.DisplaysQuartet q) →
         P.reticulationCount ≤ outgroupShallowNet.reticulationCount →
         Nonempty (P.Iso outgroupShallowNet)) ∧
-      ∃ M : External.SiteModel outgroupShallowNet Bool, MostProbableQuartets M outgroupTree ∧
+      ∃ M : External.WarnowTabatabaeeEvans.SiteModel outgroupShallowNet Bool, MostProbableQuartets M outgroupTree ∧
         Tendsto (fun m => M.sites outgroupShallowNet_anchored.1 {ω |
-          AstralOutput (External.sampleQuartets (fun n ω => ω n) m ω) outgroupShallowNet.taxa
+          AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω) outgroupShallowNet.taxa
               outgroupTree ∧
-            ∀ T : PhyloTree, AstralOutput (External.sampleQuartets (fun n ω => ω n) m ω)
+            ∀ T : PhyloTree, AstralOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
                 outgroupShallowNet.taxa T → T.RootedAt 6 →
-              CamusOutput (External.sampleQuartets (fun n ω => ω n) m ω) T outgroupDeepNet ∧
+              CamusOutput (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω) T outgroupDeepNet ∧
                 IsEmpty (outgroupDeepNet.Iso outgroupShallowNet)})
           atTop (𝓝 1) := by
-  obtain ⟨M, hM⟩ : ∃ M : External.SiteModel outgroupShallowNet Bool,
+  obtain ⟨M, hM⟩ : ∃ M : External.WarnowTabatabaeeEvans.SiteModel outgroupShallowNet Bool,
       MostProbableQuartets M outgroupTree :=
     Realization.exists_mostProbable outgroupTree outgroupTree_wellLabelled {outgroupShallowPair}
       (Realization.single_separated outgroupShallowPair_mem)
   refine ⟨outgroupTree_wellLabelled, outgroupTree_rootedAt, outgroupShallowNet_anchored,
     outgroup_leaf_child, outgroup_not_identifiable, M, hM, ?_⟩
   exact pipeline_outgroup_tendsto M hM
-    (fun n (ω : ℕ → External.SiteHistory outgroupShallowNet Bool) => ω n)
+    (fun n (ω : ℕ → External.WarnowTabatabaeeEvans.SiteHistory outgroupShallowNet Bool) => ω n)
     (M.sites_iIndepFun outgroupShallowNet_anchored.1)
     (M.sites_identDistrib outgroupShallowNet_anchored.1)
     (M.sites_law outgroupShallowNet_anchored.1)

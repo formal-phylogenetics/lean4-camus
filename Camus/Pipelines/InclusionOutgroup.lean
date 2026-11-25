@@ -276,27 +276,27 @@ independent sites with its law. Then the probability that `Counterexamples.outgr
 which is built on the same tree and not isomorphic to the true network, displays as many quartets
 of `Q_m` as any network built on the tree, with the fewest reticulations among those, tends
 to 1. -/
-theorem snp_outgroup_tendsto (M : External.SiteModel Counterexamples.outgroupShallowNet σ)
+theorem snp_outgroup_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel Counterexamples.outgroupShallowNet σ)
     {μ : Measure Ω} [IsProbabilityMeasure μ]
-    (X : ℕ → Ω → External.SiteHistory Counterexamples.outgroupShallowNet σ)
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory Counterexamples.outgroupShallowNet σ)
     (hind : iIndepFun X μ) (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law Counterexamples.outgroupShallowNet_anchored.1) :
     Tendsto (fun m => μ {ω |
       (∀ R : RootedNetwork, R.AnchoredExtension Counterexamples.outgroupTree →
-        score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R) ≤
-          score (External.sampleQuartets X m ω)
-            (repertoire (External.sampleQuartets X m ω) Counterexamples.outgroupDeepNet)) ∧
+        score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R) ≤
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+            (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) Counterexamples.outgroupDeepNet)) ∧
       (∀ R : RootedNetwork, R.AnchoredExtension Counterexamples.outgroupTree →
         (∀ R' : RootedNetwork, R'.AnchoredExtension Counterexamples.outgroupTree →
-          score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R') ≤
-            score (External.sampleQuartets X m ω)
-              (repertoire (External.sampleQuartets X m ω) R)) →
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R') ≤
+            score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+              (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R)) →
         Counterexamples.outgroupDeepNet.reticulationCount ≤ R.reticulationCount) ∧
       IsEmpty (Counterexamples.outgroupDeepNet.Iso Counterexamples.outgroupShallowNet)})
       atTop (𝓝 1) := by
   -- the support of `Q_m` is `Q(N_r)` with probability tending to 1
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.support_tendsto M Counterexamples.outgroupShallowNet_anchored.1 X hind hid hlaw)
+    (External.WarnowTabatabaeeEvans.support_tendsto M Counterexamples.outgroupShallowNet_anchored.1 X hind hid hlaw)
     tendsto_const_nhds (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   -- on that event, the deeper donor is optimal with the fewest reticulations
   exact ⟨(Counterexamples.outgroupDeep_optimal_fewest _ hω).1,

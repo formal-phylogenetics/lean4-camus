@@ -11,49 +11,49 @@ Section 3.2 of the paper argues that its SNP pipeline is statistically consisten
 of Warnow, Tabatabaee and Evans (2025), Section 4.2 ("WTE"), in which every site picks a tree
 displayed by the network `N` and evolves down it. This file defines that model on a rooted binary
 level-1 network `N`, with any finite set of states `σ` (WTE use the four nucleotides). Its
-parameters, with the constraints that WTE list (`External.SiteParameters`), are WTE's designation
+parameters, with the constraints that WTE list (`External.WarnowTabatabaeeEvans.SiteParameters`), are WTE's designation
 of reticulation edges (at least one of the two edges into each reticulation; the other edges are
 tree edges); a positive transmission probability `κ(e)` on each edge `e` into a reticulation,
 summing to 1 at each reticulation; a positive distribution of the state at the root; and
 substitution probabilities `p(e, s, s')`, a stochastic matrix on each edge, with
 `p(e, s, s') > 0` for `s ≠ s'` on the tree edges and no change on the reticulation edges. The
-model (`External.SiteModel`) also asks `p(e, s, s) > 0` on the tree edges, as WTE's Theorem 7
+model (`External.WarnowTabatabaeeEvans.SiteModel`) also asks `p(e, s, s) > 0` on the tree edges, as WTE's Theorem 7
 does. A
-site history (`External.SiteHistory`) is a switching `S` of `N` (the tree the site evolves down,
+site history (`External.WarnowTabatabaeeEvans.SiteHistory`) is a switching `S` of `N` (the tree the site evolves down,
 before the clean-up of Definition 1) and a state at every vertex. Its probability
-(`External.SiteParameters.weight`) is the product of the transmission probabilities of the edges
+(`External.WarnowTabatabaeeEvans.SiteParameters.weight`) is the product of the transmission probabilities of the edges
 of `S` into reticulations, the probability of the root state, and the substitution probabilities
-along the edges of `S`; these probabilities sum to 1 (`External.SiteParameters.weight_sum`),
-which makes the model a distribution on histories (`External.SiteParameters.pmf`).
+along the edges of `S`; these probabilities sum to 1 (`External.WarnowTabatabaeeEvans.SiteParameters.weight_sum`),
+which makes the model a distribution on histories (`External.WarnowTabatabaeeEvans.SiteParameters.pmf`).
 
 An SNP, in WTE's sense (the sites that their Oracle selects), is a history whose state changes on
-exactly one edge `(x, y)` of its switching (`External.SiteHistory.IsSNP`). Its quartets are the
-quartets on taxa of `N` cut by the clade below `y` in `S` (`External.SiteHistory.quartets`): these
+exactly one edge `(x, y)` of its switching (`External.WarnowTabatabaeeEvans.SiteHistory.IsSNP`). Its quartets are the
+quartets on taxa of `N` cut by the clade below `y` in `S` (`External.WarnowTabatabaeeEvans.SiteHistory.quartets`): these
 are the quartets `ab|cd` with `a`, `b` in one state and `c`, `d` in the other that the paper's
-pipeline adds to `Q` (`External.SiteHistory.quartets_eq_pattern`). Every quartet of an SNP is
-displayed by `N` (`External.SiteHistory.displays_of_mem_quartets`), and every quartet displayed by
-`N` is a quartet of some SNP of positive probability (`External.SiteModel.exists_snp`); this is
+pipeline adds to `Q` (`External.WarnowTabatabaeeEvans.SiteHistory.quartets_eq_pattern`). Every quartet of an SNP is
+displayed by `N` (`External.WarnowTabatabaeeEvans.SiteHistory.displays_of_mem_quartets`), and every quartet displayed by
+`N` is a quartet of some SNP of positive probability (`External.WarnowTabatabaeeEvans.SiteModel.exists_snp`); this is
 the step of the proof of WTE's Theorem 6 that the paper's Section 3.2 relies on, for quartets
-instead of clades. `External.SiteModel.uniform` is a model on every network, so the hypotheses are
+instead of clades. `External.WarnowTabatabaeeEvans.SiteModel.uniform` is a model on every network, so the hypotheses are
 not vacuous.
 
 ## Main results
 
-* `External.SiteParameters`: the parameters of WTE's single site model, with the constraints of
+* `External.WarnowTabatabaeeEvans.SiteParameters`: the parameters of WTE's single site model, with the constraints of
   their Section 4.2.
-* `External.SiteModel`: the model, with `p(e, s, s) > 0` on the tree edges.
-* `External.SiteHistory`: a switching and a state at every vertex.
-* `External.SiteParameters.weight`, `External.SiteParameters.weight_sum`,
-  `External.SiteParameters.pmf`, `External.SiteParameters.law`: the probability of a history, and
+* `External.WarnowTabatabaeeEvans.SiteModel`: the model, with `p(e, s, s) > 0` on the tree edges.
+* `External.WarnowTabatabaeeEvans.SiteHistory`: a switching and a state at every vertex.
+* `External.WarnowTabatabaeeEvans.SiteParameters.weight`, `External.WarnowTabatabaeeEvans.SiteParameters.weight_sum`,
+  `External.WarnowTabatabaeeEvans.SiteParameters.pmf`, `External.WarnowTabatabaeeEvans.SiteParameters.law`: the probability of a history, and
   the law of a site.
-* `External.SiteHistory.IsSNP`, `External.SiteHistory.quartets`: WTE's SNPs and the quartets
+* `External.WarnowTabatabaeeEvans.SiteHistory.IsSNP`, `External.WarnowTabatabaeeEvans.SiteHistory.quartets`: WTE's SNPs and the quartets
   they contribute to `Q`.
-* `External.SiteHistory.quartets_eq_pattern`: these are the quartets of the paper's pipeline,
+* `External.WarnowTabatabaeeEvans.SiteHistory.quartets_eq_pattern`: these are the quartets of the paper's pipeline,
   read off the states at the leaves.
-* `External.SiteHistory.displays_of_mem_quartets`: every quartet of an SNP is displayed by `N`.
-* `External.SiteModel.exists_snp`: every quartet displayed by `N` is a quartet of an SNP of
+* `External.WarnowTabatabaeeEvans.SiteHistory.displays_of_mem_quartets`: every quartet of an SNP is displayed by `N`.
+* `External.WarnowTabatabaeeEvans.SiteModel.exists_snp`: every quartet displayed by `N` is a quartet of an SNP of
   positive probability.
-* `External.SiteModel.uniform`: a model on every network.
+* `External.WarnowTabatabaeeEvans.SiteModel.uniform`: a model on every network.
 
 ## Proof (WTE's, for Theorem 6)
 
@@ -64,19 +64,19 @@ evolving down T is strictly positive, since 0 < κ(e) < 1 for all reticulation e
 to see that the probability that c changes on e and no other edge in T is strictly positive";
 and "if c evolves down T and changes only on edge e, then c is two-state and homoplasy-free, and
 hence is an SNP". The history that follows `S`, takes one state above `(x, y)` and another below
-it (`External.SiteHistory.snp`), has positive probability
-(`External.SiteModel.weight_snp_pos`): the transmission and root probabilities are positive, the
+it (`External.WarnowTabatabaeeEvans.SiteHistory.snp`), has positive probability
+(`External.WarnowTabatabaeeEvans.SiteModel.weight_snp_pos`): the transmission and root probabilities are positive, the
 substitution on `(x, y)` is a change on a tree edge, and on every other edge of `S` the state
 stays the same, which has probability 1 on a reticulation edge and `p(f, s, s)` on a tree edge
 `f`. WTE's list of constraints does not make `p(f, s, s)` positive, which their "it is easy to
 see" needs: with `p(f, s, s) = 0` the state must change on `f`, and the step fails
-(`External.theorem6_step_needs_stay`). Their Theorem 7 assumes it (`0 < p_on ≤ p(e, s, s)`), and
-so does `External.SiteModel` (`stay_pos`).
+(`Camus.theorem6_step_needs_stay`). Their Theorem 7 assumes it (`0 < p_on ≤ p(e, s, s)`), and
+so does `External.WarnowTabatabaeeEvans.SiteModel` (`stay_pos`).
 
 The probabilities sum to 1: for a fixed switching, the substitution part is a Markov chain on a
 rooted tree, and summing out the state of a deepest vertex removes its edge
-(`External.markov_tree_sum`); the switchings are the independent choices of one incoming edge at
-each vertex (`External.Switchings.sum_prod`), and the transmission probabilities at each
+(`External.WarnowTabatabaeeEvans.markov_tree_sum`); the switchings are the independent choices of one incoming edge at
+each vertex (`External.WarnowTabatabaeeEvans.Switchings.sum_prod`), and the transmission probabilities at each
 reticulation sum to 1.
 -/
 
@@ -101,7 +101,11 @@ theorem mem_onTaxa {X : Finset ℕ} {q : Quartet} : q ∈ onTaxa X ↔ q.taxa �
 
 end Quartet
 
-namespace External
+end Camus
+
+namespace External.WarnowTabatabaeeEvans
+
+open Camus
 
 section MarkovTree
 
@@ -286,7 +290,7 @@ WTE list.
 
 These constraints do not give the step of the proof of WTE's Theorem 6 that every clade, or
 quartet, of `N` comes from an SNP of positive probability
-(`External.theorem6_step_needs_stay`); `External.SiteModel` adds the missing one. -/
+(`Camus.theorem6_step_needs_stay`); `External.WarnowTabatabaeeEvans.SiteModel` adds the missing one. -/
 structure SiteParameters (N : RootedNetwork) (σ : Type*) [Fintype σ] where
   reticulationEdges : Finset (ℕ × ℕ)
   reticulationEdges_into : ∀ e ∈ reticulationEdges, e ∈ N.edges ∧ N.indegree e.2 = 2
@@ -306,12 +310,12 @@ structure SiteParameters (N : RootedNetwork) (σ : Type*) [Fintype σ] where
   no_change : ∀ e ∈ reticulationEdges, ∀ s s', s ≠ s' → substitution e s s' = 0
 
 /-- WTE's single site model (their Section 4.2) on the network `N`: the parameters of
-`External.SiteParameters`, and `stay_pos`: no change, p(e, s, s), has positive probability on a
+`External.WarnowTabatabaeeEvans.SiteParameters`, and `stay_pos`: no change, p(e, s, s), has positive probability on a
 tree edge.
 
 Departure from WTE: their list of constraints does not state `stay_pos`, but the proof of their
 Theorem 6 needs it ("it is easy to see that the probability that c changes on e and no other edge
-in T is strictly positive"; without it the step fails, `External.theorem6_step_needs_stay`), and
+in T is strictly positive"; without it the step fails, `Camus.theorem6_step_needs_stay`), and
 their Theorem 7 assumes it (`0 < p_on ≤ p(e, s, s)`). -/
 structure SiteModel (N : RootedNetwork) (σ : Type*) [Fintype σ] extends SiteParameters N σ where
   stay_pos : ∀ e ∈ N.edges, e ∉ reticulationEdges → ∀ s, 0 < substitution e s s
@@ -801,7 +805,7 @@ noncomputable def cutQuartets (N : RootedNetwork) (S : Finset (ℕ × ℕ)) (y :
 /-- The quartets that the site `h` contributes to `Q`, one copy each: if `h` is an SNP whose state
 changes on the edge `(x, y)`, the quartets on taxa of `N` cut by the clade below `y` in its
 switching, and none otherwise (the Oracle discards the site). By
-`External.SiteHistory.quartets_eq_pattern`, these are the quartets `ab|cd` with `a`, `b` in one
+`External.WarnowTabatabaeeEvans.SiteHistory.quartets_eq_pattern`, these are the quartets `ab|cd` with `a`, `b` in one
 state and `c`, `d` in the other that Section 3.2 of the paper adds to `Q`. -/
 noncomputable def quartets (h : SiteHistory N σ) : Finset Quartet :=
   if h.IsSNP then h.changes.biUnion fun e => cutQuartets N h.switching e.2 else ∅
@@ -858,7 +862,7 @@ theorem state_root_ne (hN : N.RootedBinaryLevelOne) {h : SiteHistory N σ} {x y 
   rw [← hx]
   exact hmem.2
 
-/-- Section 3.2: for an SNP, the quartets of `External.SiteHistory.quartets` are those the paper
+/-- Section 3.2: for an SNP, the quartets of `External.WarnowTabatabaeeEvans.SiteHistory.quartets` are those the paper
 reads off the states at the leaves. -/
 theorem quartets_eq_pattern (hN : N.RootedBinaryLevelOne) {h : SiteHistory N σ}
     (hsnp : h.IsSNP) : h.quartets = h.patternQuartets := by
@@ -1112,6 +1116,4 @@ noncomputable def uniform (N : RootedNetwork) (σ : Type*) [Fintype σ] [Decidab
 
 end SiteModel
 
-end External
-
-end Camus
+end External.WarnowTabatabaeeEvans

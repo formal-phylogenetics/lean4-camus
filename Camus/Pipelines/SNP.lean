@@ -10,7 +10,7 @@ public import Camus.Pipelines.Statistical
 Section 3.2 of the paper runs CAMUS on the multiset `Q` of the quartets of the SNPs of an
 alignment, with the constraint tree `T` returned by ASTRAL on `Q` and rooted at the outgroup, and
 argues that this pipeline is statistically consistent when the sites evolve under the model of
-Warnow, Tabatabaee and Evans (2025) ("WTE"; `External.SiteModel`) on the true network `N` and some
+Warnow, Tabatabaee and Evans (2025) ("WTE"; `External.WarnowTabatabaeeEvans.SiteModel`) on the true network `N` and some
 tree `t` displayed by `N` induces the most probable quartet on every four taxa. The argument has
 three steps:
 
@@ -18,7 +18,7 @@ three steps:
    `astral_maximizer_tendsto` in `Camus/Pipelines/Astral.lean`, and the determination of a tree by
    its quartets, `PhyloTree.rootedIso_of_induced_eq` in `Camus/Pipelines/AstralTree.lean`);
 2. "According to the theory given in Warnow et al. (2025)", the support of `Q` is `Q(N_r)`, with
-   probability tending to 1 (`External.support_tendsto`);
+   probability tending to 1 (`External.WarnowTabatabaeeEvans.support_tendsto`);
 3. "When Q is a multi-set version of Q(Nr), then CAMUS will add the correct reticulations and
    return N, since this is the unique network that can satisfy all the quartets in Q(Nr)".
 
@@ -35,8 +35,8 @@ outgroup; the same holds for an example with an outgroup (`snp_outgroup_tendsto`
 `Camus/Pipelines/InclusionOutgroup.lean`), which under some site model meets every hypothesis of
 the paper's argument (`Counterexamples.deeperDonor_meets_hypotheses` in
 `Camus/Pipelines/SNPCondition.lean`). The model assumes `p(e, s, s) > 0` on the tree edges
-(`External.SiteModel`), which step 2 needs and WTE's constraints do not give
-(`External.theorem6_step_needs_stay`).
+(`External.WarnowTabatabaeeEvans.SiteModel`), which step 2 needs and WTE's constraints do not give
+(`Camus.theorem6_step_needs_stay`).
 
 ## Main results
 
@@ -50,7 +50,7 @@ the paper's argument (`Counterexamples.deeperDonor_meets_hypotheses` in
 ## Proof
 
 On the event that the quartets of `Q_m` are exactly those displayed by `N`, whose probability
-tends to 1 (`External.support_tendsto`), the corrected step 3 holds by `recovery`, and the
+tends to 1 (`External.WarnowTabatabaeeEvans.support_tendsto`), the corrected step 3 holds by `recovery`, and the
 counterexample by `Counterexamples.deepNet_optimal_fewest` and
 `Counterexamples.deep_not_iso_shallow`.
 -/
@@ -82,23 +82,23 @@ theorem snp_recovery_tendsto (t : PhyloTree) (N : RootedNetwork) (hN : N.Anchore
     (identifiable : ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ q, N.DisplaysQuartet q → P.DisplaysQuartet q) →
       P.reticulationCount ≤ N.reticulationCount → Nonempty (P.Iso N))
-    (M : External.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X μ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X μ)
     (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ) (hlaw : μ.map (X 0) = M.law hN.1) :
     Tendsto (fun m => μ {ω | ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ R : RootedNetwork, R.AnchoredExtension t →
-        score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R) ≤
-          score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) P)) →
+        score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R) ≤
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) P)) →
       (∀ R : RootedNetwork, R.AnchoredExtension t →
         (∀ R' : RootedNetwork, R'.AnchoredExtension t →
-          score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R') ≤
-            score (External.sampleQuartets X m ω)
-              (repertoire (External.sampleQuartets X m ω) R)) →
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R') ≤
+            score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+              (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R)) →
         P.reticulationCount ≤ R.reticulationCount) →
       Nonempty (P.Iso N)}) atTop (𝓝 1) := by
   -- step 2: the support of `Q_m` is `Q(N_r)` with probability tending to 1
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.support_tendsto M hN.1 X hind hid hlaw) tendsto_const_nhds
+    (External.WarnowTabatabaeeEvans.support_tendsto M hN.1 X hind hid hlaw) tendsto_const_nhds
     (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   -- step 3, corrected: on that event, `recovery`
   intro P hP optimal fewest
@@ -112,18 +112,18 @@ theorem snp_output_tendsto (t : PhyloTree) (N : RootedNetwork) (hN : N.AnchoredE
     (identifiable : ∀ P : RootedNetwork, P.AnchoredExtension t →
       (∀ q, N.DisplaysQuartet q → P.DisplaysQuartet q) →
       P.reticulationCount ≤ N.reticulationCount → Nonempty (P.Iso N))
-    (M : External.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X μ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X μ)
     (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ) (hlaw : μ.map (X 0) = M.law hN.1)
     (output : ℕ → Ω → RootedNetwork) (hout : ∀ m ω, (output m ω).AnchoredExtension t)
     (optimal : ∀ m ω, ∀ R : RootedNetwork, R.AnchoredExtension t →
-      score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R) ≤
-        score (External.sampleQuartets X m ω)
-          (repertoire (External.sampleQuartets X m ω) (output m ω)))
+      score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R) ≤
+        score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+          (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (output m ω)))
     (fewest : ∀ m ω, ∀ R : RootedNetwork, R.AnchoredExtension t →
       (∀ R' : RootedNetwork, R'.AnchoredExtension t →
-        score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R') ≤
-          score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R)) →
+        score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R') ≤
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R)) →
       (output m ω).reticulationCount ≤ R.reticulationCount) :
     Tendsto (fun m => μ {ω | Nonempty ((output m ω).Iso N)}) atTop (𝓝 1) := by
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
@@ -132,7 +132,7 @@ theorem snp_output_tendsto (t : PhyloTree) (N : RootedNetwork) (hN : N.AnchoredE
   exact hω _ (hout m ω) (optimal m ω) (fewest m ω)
 
 /-- `correctedStatisticalConsistency` for the multisets `Q_m` of the SNP pipeline in WTE's model,
-with its hypothesis `support_convergence` proved (`External.support_tendsto`). For a finite
+with its hypothesis `support_convergence` proved (`External.WarnowTabatabaeeEvans.support_tendsto`). For a finite
 family `C` of candidate networks whose member `truth` displays the quartets displayed by `N`,
 identifiable under inclusion, every selection with the best score for `Q_m` and the fewest
 reticulations among the best is equivalent to `truth` with probability tending to 1. -/
@@ -142,19 +142,19 @@ theorem snp_correctedStatisticalConsistency {Net : Type*} (N : RootedNetwork)
     (truth_feasible : truth ∈ C)
     (truth_displayed : ∀ q, q ∈ displayed truth ↔ N.DisplaysQuartet q)
     (identifiable : IdentifiableUnderInclusion C displayed reticulations equivalent truth)
-    (M : External.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X μ)
+    (M : External.WarnowTabatabaeeEvans.SiteModel N σ) {μ : Measure Ω} [IsProbabilityMeasure μ]
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X μ)
     (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ) (hlaw : μ.map (X 0) = M.law hN)
     (selected : ℕ → Ω → Net)
-    (optimal : ∀ m ω, Optimal C displayed (External.sampleQuartets X m ω) (selected m ω))
+    (optimal : ∀ m ω, Optimal C displayed (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (selected m ω))
     (tie_break : ∀ m ω, FewestReticulations C displayed reticulations
-      (External.sampleQuartets X m ω) (selected m ω)) :
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (selected m ω)) :
     Tendsto (fun m => μ {ω | equivalent (selected m ω) truth}) atTop (𝓝 1) := by
   refine correctedStatisticalConsistency C displayed reticulations equivalent truth
-    truth_feasible identifiable (fun _ => μ) (External.sampleQuartets X) selected ?_ optimal
+    truth_feasible identifiable (fun _ => μ) (External.WarnowTabatabaeeEvans.sampleQuartets X) selected ?_ optimal
     tie_break
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.support_tendsto M hN X hind hid hlaw) tendsto_const_nhds
+    (External.WarnowTabatabaeeEvans.support_tendsto M hN X hind hid hlaw) tendsto_const_nhds
     (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   ext q
   rw [Multiset.mem_toFinset, hω q, truth_displayed q]
@@ -166,26 +166,26 @@ reticulations. Take for the true network `Counterexamples.shallowNet`, built on 
 with its law. Then the probability that `Counterexamples.deepNet`, which is built on the same
 tree and not isomorphic to the true network, displays as many quartets of `Q_m` as any network
 built on the tree, with the fewest reticulations among those, tends to 1. -/
-theorem snp_deeperDonor_tendsto (M : External.SiteModel Counterexamples.shallowNet σ)
+theorem snp_deeperDonor_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel Counterexamples.shallowNet σ)
     {μ : Measure Ω} [IsProbabilityMeasure μ]
-    (X : ℕ → Ω → External.SiteHistory Counterexamples.shallowNet σ) (hind : iIndepFun X μ)
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory Counterexamples.shallowNet σ) (hind : iIndepFun X μ)
     (hid : ∀ n, IdentDistrib (X n) (X 0) μ μ)
     (hlaw : μ.map (X 0) = M.law Counterexamples.shallowNet_anchored.1) :
     Tendsto (fun m => μ {ω |
       (∀ R : RootedNetwork, R.AnchoredExtension Counterexamples.donorTree →
-        score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R) ≤
-          score (External.sampleQuartets X m ω)
-            (repertoire (External.sampleQuartets X m ω) Counterexamples.deepNet)) ∧
+        score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R) ≤
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+            (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) Counterexamples.deepNet)) ∧
       (∀ R : RootedNetwork, R.AnchoredExtension Counterexamples.donorTree →
         (∀ R' : RootedNetwork, R'.AnchoredExtension Counterexamples.donorTree →
-          score (External.sampleQuartets X m ω) (repertoire (External.sampleQuartets X m ω) R') ≤
-            score (External.sampleQuartets X m ω)
-              (repertoire (External.sampleQuartets X m ω) R)) →
+          score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R') ≤
+            score (External.WarnowTabatabaeeEvans.sampleQuartets X m ω)
+              (repertoire (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) R)) →
         Counterexamples.deepNet.reticulationCount ≤ R.reticulationCount) ∧
       IsEmpty (Counterexamples.deepNet.Iso Counterexamples.shallowNet)}) atTop (𝓝 1) := by
   -- step 2: the support of `Q_m` is `Q(N_r)` with probability tending to 1
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.support_tendsto M Counterexamples.shallowNet_anchored.1 X hind hid hlaw)
+    (External.WarnowTabatabaeeEvans.support_tendsto M Counterexamples.shallowNet_anchored.1 X hind hid hlaw)
     tendsto_const_nhds (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   -- on that event, the deeper donor is optimal with the fewest reticulations
   exact ⟨(Counterexamples.deepNet_optimal_fewest _ hω).1,

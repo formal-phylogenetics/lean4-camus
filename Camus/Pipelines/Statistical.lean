@@ -13,7 +13,7 @@ tending to 1, and, "according to the theory given in Warnow et al. (2025)", `Q` 
 a set with probability tending to 1; then CAMUS returns `N`. This file proves the last step in its
 corrected form (`correctedConsistency`), in probability, for an abstract family of candidate
 networks, with the convergence of the support of `Q` as a hypothesis. In the site model of Warnow,
-Tabatabaee and Evans the convergence is proved (`External.support_tendsto`), and the whole pipeline
+Tabatabaee and Evans the convergence is proved (`External.WarnowTabatabaeeEvans.support_tendsto`), and the whole pipeline
 is `pipeline_tendsto` (`Camus/Pipelines/Pipeline.lean`).
 
 ## Main results

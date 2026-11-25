@@ -8,7 +8,7 @@ public import Camus.Pipelines.InclusionOutgroup
 # Section 3.2: the hypotheses of the consistency argument can be met
 
 The consistency argument of Section 3.2 assumes that the sites evolve under the model of Warnow,
-Tabatabaee and Evans ("WTE"; `External.SiteModel`) on the true network `N`, and that some tree `t`
+Tabatabaee and Evans ("WTE"; `External.WarnowTabatabaeeEvans.SiteModel`) on the true network `N`, and that some tree `t`
 displayed by `N` induces the most probable quartet on every four taxa
 (`MostProbableQuartets`). This file shows that these hypotheses can be met by every canonical
 network `Realization.graph t E` built on `t` (every network built on `t` is isomorphic to one,
@@ -57,11 +57,11 @@ quartets induced by `t`: the clade below every vertex of the support switching i
 `t`. -/
 theorem induced_of_mem_quartets_support (ht : t.WellLabelled)
     (hE : EdgeAbove.CycleSeparated t E) {σ : Type*} [DecidableEq σ]
-    {h : External.SiteHistory (graph t E) σ} (hS : h.switching = supportEdges t E)
+    {h : External.WarnowTabatabaeeEvans.SiteHistory (graph t E) σ} (hS : h.switching = supportEdges t E)
     {q : Quartet} (hq : q ∈ h.quartets) : q.induced t = true := by
   classical
   have hN := levelOne t ht E hE
-  unfold External.SiteHistory.quartets at hq
+  unfold External.WarnowTabatabaeeEvans.SiteHistory.quartets at hq
   split_ifs at hq with hsnp
   · obtain ⟨e, he, hqe⟩ := Finset.mem_biUnion.mp hq
     obtain ⟨hqt, hcut⟩ := Finset.mem_filter.mp hqe
@@ -70,7 +70,7 @@ theorem induced_of_mem_quartets_support (ht : t.WellLabelled)
     have hqt' : q.taxa ⊆ t.taxa := Quartet.mem_onTaxa.mp hqt
     -- the head of `e` is a vertex of `T` or a fresh vertex inside a wire
     obtain ⟨hr, hv⟩ := Finset.mem_erase.mp
-      (External.Switchings.head_mem_slot hN (Finset.mem_union_left _ heS))
+      (External.WarnowTabatabaeeEvans.Switchings.head_mem_slot hN (Finset.mem_union_left _ heS))
     have hclade : ∃ r ∈ t.nodes, (graph t E).cladeBelow (supportEdges t E) e.2 = t.taxaAt r := by
       rw [vertices_covered t E hE.1] at hv
       rcases Finset.mem_union.mp hv with horiginal | hinterior
@@ -88,11 +88,11 @@ theorem induced_of_mem_quartets_support (ht : t.WellLabelled)
 /-- A site model on `Realization.graph t E` with two states: the transmission probability `ε` on
 each added edge and `1 - ε` on the other edge into its reticulation, the uniform distribution at
 the root, the uniform row on the tree edges, and no change on the reticulation edges
-(`External.SiteModel.uniform` otherwise). -/
+(`External.WarnowTabatabaeeEvans.SiteModel.uniform` otherwise). -/
 noncomputable def lowTransfer (t : PhyloTree) (E : Finset Pair)
     (hE : E ⊆ EdgeAbove.candidates t) (ε : ℝ≥0) (hε0 : 0 < ε) (hε1 : ε < 1) :
-    External.SiteModel (graph t E) Bool :=
-  { External.SiteModel.uniform (graph t E) Bool with
+    External.WarnowTabatabaeeEvans.SiteModel (graph t E) Bool :=
+  { External.WarnowTabatabaeeEvans.SiteModel.uniform (graph t E) Bool with
     transmission := fun e =>
       if e ∈ E.image (fun f => (donor t f, recipient t f)) then ε else 1 - ε
     transmission_pos := fun e _ _ => by
@@ -164,7 +164,7 @@ evolves down the support switching and changes only on the edge above a vertex w
 it, with probability at least `(1 - ε)^K / 2^(K + 1)`. -/
 theorem exists_mostProbable (t : PhyloTree) (ht : t.WellLabelled) (E : Finset Pair)
     (hE : EdgeAbove.CycleSeparated t E) :
-    ∃ M : External.SiteModel (graph t E) Bool, MostProbableQuartets M t := by
+    ∃ M : External.WarnowTabatabaeeEvans.SiteModel (graph t E) Bool, MostProbableQuartets M t := by
   classical
   have hN := levelOne t ht E hE
   set K := (supportEdges t E).card
@@ -219,7 +219,7 @@ theorem exists_mostProbable (t : PhyloTree) (ht : t.WellLabelled) (E : Finset Pa
     exact hs (((t.induced_iff_splitOf ht q.key hk s).mp hind).trans hsplit.symm)
   -- upper bound: only sites off the support switching contribute it
   have hupper : M.quartetProb (q.key.quartet s) + Psupp ≤ 1 := by
-    have hsub : Finset.univ.filter (fun h : External.SiteHistory (graph t E) Bool =>
+    have hsub : Finset.univ.filter (fun h : External.WarnowTabatabaeeEvans.SiteHistory (graph t E) Bool =>
         q.key.quartet s ∈ h.quartets) ⊆
         Finset.univ.filter (fun h => ¬ h.switching = supportEdges t E) := by
       intro h hh
@@ -228,7 +228,7 @@ theorem exists_mostProbable (t : PhyloTree) (ht : t.WellLabelled) (E : Finset Pa
       rw [hnot] at this
       exact Bool.false_ne_true this
     have hsplit_sum := Finset.sum_filter_add_sum_filter_not Finset.univ
-      (fun h : External.SiteHistory (graph t E) Bool => h.switching = supportEdges t E)
+      (fun h : External.WarnowTabatabaeeEvans.SiteHistory (graph t E) Bool => h.switching = supportEdges t E)
       M.weight
     rw [M.weight_sum hN, M.sum_weight_switching hN (support_switching t E hE.1)] at hsplit_sum
     calc M.quartetProb (q.key.quartet s) + Psupp
@@ -258,9 +258,9 @@ theorem exists_mostProbable (t : PhyloTree) (ht : t.WellLabelled) (E : Finset Pa
   have hy : y = Address.code p := (Finset.mem_filter.mp hxymem).2
   subst hy
   have hy1 : (graph t E).indegree (Address.code p) = 1 := graph_indegree_code t E hE.1 hp hp0
-  let hist := External.SiteHistory.snp hN (support_switching t E hE.1) hxyS false true
+  let hist := External.WarnowTabatabaeeEvans.SiteHistory.snp hN (support_switching t E hE.1) hxyS false true
   have hhist : q ∈ hist.quartets := by
-    rw [External.SiteHistory.snp_quartets hN _ hxyS (by decide)]
+    rw [External.WarnowTabatabaeeEvans.SiteHistory.snp_quartets hN _ hxyS (by decide)]
     refine Finset.mem_filter.mpr ⟨Quartet.mem_onTaxa.mpr hqt, ?_⟩
     rw [cladeBelow_support_code ht hE hp]
     simp only [PhyloTree.taxaAt, hsub, hsubC]
@@ -275,7 +275,7 @@ theorem exists_mostProbable (t : PhyloTree) (ht : t.WellLabelled) (E : Finset Pa
     · subst hexy
       simp [hy1]
     · have hst : hist.state e.1 = hist.state e.2 :=
-        External.SiteHistory.snp_state_eq hN _ hxyS false true he hexy
+        External.WarnowTabatabaeeEvans.SiteHistory.snp_state_eq hN _ hxyS false true he hexy
       rw [hst]
       by_cases h2 : (graph t E).indegree e.2 = 2 <;> simp [h2]
   have hlower : Psupp * 2⁻¹ * (2⁻¹ : ℝ≥0) ^ K ≤ M.quartetProb q := by
@@ -315,7 +315,7 @@ the root of the tree, its leaf is a child of the root of the network, and the ro
 lies on no cycle, so that the tree can be rooted on the edge to the outgroup ("provided we have
 an outgroup"). Under some site model with two states, the tree induces the most probable quartet
 on every four taxa (`Realization.exists_mostProbable`). Yet, for independent sites with the law
-of this model (`External.SiteModel.sites`), the probability that `outgroupDeepNet`, built on the
+of this model (`External.WarnowTabatabaeeEvans.SiteModel.sites`), the probability that `outgroupDeepNet`, built on the
 same tree and not isomorphic to the true network, displays as many quartets of `Q_m` as any
 network built on the tree, with the fewest reticulations among those, tends to 1. -/
 theorem deeperDonor_meets_hypotheses :
@@ -324,31 +324,31 @@ theorem deeperDonor_meets_hypotheses :
       (∀ v (c : outgroupShallowNet.underlying.Walk v v), c.IsCycle →
         outgroupShallowNet.root ∉ c.support) ∧
       outgroupShallowNet.AnchoredExtension outgroupTree ∧
-      ∃ M : External.SiteModel outgroupShallowNet Bool, MostProbableQuartets M outgroupTree ∧
+      ∃ M : External.WarnowTabatabaeeEvans.SiteModel outgroupShallowNet Bool, MostProbableQuartets M outgroupTree ∧
         Tendsto (fun m => M.sites outgroupShallowNet_anchored.1 {ω |
           (∀ R : RootedNetwork, R.AnchoredExtension outgroupTree →
-            score (External.sampleQuartets (fun n ω => ω n) m ω)
-                (DynamicProgramming.repertoire (External.sampleQuartets (fun n ω => ω n) m ω)
+            score (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
+                (DynamicProgramming.repertoire (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
                   R) ≤
-              score (External.sampleQuartets (fun n ω => ω n) m ω)
-                (DynamicProgramming.repertoire (External.sampleQuartets (fun n ω => ω n) m ω)
+              score (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
+                (DynamicProgramming.repertoire (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
                   outgroupDeepNet)) ∧
           (∀ R : RootedNetwork, R.AnchoredExtension outgroupTree →
             (∀ R' : RootedNetwork, R'.AnchoredExtension outgroupTree →
-              score (External.sampleQuartets (fun n ω => ω n) m ω)
-                  (DynamicProgramming.repertoire (External.sampleQuartets (fun n ω => ω n) m ω)
+              score (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
+                  (DynamicProgramming.repertoire (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
                     R') ≤
-                score (External.sampleQuartets (fun n ω => ω n) m ω)
-                  (DynamicProgramming.repertoire (External.sampleQuartets (fun n ω => ω n) m ω)
+                score (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
+                  (DynamicProgramming.repertoire (External.WarnowTabatabaeeEvans.sampleQuartets (fun n ω => ω n) m ω)
                     R)) →
             outgroupDeepNet.reticulationCount ≤ R.reticulationCount) ∧
           IsEmpty (outgroupDeepNet.Iso outgroupShallowNet)}) atTop (𝓝 1) := by
-  obtain ⟨M, hM⟩ : ∃ M : External.SiteModel outgroupShallowNet Bool,
+  obtain ⟨M, hM⟩ : ∃ M : External.WarnowTabatabaeeEvans.SiteModel outgroupShallowNet Bool,
       MostProbableQuartets M outgroupTree :=
     Realization.exists_mostProbable outgroupTree outgroupTree_wellLabelled {outgroupShallowPair}
       (Realization.single_separated outgroupShallowPair_mem)
   have h := snp_outgroup_tendsto M
-    (fun n (ω : ℕ → External.SiteHistory outgroupShallowNet Bool) => ω n)
+    (fun n (ω : ℕ → External.WarnowTabatabaeeEvans.SiteHistory outgroupShallowNet Bool) => ω n)
     (M.sites_iIndepFun outgroupShallowNet_anchored.1)
     (M.sites_identDistrib outgroupShallowNet_anchored.1)
     (M.sites_law outgroupShallowNet_anchored.1)

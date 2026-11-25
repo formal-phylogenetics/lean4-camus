@@ -1,0 +1,28 @@
+{
+  "challenge_module": "Camus.Challenge",
+  "solution_module": "Camus.Solution",
+  "theorem_names": [
+    "CamusChallenge.theorem1",
+    "CamusChallenge.exists_array_trace",
+    "CamusChallenge.tree_displays_iff",
+    "CamusChallenge.edgeWeight_eq",
+    "CamusChallenge.definition1_reduction",
+    "CamusChallenge.builtOn_not_anchored",
+    "CamusChallenge.reticulation_restriction",
+    "CamusChallenge.exists_budget_traces",
+    "CamusChallenge.not_exactCountMonotone",
+    "CamusChallenge.not_exactStoppingRule",
+    "CamusChallenge.not_atMostStoppingRule",
+    "CamusChallenge.not_uniqueOptimum",
+    "CamusChallenge.recovery",
+    "CamusChallenge.tree_identifiable",
+    "CamusChallenge.recovery_needs_identifiable"
+  ],
+  "definition_names": [],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": true
+}

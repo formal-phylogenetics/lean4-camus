@@ -17,7 +17,7 @@ of any other tree. When the quartet support score for t is larger than any other
 support, ASTRAL will return t since it solves its optimization problem exactly."
 
 This file proves that step inside the single site model of Warnow, Tabatabaee and Evans
-(`External.SiteModel`). A well-labelled tree induces exactly one quartet on each set of four of
+(`External.WarnowTabatabaeeEvans.SiteModel`). A well-labelled tree induces exactly one quartet on each set of four of
 its taxa (`PhyloTree.induced_existsUnique`). Under the paper's condition that, for every four taxa
 of `t`, the quartet that `t` induces is strictly the most probable quartet on them, per site
 (`MostProbableQuartets`), the probability that the score of `t` is larger than the score of every
@@ -47,8 +47,8 @@ so maximizing over well-labelled `PhyloTree`s on the taxa is ASTRAL's problem.
 
 1. For every four taxa, the quartet that `t` induces is the most frequent quartet on them, with
    probability tending to 1: by the strong law of large numbers each frequency converges to the
-   per-site probability (`External.eventually_count_lt`), and there are finitely many sets of four
-   taxa (`External.tendsto_measure_of_ae_eventually`).
+   per-site probability (`External.WarnowTabatabaeeEvans.eventually_count_lt`), and there are finitely many sets of four
+   taxa (`External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually`).
 2. Then the score of `t` is larger than the score of any other tree: the score of a tree is the
    sum, over the sets of four taxa, of the number of copies of the one quartet it induces on them
    (`quartetSupport_eq_sum_keys`), and the terms of `t` are at least those of any tree, and larger
@@ -462,7 +462,7 @@ quartet on them, per site, under the model `M`: a site contributes it to `Q` wit
 probability than each of the two other quartets on those taxa. "The most probable" is read as
 strictly more probable than the two others: with a tie, the most frequent quartet need not settle
 on the quartet of `t`. -/
-def MostProbableQuartets (M : External.SiteModel N σ) (t : PhyloTree) : Prop :=
+def MostProbableQuartets (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (t : PhyloTree) : Prop :=
   ∀ q : Quartet, q.induced t = true → ∀ s : Fin 3, s ≠ q.split →
     M.quartetProb (q.key.quartet s) < M.quartetProb q
 
@@ -472,13 +472,13 @@ variable {Ω : Type*} [MeasurableSpace Ω]
 observed quartet tree will be the most probable quartet tree with probability converging to 1".
 Under `MostProbableQuartets`, the probability that, for every four taxa of `t`, the quartet that
 `t` induces has more copies in `Q_m` than the two other quartets on them tends to 1. -/
-theorem mostFrequent_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
+theorem mostFrequent_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
     (t : PhyloTree) (hcond : MostProbableQuartets M t) {P : Measure Ω} [IsProbabilityMeasure P]
-    (X : ℕ → Ω → External.SiteHistory N σ) (hind : iIndepFun X P)
+    (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ) (hind : iIndepFun X P)
     (hid : ∀ n, IdentDistrib (X n) (X 0) P P) (hlaw : P.map (X 0) = M.law hN) :
     Tendsto (fun m => P {ω | ∀ q : Quartet, q.induced t = true → ∀ s : Fin 3, s ≠ q.split →
-      (External.sampleQuartets X m ω).count (q.key.quartet s) <
-        (External.sampleQuartets X m ω).count q}) atTop (𝓝 1) := by
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q}) atTop (𝓝 1) := by
   classical
   let K := (Quartet.onTaxa t.taxa).filter fun q => q.induced t = true
   let S : Quartet → Finset (Fin 3) := fun q => Finset.univ.filter (· ≠ q.split)
@@ -489,16 +489,16 @@ theorem mostFrequent_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryL
     exact hq.1
   -- each of the finitely many comparisons holds eventually, almost surely, by the strong law
   have hall : ∀ᵐ ω ∂P, ∀ᶠ m in atTop, ∀ q ∈ K, ∀ s ∈ S q,
-      (External.sampleQuartets X m ω).count (q.key.quartet s) <
-        (External.sampleQuartets X m ω).count q := by
+      (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := by
     have hpair : ∀ q ∈ K, ∀ s ∈ S q, ∀ᵐ ω ∂P, ∀ᶠ m in atTop,
-        (External.sampleQuartets X m ω).count (q.key.quartet s) <
-          (External.sampleQuartets X m ω).count q := fun q hq s hs =>
-      External.eventually_count_lt M hN X hind hid hlaw
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+          (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := fun q hq s hs =>
+      External.WarnowTabatabaeeEvans.eventually_count_lt M hN X hind hid hlaw
         (hcond q (Finset.mem_filter.mp hq).2 s (Finset.mem_filter.mp hs).2)
     have hae : ∀ᵐ ω ∂P, ∀ q ∈ K, ∀ s ∈ S q, ∀ᶠ m in atTop,
-        (External.sampleQuartets X m ω).count (q.key.quartet s) <
-          (External.sampleQuartets X m ω).count q := by
+        (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count (q.key.quartet s) <
+          (External.WarnowTabatabaeeEvans.sampleQuartets X m ω).count q := by
       rw [Filter.eventually_all_finset]
       intro q hq
       rw [Filter.eventually_all_finset]
@@ -509,7 +509,7 @@ theorem mostFrequent_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryL
     rw [Filter.eventually_all_finset]
     exact hω q hq
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    (External.tendsto_measure_of_ae_eventually (A := fun m => {ω | _}) hall) tendsto_const_nhds
+    (External.WarnowTabatabaeeEvans.tendsto_measure_of_ae_eventually (A := fun m => {ω | _}) hall) tendsto_const_nhds
     (fun m => measure_mono fun ω hω => ?_) fun _ => prob_le_one
   intro q hq s hs
   exact hω q (hK q hq) s (Finset.mem_filter.mpr ⟨Finset.mem_univ s, hs⟩)
@@ -519,15 +519,15 @@ of any other tree". Under `MostProbableQuartets`, for independent sites with the
 `M`, the probability that the quartet support score of `t` for `Q_m` is larger than the score of
 every well-labelled tree on the taxa of `t` that induces a different set of quartets tends
 to 1. -/
-theorem astral_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
+theorem astral_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
     (t : PhyloTree) (ht : t.WellLabelled) (hcond : MostProbableQuartets M t)
-    {P : Measure Ω} [IsProbabilityMeasure P] (X : ℕ → Ω → External.SiteHistory N σ)
+    {P : Measure Ω} [IsProbabilityMeasure P] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ)
     (hind : iIndepFun X P) (hid : ∀ n, IdentDistrib (X n) (X 0) P P)
     (hlaw : P.map (X 0) = M.law hN) :
     Tendsto (fun m => P {ω | ∀ T : PhyloTree, T.WellLabelled → T.taxa = t.taxa →
       (∃ q : Quartet, q.induced T ≠ q.induced t) →
-        quartetSupport (External.sampleQuartets X m ω) T <
-          quartetSupport (External.sampleQuartets X m ω) t}) atTop (𝓝 1) := by
+        quartetSupport (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T <
+          quartetSupport (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) t}) atTop (𝓝 1) := by
   -- the most frequent quartets are those of `t`, and then `t` has the largest score
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
     (mostFrequent_tendsto M hN t hcond X hind hid hlaw) tendsto_const_nhds
@@ -543,15 +543,15 @@ The conclusion is that every tree ASTRAL may return induces the quartets of `t`;
 tree, rooted at the outgroup, is `t` up to the order of children is
 `PhyloTree.rootedIso_of_induced_eq` (`Camus/Pipelines/AstralTree.lean`), and the two are combined in
 `pipeline_tendsto` (`Camus/Pipelines/Pipeline.lean`). -/
-theorem astral_maximizer_tendsto (M : External.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
+theorem astral_maximizer_tendsto (M : External.WarnowTabatabaeeEvans.SiteModel N σ) (hN : N.RootedBinaryLevelOne)
     (t : PhyloTree) (ht : t.WellLabelled) (hcond : MostProbableQuartets M t)
-    {P : Measure Ω} [IsProbabilityMeasure P] (X : ℕ → Ω → External.SiteHistory N σ)
+    {P : Measure Ω} [IsProbabilityMeasure P] (X : ℕ → Ω → External.WarnowTabatabaeeEvans.SiteHistory N σ)
     (hind : iIndepFun X P) (hid : ∀ n, IdentDistrib (X n) (X 0) P P)
     (hlaw : P.map (X 0) = M.law hN) :
     Tendsto (fun m => P {ω | ∀ T : PhyloTree, T.WellLabelled → T.taxa = t.taxa →
       (∀ T' : PhyloTree, T'.WellLabelled → T'.taxa = t.taxa →
-        quartetSupport (External.sampleQuartets X m ω) T' ≤
-          quartetSupport (External.sampleQuartets X m ω) T) →
+        quartetSupport (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T' ≤
+          quartetSupport (External.WarnowTabatabaeeEvans.sampleQuartets X m ω) T) →
       ∀ q : Quartet, q.induced T = q.induced t}) atTop (𝓝 1) := by
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le
     (astral_tendsto M hN t ht hcond X hind hid hlaw) tendsto_const_nhds

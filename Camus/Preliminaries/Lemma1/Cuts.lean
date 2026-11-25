@@ -101,7 +101,7 @@ theorem novel_edge_exists
       (Realization.graph t {H.pairOf d}).DisplaysQuartet q := by
   classical
   -- Observation 2: `q` is separated by a cut edge or by a two-edge cut of a cycle.
-  rcases (External.observation2 N hN q hq.1).mp hq with hcut | hcycle
+  rcases (External.WarnowTabatabaeeEvans.observation2 N hN q hq.1).mp hq with hcut | hcycle
   -- A cut edge would make `q` induced by `T`.
   · exact False.elim (hnot (cutEdgeSeparates_baseline ht hN H q hq.1 hcut))
   -- The cycle is the cycle of the non-tree edge `d` entering its reticulation.

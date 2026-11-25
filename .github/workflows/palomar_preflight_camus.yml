@@ -1,8 +1,10 @@
-name: Palomar preflight
+name: Palomar preflight (Camus)
 
 # Runs Palomar's complete mechanical verification on this commit, as the registry does after a
 # submission, and publishes its report as an artifact. The verifier fetches the repository
 # anonymously, so the repository must be public. A run can take hours, so it only runs on demand.
+# `options` names the paper's Comparator configuration and metadata, both in palomar/Camus/:
+# neither is at the root, so both are named.
 # Pin `uses` and `pipeline_commit` to the same full PalomarSubmission commit:
 #   git ls-remote https://github.com/PalomarRegistry/PalomarSubmission.git HEAD
 # `request_id` must be exactly 12 lowercase letters or digits.
@@ -22,4 +24,4 @@ jobs:
       request_id: preflight001
       mode: full
       execution_profile: palomar-standard-v1
-      options: '{"comparator_config_path":"comparator.json","authorization_relationship":"I am a responsible author or maintainer"}'
+      options: '{"comparator_config_path":"palomar/Camus/comparator.json","formalization_metadata_path":"palomar/Camus/formalization.yaml","authorization_relationship":"I am a responsible author or maintainer"}'

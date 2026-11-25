@@ -59,7 +59,8 @@ sources:
     author_endorsement: "not-contacted"
     note: >-
       The published version (Bioinformatics 42, Supplement 1, 2026), audited against its JATS XML
-      (Europe PMC PMC13340232); docs/Camus/REPORT.md lists the readings, the refuted claims and the departures from the paper's proofs.
+      (Europe PMC PMC13340232); docs/Camus/REPORT.md lists the readings, the refuted claims and the
+      departures from the paper's proofs.
   - title: "Advances in Estimating Level-1 Phylogenetic Networks from Unrooted SNPs"
     authors:
       - "Tandy Warnow"
